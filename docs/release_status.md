@@ -243,9 +243,14 @@ than another few percent of tuning. Full detail in `docs/compatibility.md`.
 Two things are also outstanding that are not on the v1.0 list but are recorded
 because they are limits of the environment rather than of the work:
 
-* Full oracle regeneration on R >= 4.5.0. The declared minimum is one series above
-  the installed 4.3.3, and the fixed-effects path is expected to be unaffected
-  (`reference/env/ORACLE.md` gives the reasons), but it has not been executed.
+* ~~Full oracle regeneration on R >= 4.5.0.~~ **Closed.** R 4.5.3 was installed,
+  ANCOMBC 2.15.2 installs and runs there, and the matrix generated under 4.3.3 and
+  4.5.3 on the same BLAS is bit-identical — 915 of 915 arrays. The expected
+  "unaffected" turned out to be exactly true. The `foreach` stub the harness needs
+  on an older R was separately verified against the installed package: 38 of 38
+  cells, deviation 0. The goldens stay on the reference BLAS they were drawn with,
+  and that, not the R version, is the real reproducibility constraint; see
+  `docs/reproduction.md`.
 * The containerised benchmark harness is committed and wired into CI but has not
   been executed here, for want of a container engine
   (`benchmarks/container/README.md`).

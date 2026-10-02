@@ -9,6 +9,7 @@ not either committed or produced by one of them.
 | --- | --- | --- |
 | Rust 1.80 or later | building and testing | `cargo --version` |
 | R 4.3 or later | regenerating the goldens, the R benchmark arm, the profile | `Rscript --version` |
+| R 4.5.0 or later + ANCOMBC | `make verify-real-package` only (see below) | `Rscript -e 'packageVersion("ANCOMBC")'` |
 | `nloptr` | the oracle harness | `Rscript -e 'library(nloptr)'` |
 | `MASS` | the oracle harness (`MASS::ginv`) | `Rscript -e 'library(MASS)'` |
 | Python 3.9 or later | the benchmark, gate and simulation scripts | `python3 --version` |
@@ -23,9 +24,65 @@ Rscript -e 'install.packages("nloptr", lib = file.path(Sys.getenv("HOME"), "rlib
 export R_LIBS_USER="$HOME/rlib"
 ```
 
-The oracle declares `R >= 4.5.0`. The available interpreter here is 4.3.3, and the
-harness works around that by sourcing the pinned R files instead of installing the
-package — see `docs/compatibility.md`.
+### The R version, and why the goldens are BLAS-pinned
+
+The oracle declares `Depends: R (>= 4.5.0)`. The system interpreter here is
+4.3.3, which is below that, so the harness sources the oracle's pinned R files
+rather than installing the package.
+
+**That workaround turns out not to cost anything, and this has been measured
+rather than assumed** — see `docs/compatibility.md` for the results:
+
+* R 4.3.3 and R 4.5.3, on the same BLAS, produce **bit-identical** goldens
+  (915 of 915 arrays).
+* The oracle's own `foreach` stub reproduces the installed package exactly:
+  **38 of 38 cells, deviation 0**.
+
+So the declared `R 4.5.x` target holds. What *does* move the numbers is **BLAS**:
+the committed goldens record Ubuntu's reference BLAS, and an OpenBLAS R shifts
+`beta` by up to 2.5e-06 relative, which is above the contract's `rtol 1e-8`.
+`make goldens-drift` byte-compares the `.f64` payloads for that reason, so:
+
+> **`make goldens-drift` must be run against the same BLAS the goldens were
+> generated with** (Ubuntu's `libblas.so.3.12.0`). On a different BLAS it will
+> report drift that is real but not a regression, and the right response is to
+> check the BLAS, not to widen the comparison.
+
+#### Installing an R 4.5.x interpreter, to check any of this yourself
+
+The oracle installs and runs under 4.5.x. An isolated one, without disturbing the
+system R:
+
+```sh
+# 1. R 4.5.3 plus everything in the oracle's Imports
+curl -sSL https://micro.mamba.pm/api/micromamba/linux-64/latest | tar -xj bin/micromamba
+./bin/micromamba create -y -p "$HOME/r45" -c conda-forge \
+  r-base=4.5.3 r-mass r-matrix r-hmisc r-desctools r-rdpack r-doparallel \
+  r-dorng r-foreach r-gtools r-lme4 r-lmertest r-multcomp r-energy r-nloptr r-quadprog
+
+export PATH="$HOME/r45/bin:$PATH"
+Rscript --version                       # R 4.5.3
+
+# 2. the oracle itself, which is what needed R >= 4.5.0
+mkdir -p "$HOME/r45/rlib"
+R CMD INSTALL --no-docs -l "$HOME/r45/rlib" reference/ANCOMBC
+
+# 3. run every matrix cell through the installed package
+R_LIBS_USER="$HOME/r45/rlib" make verify-real-package
+```
+
+`make verify-real-package` compares the installed package against the committed
+goldens. That comparison spans two variables, so read it as follows:
+
+* against the **committed** goldens it also measures the BLAS difference, and six
+  cells exceed the contract's `rtol` on `beta` for that reason;
+* against a tree the **harness** generated on the same interpreter — which is
+  what isolates the question the check exists to answer — it is 38 of 38 exact:
+
+```sh
+# regenerate with the harness on this interpreter, then compare against that
+GOLDEN_ROOT=/path/to/harness-goldens make verify-real-package
+```
 
 ## The oracle
 

@@ -18,7 +18,28 @@ version bump — plus a re-run of the golden parity suite.
 
 ## [Unreleased]
 
+### Added
+
+- **`make verify-real-package`, which closes the last open item on the R 4.5
+  caveat.** The oracle declares `Depends: R (>= 4.5.0)`, the system interpreter
+  was 4.3.3, and so the goldens were produced by sourcing the oracle's R files
+  with a sequential `foreach` stub. R 4.5.3 is now installed and ANCOMBC 2.15.2
+  installs and runs there as a real package, which makes the caveat checkable
+  rather than merely argued. `scripts/verify_real_package.R` runs all 38 matrix
+  cells through the installed package and compares against the harness's own
+  output on the same interpreter: **38 of 38 bit-identical, deviation 0**.
+
 ### Fixed
+
+- **The declared `R 4.5.x` target is now measured rather than asserted.** The same
+  fixture matrix generated under R 4.3.3 and R 4.5.3, on the *same* BLAS, is
+  **bit-identical — 915 of 915 arrays**. What does move the numbers is **BLAS**:
+  the committed goldens record Ubuntu's reference BLAS, and the same R 4.3.3 on
+  OpenBLAS shifts `beta` by up to 2.5e-06 relative, above the contract's
+  `rtol 1e-8` while every `se` stays within 1e-11. That is why `goldens-drift`
+  byte-compares the `.f64` payloads, and `docs/reproduction.md` now says so
+  explicitly: run it against the same BLAS, and treat a report of drift on a
+  different one as a BLAS difference rather than a regression.
 
 - **Aliased coefficients: three defects, and the divergence is closed.** The
   `int-sparsity90-5group` matrix cell was 195 % out on `beta_star` and up to 1.4

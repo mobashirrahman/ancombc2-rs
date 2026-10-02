@@ -132,12 +132,29 @@ Stated plainly, because a compatibility claim is only as good as its coverage.
   sparsity × predictor type × covariate count × group balance × pseudo ×
   sensitivity × adjustment. Four fixtures are committed; they cover the
   structural-zero, sensitivity and large-shape cases, not the matrix.
-* **R 4.5.** The available interpreter is 4.3.3 and the oracle declares
-  `R >= 4.5.0`. The fixed-effects path is exercised by sourcing the pinned R files
-  with a sequential `foreach` stub, which is behaviourally identical to
-  `registerDoSEQ()` for this code path — but it is not the same as installing and
-  running the package, and a divergence that only appears under the package's own
-  scheduling would not be caught here.
+* **R 4.5. CLOSED.** Previously open, because the available interpreter was 4.3.3
+  and the oracle declares `Depends: R (>= 4.5.0)`, so `R CMD INSTALL` refused it
+  and the goldens had to be produced by sourcing the oracle's R files with a
+  sequential `foreach` stub. **Executed on R 4.5.3**, where ANCOMBC 2.15.2 does
+  install and run as a real package, with two results:
+
+  * **The R version does not matter.** The same matrix generated under R 4.3.3 and
+    under R 4.5.3, on the *same* BLAS, is **bit-identical — 915 of 915 arrays**.
+    The declared target's `R 4.5.x` therefore describes the numbers the port
+    produces, not merely the interpreter the goldens happened to be drawn on.
+  * **The stub was faithful.** `scripts/verify_real_package.R` runs all 38 cells
+    through the installed package and compares against the harness's own output on
+    the same interpreter: **38 of 38 bit-identical, deviation exactly 0**. The
+    concern that a divergence would appear only under the package's own scheduling
+    is answered, not argued.
+
+  What *is* load-bearing is **BLAS**, and that is now documented rather than
+  assumed: the committed goldens record Ubuntu's reference BLAS
+  (`libblas.so.3.12.0`), and the same R 4.3.3 on OpenBLAS moves `beta` by up to
+  **2.5e-06 relative** — above the contract's `rtol 1e-8`, though every `se` stays
+  within 1e-11. `make goldens-drift` therefore byte-compares the `.f64` payloads
+  and must be run on the same BLAS as the goldens were drawn with; see
+  `docs/reproduction.md`.
 * **A container-based benchmark harness.** `PLAN.md` §7 asks for a committed
   container. The harness is committed and runnable; the container image is not.
 

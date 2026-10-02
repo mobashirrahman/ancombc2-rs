@@ -371,9 +371,12 @@ and as the subset `c(2, 4)` all produce the same checksums
 
 **The four committed fixtures were deliberately not regenerated.** They are the
 inputs the committed goldens were computed from, those goldens currently pass
-parity, and reproducing the *original* draw needs the declared R 4.5 rather than
-the 4.3.3 available here. Replacing the inputs would invalidate a passing golden
-set to fix a property nothing currently depends on. So:
+parity, and regenerating them would replace a passing golden set to fix a property
+nothing currently depends on. (Whether R 4.5.3 would draw the same inputs was
+measured later and is no longer part of the argument: on the same BLAS, 4.3.3 and
+4.5.3 produce bit-identical output — 915 of 915 arrays — so the choice of
+interpreter was never what was protecting the inputs. See
+`docs/compatibility.md`.) So:
 
 * the committed `validation/fixtures/fx01`..`fx04` and everything under
   `validation/golden/` stay as they are;
@@ -559,12 +562,13 @@ the design as the thing that was wrong.
 
 ## 17. What could not be executed here
 
-* The oracle declares `R >= 4.5.0`; the interpreter available is **4.3.3**. The
-  fixed-effects path is exercised by sourcing the pinned R files and installing a
-  sequential `foreach`/`%dorng%` stub, which is behaviourally identical to
-  `registerDoSEQ()` for the fixed-effects code. It is not the same as installing
-  and running the package, and a divergence that only appears under the package's
-  own `foreach` scheduling would not be caught.
+* ~~The oracle declares `R >= 4.5.0`; the interpreter available is 4.3.3.~~
+  **Closed.** R 4.5.3 was installed and the oracle does install and run as a real
+  package there. Sourcing the pinned R files with a sequential
+  `foreach`/`%dorng%` stub was verified against the installed package over all 38
+  matrix cells and is **bit-identical, deviation 0**, so the scheduling concern
+  this paragraph raised does not materialise. `make verify-real-package` re-runs
+  the check.
 * `lme4`, `nloptr`'s RNG and BLAS/LAPACK kernels are not the ones a full install
   would link. `nloptr` is installed from source into a private library;
   the R BLAS is the reference implementation unless `ORACLE_BLAS` says otherwise
