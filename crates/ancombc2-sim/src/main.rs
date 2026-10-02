@@ -551,6 +551,31 @@ fn as_f64(
 /// formula handling that a real run wants, and this needs only the raw table
 /// plus a design matrix built from the same formula string. Duplicating it would
 /// mean two readers whose disagreement shows up as a data difference.
+///
+/// The design builders diverge too, and the difference is **not** a bug in either,
+/// so this is recorded rather than asserted away. Measured on
+/// `validation/realdata/atlas1006`, whose `sex` column is 666 female, 448 male
+/// and 37 `NA`:
+///
+/// ```text
+/// this crate : (Intercept), sexmale                    # levels from the dataset's
+///                                                          declared group_levels
+/// ancombc2_io: (Intercept), sexfemale, sexmale         #   ("female","male"), first
+///                                                          dropped;  vs factor()'s
+///                                                          sorted order, which puts
+///                                                          "NA" first
+/// ```
+///
+/// The oracle agrees with *this* crate, because ANCOM-BC2's `data_sanity_check`
+/// drops the samples whose metadata is missing before `model.matrix` ever sees
+/// the factor, so its levels are the two observed ones. The shipping builder is
+/// handed the whole metadata table and keeps `NA` as a level. Both are right for
+/// their own input; they are not the same input.
+///
+/// An earlier revision asserted the two designs agreed and failed immediately on
+/// this dataset. That assert could never have passed, and a check that cannot pass
+/// is worse than no check -- it looks like coverage.
+///
 /// One prepared dataset: its counts, the metadata as name-keyed rows, and the
 /// metadata's variable names.
 struct Dataset {
