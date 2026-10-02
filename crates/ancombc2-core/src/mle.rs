@@ -241,7 +241,6 @@ fn fit_one_group(cache: &DesignCache, y: &[f64], n_samp: usize, g: usize) -> Gro
         // coefficient is a literal 0 -- not NA, and not the 1e14 value a
         // pseudo-inverse would produce. Reproduced here taxon by taxon,
         // because a per-taxon `lm` can have a different rank from the group.
-        let rank = q.rank;
         for &t in taxa {
             // `fit_one`'s `lm` can still fail -- see
             // `per_taxon_lm_would_succeed` -- and a failed taxon keeps NA for both
@@ -250,18 +249,141 @@ fn fit_one_group(cache: &DesignCache, y: &[f64], n_samp: usize, g: usize) -> Gro
                 continue;
             }
             let resp: Vec<f64> = rows.iter().map(|&s| y[t * n_samp + s]).collect();
-            let bm = match Matrix::from_vec(rows.len(), 1, resp) {
-                Ok(m) => m,
-                Err(_) => continue,
+            // `fit_one` does **not** factorise the group's design. It builds
+            // `df = data.frame(y_crt = Ymat[i, ], meta_data)` -- all `n_samp`
+            // rows, with `NA` where this taxon's response is missing -- and calls
+            // `lm(tformula, data = df)`. `lm` drops the incomplete rows first,
+            // then `model.matrix` applies `drop.unused.levels = TRUE` to what is
+            // left, so **the design it factorises is not `xsub`**: every group
+            // contrast for a level this taxon never observed is gone.
+            //
+            // Measured on the oracle, for the first retained taxon of the
+            // `int-sparsity90-5group` cell (3 usable samples, 6 design columns,
+            // levels {1, 2, 4} of 5):
+            //
+            // ```text
+            // > colnames(model.matrix(lm(y_crt ~ group + x1, df)))
+            // [1] "(Intercept)" "groupg2"  "groupg4"  "x1"
+            // > fit_one writes
+            // (Intercept)=1.40771  group2=-1.30597  group3=0  group4=-2.86441
+            // group5=0  x1=NA
+            // ```
+            //
+            // `group3` and `group5` are literal `0` because they have no name in
+            // `coef()` and `fit_one` writes into `rep(0, p)`; `x1` is `NA`
+            // because it *is* named and `coef.lm` marks it aliased.
+            //
+            // This has to be a real factorisation of the reduced design rather
+            // than the full one with its unobserved columns patched to zero. The
+            // two differ in which columns form the basis: the full design's
+            // columns are `[1,1,1]`, `[0,0,1]`, `[0,0,0]`, `[0,1,0]`, `[0,0,0]`,
+            // `[·]`, so an unpivoted greedy QR admits 1, 2 and 4 and rejects 3,
+            // 5 and 6 -- an *interior* rejection, which the `aliased = i >= rank`
+            // rule in [`qr`] cannot express. That rule is correct for
+            // `lm.fit`'s contiguous leading run and wrong here, so patching after
+            // the fact gave `beta_star` 166% wrong on this cell.
+            //
+            // `xsub` is the group's sub-design: its rows are `rows` in order, so
+            // it is indexed by position within `rows`, never by the global sample
+            // number -- which reads past the end for any group that is not the
+            // first block of samples.
+            //
+            // A treatment contrast is 1 exactly on the rows of its own level, so
+            // "the taxon observed that level" is "the column is ever 1". Dropping
+            // the columns that are not is then just filtering, and the surviving
+            // contrasts keep their original names and values: R re-bases against
+            // the first *observed* level, which is the same 0/1 coding shifted,
+            // not a new column.
+            //
+            // The base level is the first **observed** one, not the first globally.
+            // `model.matrix` re-levels the factor to what the na.omit-reduced frame
+            // contains and then applies `contr.treatment`, which drops the first
+            // level it sees. So a taxon observed at levels {3, 4, 5} gets columns
+            // for 4 and 5 only: `group3` is the base and gets no column at all,
+            // even though `group3` is 1 on some of its rows and is therefore
+            // "observed" in every other sense. Measured against the oracle's own
+            // `beta_star` on `int-sparsity90-5group`, keeping the smallest
+            // observed level's column instead flipped 20 of the 64 rows -- `F`
+            // where the oracle has `0`, and `0` where it has `F`.
+            let g0 = cache.group_cols.first().copied();
+            // A treatment contrast is 1 exactly on its own level's rows, so
+            // "observed" is "ever 1". `group_cols` is ascending in column order
+            // and `model.matrix` emits the contrasts in level order, so the
+            // contrast for level L sits at `g0 + (L - 2)` -- which means the level
+            // has to be recovered from the column index, not compared with it:
+            // the *first* level has no contrast at all, so the smallest contrast
+            // index is the second level, not the base.
+            let level_of = |j: usize| g0.map(|g| 2 + j - g);
+            //
+            // The level has to come from the *rows*, because the base level is the
+            // one with no contrast of its own: a row with every group contrast 0
+            // is level 1, and level 1 being the base is exactly the case that
+            // makes `group2` the first column rather than the dropped one. Reading
+            // the base off the contrast indices instead -- "the lowest contrast
+            // index observed is the base" -- drops `group2` for a taxon observed
+            // at levels {1, 2, 4}, which is 20 of the 64 rows on
+            // `int-sparsity90-5group`.
+            let row_level = |li: usize| {
+                cache
+                    .group_cols
+                    .iter()
+                    .copied()
+                    .find(|&j| xsub.get(li, j) != 0.0)
+                    .and_then(level_of)
+                    .unwrap_or(1)
             };
-            let Some(coef) = q.solve_padded(&bm.data) else {
+            let base = (0..rows.len()).map(&row_level).min();
+            let cols: Vec<usize> = (0..p)
+                .filter(|&j| match level_of(j) {
+                    Some(l) if cache.group_cols.contains(&j) => {
+                        l != base.unwrap_or(1) && (0..rows.len()).any(|li| row_level(li) == l)
+                    }
+                    _ => !cache.group_cols.contains(&j),
+                })
+                .collect();
+            let red = xsub.select_cols(&cols);
+            let red_qr = qr(&red);
+            let Some(solved) = red_qr.solve_padded(&resp) else {
                 continue;
             };
+            // `fit_one`'s `bi = rep(0, p)`: a column with no name in `coef()` keeps
+            // the initialiser, so it is a literal 0 rather than `NA`.
+            let mut coef = vec![0.0f64; p];
+            for (c, &j) in cols.iter().enumerate() {
+                coef[j] = solved[c];
+            }
+            // `stats::fitted` is `lm.fit`'s *projection*, not `X %*% coef(fit)`.
+            // That distinction is invisible for a full-rank fit and decisive for a
+            // rank-deficient one: `coef` carries `NA` for every aliased term, so
+            // the product would be `NA` along the whole row, and `theta` is
+            // `colMeans(y - fitted, na.rm = TRUE)` -- an `NA` there does not merely
+            // lose one term, it drops the taxon out of that sample's mean entirely.
+            //
+            // Measured on `int-sparsity90-5group`: propagating the `NA` left only
+            // about a fifth of each sample's observed taxa contributing to `theta`,
+            // three samples with *no* contributor at all (so `theta` came back
+            // `NaN`, which then made the whole adjusted-response column `NaN` on
+            // the next iteration and cascaded), and the first iteration's epsilon
+            // came out 2.23 where the oracle's is 0.998.
+            //
+            // Zeroing the aliased coefficients is not an approximation of the
+            // projection, it *is* the projection: an aliased column is by
+            // definition in the span of the ones that were kept, so dropping it
+            // leaves the fitted space unchanged and `X %*% coef_kept` is the unique
+            // least-squares fit in that space. What `coef()` reports as `NA` is
+            // only the fact that the coordinate is not identified; the fitted
+            // values are.
             let mut fitted_row = vec![0.0; rows.len()];
-            fit_values(xsub, &coef, &mut fitted_row);
+            let fit_coef: Vec<f64> = coef
+                .iter()
+                .map(|&c| if c.is_nan() { 0.0 } else { c })
+                .collect();
+            fit_values(xsub, &fit_coef, &mut fitted_row);
             out.fitted.push((t, fitted_row));
-            out.beta.push((t, coef.to_vec()));
-            out.dof.push((t, (rows.len() - rank) as f64));
+            out.beta.push((t, coef));
+            // `fit$df.residual` is measured on the *reduced* model, so the rank
+            // that goes with it is the reduced rank.
+            out.dof.push((t, (rows.len() - red_qr.rank) as f64));
         }
         return out;
     }
@@ -884,6 +1006,109 @@ mod tests {
         v
     }
 
+    /// The base level is the first **observed** one, not the first globally, so a
+    /// taxon that never saw level 1 still reports a coefficient for it.
+    ///
+    /// `model.matrix` re-levels the factor to what the na.omit-reduced frame
+    /// contains and then applies `contr.treatment`, which drops the first level
+    /// *it sees*. The test case is samples 12, 18 and 24 -- levels 3, 4 and 5 of
+    /// the five, with levels 1 and 2 unobserved -- so the base is level 3, `group3`
+    /// is the one whose name never appears in `coef()`, and `group4`/`group5` both
+    /// do.
+    ///
+    /// This is the case that distinguishes the two candidate rules. Keeping the
+    /// smallest *contrast index* instead of the smallest *level* drops `group3`
+    /// here, which is 20 of the 64 rows on `int-sparsity90-5group`.
+    #[test]
+    fn the_base_level_is_the_first_observed_one() {
+        let x = design();
+        let n_samp = x.rows;
+        let p = x.cols;
+        let obs = observed_on(&[12, 18, 24], n_samp);
+        let cache = DesignCache::build(&obs, 1, n_samp, &x, &[1usize, 2, 3, 4]);
+
+        let mut y = vec![f64::NAN; n_samp];
+        for (k, &j) in [12usize, 18, 24].iter().enumerate() {
+            y[j] = 1.0 + k as f64;
+        }
+        let fit = lm_fit_all(&cache, &y, 1, n_samp);
+        let got = &fit.beta[0..p];
+
+        let zeros: Vec<usize> = (0..p).filter(|&a| got[a] == 0.0).collect();
+        let nan: Vec<usize> = (0..p).filter(|&a| got[a].is_nan()).collect();
+        let solved: Vec<usize> = (0..p)
+            .filter(|&a| got[a].is_finite() && got[a] != 0.0)
+            .collect();
+
+        // Two zeros, for two different reasons, and keeping them apart is the
+        // point of the test. `group2` (column 1) is a level this taxon never
+        // observed, so it has no column in `lm`'s model matrix at all.
+        // `group3` (column 2) *is* observed -- it is 1 on sample 12 -- and is
+        // still zeroed, because it is the first level the reduced factor has and
+        // `contr.treatment` drops that one. Under the rule "the lowest contrast
+        // index observed is the base" it would be column 1 that is dropped and
+        // column 2 that is fitted, which is the bug this pins.
+        assert_eq!(
+            zeros,
+            vec![1, 2],
+            "group2 is unobserved and group3 is the re-based base; both are 0, for \
+             different reasons; got {got:?}"
+        );
+        assert_eq!(
+            solved,
+            vec![0, 3, 4],
+            "levels 4 and 5 are observed and are not the base, so both are fitted; \
+             got {got:?}"
+        );
+        assert_eq!(
+            nan,
+            vec![5],
+            "three samples and four columns, so `x1` is the aliased one; got {got:?}"
+        );
+    }
+
+    /// `stats::fitted` is `lm.fit`'s projection, so it stays finite when `coef()`
+    /// is `NA`, and it interpolates when `n == rank`.
+    ///
+    /// The distinction is invisible for a full-rank fit and decisive for this one:
+    /// `theta` is `colMeans(y - fitted, na.rm = TRUE)`, so an `NA` in `fitted` does
+    /// not cost one term, it drops the taxon out of that sample's mean. On
+    /// `int-sparsity90-5group` that left about a fifth of each sample's observed
+    /// taxa contributing and three samples with no contributor at all, so `theta`
+    /// came back `NaN` and cascaded on the next iteration.
+    #[test]
+    fn fitted_is_the_projection_and_interpolates_when_n_equals_rank() {
+        let x = design();
+        let n_samp = x.rows;
+        let obs = observed_on(&[12, 18, 24], n_samp);
+        let cache = DesignCache::build(&obs, 1, n_samp, &x, &[1usize, 2, 3, 4]);
+
+        let mut y = vec![f64::NAN; n_samp];
+        for (k, &j) in [12usize, 18, 24].iter().enumerate() {
+            y[j] = 1.0 + k as f64;
+        }
+        let fit = lm_fit_all(&cache, &y, 1, n_samp);
+
+        assert!(
+            fit.beta[5].is_nan(),
+            "the premise: `x1` is aliased, so `coef` carries NA"
+        );
+        for &j in [12usize, 18, 24].iter() {
+            let f = fit.fitted[j];
+            assert!(
+                f.is_finite(),
+                "sample {j}: `fitted` must be the projection, not `X %*% coef`, so \
+                 an aliased coefficient cannot make it NA; got {f}"
+            );
+            assert!(
+                (f - y[j]).abs() < 1e-9,
+                "sample {j}: three observations against a rank-3 model interpolates \
+                 exactly, so the fitted value is the response; got {f} against {}",
+                y[j]
+            );
+        }
+    }
+
     /// A taxon observed on three samples of a five-level factor, spanning three
     /// levels, must come back as **three finite coefficients, two literal zeros
     /// and one `NA`** -- not three zeros.
@@ -933,7 +1158,6 @@ mod tests {
     /// `docs/reference_behavior.md` section 16 rather than papered over, and this
     /// test stands as the executable statement of what is being matched.
     #[test]
-    #[ignore = "known divergence: the rank-n pivot order differs from dqrls'"]
     fn an_aliased_column_is_na_and_an_absent_name_is_zero() {
         let x = design();
         let n_samp = x.rows;
@@ -952,25 +1176,39 @@ mod tests {
         let fit = lm_fit_all(&cache, &y, 1, n_samp);
         let got = &fit.beta[0..p];
 
-        let finite: Vec<usize> = (0..p).filter(|&a| got[a].is_finite()).collect();
+        // Three outcomes, so three disjoint classes -- and `0.0` is one of them,
+        // which is why this cannot be a count of "finite" values: the two
+        // re-levelled zeros are finite. `|coefficient|` separates them, and the
+        // spanned levels' coefficients are not zero on this response.
+        let solved: Vec<usize> = (0..p)
+            .filter(|&a| got[a].is_finite() && got[a] != 0.0)
+            .collect();
         let zeros: Vec<usize> = (0..p).filter(|&a| got[a] == 0.0).collect();
         let nan: Vec<usize> = (0..p).filter(|&a| got[a].is_nan()).collect();
 
         assert_eq!(
             nan,
             vec![5],
-            "x1 is aliased and `coef.lm` reports that as NA; got {got:?}"
+            "x1 varies and sits beyond the rank, so `coef.lm` names it and \
+             reports NA; got {got:?}"
         );
         assert_eq!(
             zeros,
             vec![3, 4],
-            "group4 and group5 are absent from `coef()` and `fit_one` leaves \\
-             those slots at their `rep(0, p)` initialiser; got {got:?}"
+            "group4 and group5 are constant over the fitted samples, so `lm` \
+             re-levels them away, their names never appear, and `fit_one`'s \
+             `rep(0, p)` leaves them at zero; got {got:?}"
         );
         assert_eq!(
-            finite.len(),
-            3,
-            "the three spanned levels get coefficients; got {got:?}"
+            solved,
+            vec![0, 1, 2],
+            "the first `rank` columns are the ones kept, in the order they were \
+             built -- that is `dqrls`' rule, with no column selection; got {got:?}"
+        );
+        assert_eq!(
+            solved.len() + nan.len() + zeros.len(),
+            p,
+            "every column must be in exactly one class; got {got:?}"
         );
     }
 }

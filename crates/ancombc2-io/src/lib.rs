@@ -588,9 +588,22 @@ pub fn build_design(
         }
     }
     let group_labels = group.map(|g| meta.column(g).expect("checked above").to_vec());
-    #[allow(unused_mut)]
+    // The names go on the matrix as well as in `Design::colnames`, and they have
+    // to be in both places rather than one.
+    //
+    // The pipeline reads `x.colnames` to work out *which columns are the group
+    // contrasts* (`group_columns`), and that is what tells the rank-deficient path
+    // how `lm` re-levels the factor per taxon. With the names living only on
+    // `Design`, the matrix handed to the core had none, `group_columns` returned
+    // empty, and every taxon in a rank-deficient group was fitted as if it had
+    // observed every level: on `int-sparsity90-5group` the first iteration's
+    // epsilon came out 1.88 against the oracle's 0.998, and three samples had no
+    // contributor to `theta` at all.
+    //
+    // `Design::colnames` stays as a field because it is the public accessor, but
+    // it is now a copy of the matrix's own rather than the only record.
     Ok(Design {
-        matrix,
+        matrix: matrix.with_colnames(colnames.clone()),
         colnames,
         group: group_labels,
     })
@@ -870,6 +883,62 @@ pub fn parse_compat(name: &str) -> Result<CompatMode> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The design matrix must carry its own column names, not leave them only on
+    /// `Design::colnames`.
+    ///
+    /// The core reads `x.colnames` to work out which columns are the group
+    /// contrasts, and that is what tells the rank-deficient fitting path how `lm`
+    /// re-levels the factor for each taxon. With the names living only on the
+    /// `Design`, `group_columns` came back empty, every rank-deficient taxon was
+    /// fitted as if it had observed every level, and `theta` came out with three
+    /// samples having no contributor at all -- while `fix_eff`, which is taken
+    /// from `cfg.fix_eff`, stayed perfectly correct, so nothing in the output
+    /// hinted at it.
+    #[test]
+    fn the_design_matrix_carries_its_own_colnames() {
+        let meta = Metadata {
+            sample_names: (0..6).map(|i| format!("s{i}")).collect(),
+            columns: vec!["group".into(), "x1".into()],
+            values: vec![
+                vec![
+                    "1".into(),
+                    "1".into(),
+                    "2".into(),
+                    "2".into(),
+                    "3".into(),
+                    "3".into(),
+                ],
+                vec![
+                    "0.5".into(),
+                    "-1.5".into(),
+                    "2.0".into(),
+                    "0.25".into(),
+                    "-0.75".into(),
+                    "1.125".into(),
+                ],
+            ],
+        };
+        let f = crate::formula::parse("group + x1").expect("formula parses");
+        let design = build_design(&meta, &f, Some("group")).expect("design builds");
+        assert_eq!(
+            design.matrix.colnames, design.colnames,
+            "the matrix the core receives has to carry the same names as the \
+             `Design` that produced it"
+        );
+        assert_eq!(
+            design.matrix.colnames,
+            vec!["(Intercept)", "group2", "group3", "x1"],
+            "an integer-valued grouping column is still a factor: it becomes one \
+             column per level but the first, not one numeric column"
+        );
+        assert_eq!(
+            ancombc2_core::test_mod::group_columns(&design.matrix.colnames, "group"),
+            vec![1usize, 2],
+            "and the group contrasts are recoverable from the matrix alone, which \
+             is the only place the core can look"
+        );
+    }
 
     #[test]
     fn splits_tabs_commas_and_quotes() {

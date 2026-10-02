@@ -126,7 +126,7 @@ fn run_cell(c: &CellInfo) {
     // meant a sidecar failure pre-empted the numeric report and hid which inputs
     // were behind it. A cell that diverges should print everything the numeric
     // layer knows before anything aborts.
-    if let Some(d) = compare_core(&g, &r, &mask, f.cfg.p_adj_method) {
+    if let Some(d) = compare_core(&g, &r, &mask, &design, f.cfg.p_adj_method) {
         panic!(
             "matrix cell {} diverges from the ANCOMBC 2.15.2 oracle:\n{d}\n({})",
             c.name,

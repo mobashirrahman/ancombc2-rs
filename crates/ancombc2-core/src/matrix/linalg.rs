@@ -692,7 +692,15 @@ impl Qr {
         for k in 0..p {
             let orig = self.piv[k];
             for r in 0..b.cols {
-                out.set(orig, r, if self.aliased[k] { 0.0 } else { x.get(k, r) });
+                out.set(
+                    orig,
+                    r,
+                    if self.aliased[k] {
+                        f64::NAN
+                    } else {
+                        x.get(k, r)
+                    },
+                );
             }
         }
         Some(out)
@@ -748,32 +756,37 @@ pub fn qr(a: &Matrix) -> Qr {
         .collect();
 
     for k in 0..kmax {
-        // --- pivot: the largest remaining 2-norm ---
+        // --- no column permutation: this is `dqrls`' choice, not ours ---
         //
-        // `lm.fit` leaves the column order to its LAPACK/BLAS routine, and which
-        // column is declared aliased on a rank-deficient design follows from that
-        // order. Pivoting on the remaining norm is the stable, reproducible way to
-        // express the same question -- "which columns carry independent
-        // information?" -- and it makes the answer independent of the order the
-        // caller happened to build the design in. The unpivoted factorisation is
-        // not an option here: the diagonal magnitudes of an unpivoted Householder
-        // QR depend on the reflector formula, so two correct implementations
-        // disagree on the rank of the same ill-conditioned matrix.
-        let mut best = k;
-        for j in k + 1..p {
-            if colnorm[j] > colnorm[best] {
-                best = j;
-            }
-        }
-        if best != k {
-            for i in 0..n {
-                let t = r.get(i, k);
-                r.set(i, k, r.get(i, best));
-                r.set(i, best, t);
-            }
-            colnorm.swap(k, best);
-            piv.swap(k, best);
-        }
+        // `stats::lm`'s `lm.fit` does **not** select columns. Measured on this
+        // oracle's R:
+        //
+        // ```text
+        // > lm.fit(cbind(c1, c2, c1 + c2), y)$qr$pivot
+        // [1] 1 2 3
+        // > coef(lm.fit(cbind(c1, c2, c1 + c2), y))
+        // [1] -0.2857365  0.7701500          NA
+        // ```
+        //
+        // The pivot is the identity even when a column is an exact combination of
+        // the ones before it, and the column that comes out `NA` is the *last* one
+        // in build order, not the best-conditioned one. An earlier revision of this
+        // function pivoted on the largest remaining 2-norm, which is the
+        // better-conditioned choice and the wrong one.
+        //
+        // What the rank test below then has to agree with is `dqrls`' notion of
+        // rank, which is the length of the **leading run** of diagonals above
+        // `tol * |R(0,0)|` -- it stops at the first diagonal that is not, rather
+        // than counting every diagonal that is. That is why `aliased` below can be
+        // written as `i >= rank`: the leading run is by construction a prefix, so
+        // "at or after the rank" and "not in the leading run" are the same set.
+        //
+        // The consequence is accepted rather than worked around: an unpivoted QR
+        // can report a small diagonal for a full-rank but ill-conditioned column
+        // and under-state the rank. R has exactly that property -- it is the
+        // behaviour being matched, not a hazard introduced here.
+        let _ = &mut piv;
+
         // The swap moved the norms around, so recompute this column's exactly.
         colnorm[k] = (k..n)
             .map(|i| r.get(i, k) * r.get(i, k))

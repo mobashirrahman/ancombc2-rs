@@ -456,196 +456,131 @@ A clean run on R >= 4.5 that *regenerated* the fixtures from their seeds would f
 the first reason and is what would confirm the freeze end to end; it would not fix
 the second, which would need the fixture text format to carry full precision.
 
-## 16. Aliased coefficients: a real divergence, its mechanism and its scope
+## 16. Aliased coefficients: the divergence, and what actually caused it
 
-### What differs
+**Status: closed.** Every quantity in the contract is asserted on every committed
+fixture and every cell of the fixture matrix, including the ones whose groups are
+rank deficient. Nothing in the contract is reported instead of asserted. This
+section is kept because the cause was not what the previous revision of it said,
+and the mistake is the kind that survives a re-read.
 
-The two sides do not fit the same set of taxa in a **sub-design that is
-over-parameterised** — fewer observed samples than design columns.
+### The symptom
 
-`.lm_fit_all` sees `fit$rank < ncol(xr)` and refits the group per taxon with
-`stats::lm`. On the `int-sparsity90-5group` cell (30 samples, `p = 6`,
-90 % sparsity) **44 of the 64 reported taxa have `n_used < 6`**, and 27 of them
-have exactly 3. This implementation takes a different branch or fails a different
-admissibility test on a large share of them, so its stage-1 coefficients are `NA`
-far more often:
+`.lm_fit_all` sees `fit$rank < ncol(xr)` for a group and refits each of its taxa
+one at a time with `stats::lm`. On the `int-sparsity90-5group` cell (30 samples,
+`p = 6`, 90 % sparsity, five group levels) that is 56 of 64 taxa. They came out
+badly wrong: `beta_star` was off by up to **195 %** on a coefficient, and
+`theta` — which is `colMeans(y - fitted, na.rm = TRUE)` over the whole set — was
+off by up to 1.4 absolute.
 
-| | `NA` stage-1 coefficients, of 384 |
-| --- | --- |
-| the oracle | **28** |
-| this run | **239** |
+### What the previous revision of this section claimed
 
-The oracle's 28 are not spread over the over-parameterised taxa: 26 of them belong
-to taxa with `n_used = 3`. So the reference is *not* reporting `NA` for every
-coefficient a rank-deficient fit leaves undetermined — which is what
-`.lm_fit_all`'s own `NA` initialisation and `coef.lm` would suggest — and
-reproducing its count requires matching `stats::lm`'s behaviour on an `n < p`
-model, not just the notion that a coefficient can be undetermined.
+That the reference's choice of least-squares representative in that path "depends
+on `lm`'s LAPACK pivoting, which is the same non-reproducibility [...] here it is
+not a family of equivalent least-squares solutions but an arbitrary choice of which
+coordinates to report at all. [...] there is no rule to reproduce."
 
-Downstream this moves everything computed from those coefficients:
-`beta_corr_stage1` (1.98 relative), `beta` (1.96), `W` (1.93), `theta` (1.94),
-`p` (0.89), and the E-M mixture, which `.bias_em` fits to a different set of taxa
-because it filters with `neither_na = !(is.na(beta) | is.na(nu0))`.
+That claim was false, and it was falsifiable in about a minute on the oracle's own
+R:
 
-### The reference's rule on an over-parameterised group, measured
+```
+> lm.fit(cbind(c1, c2, c1 + c2), y)$qr$pivot
+[1] 1 2 3
+```
 
-Driven directly through the oracle's own `.lm_fit_all` with a 30-sample,
-6-column design (`~ group + x1`, five levels) and taxa observed on a controlled
-number of samples:
+`lm.fit` and `lm` call `dqrls` with `pivot = FALSE`, so the permutation is always
+the identity — there is no pivoting to reproduce at all — and the column reported
+`NA` is the *last* aliased one in build order. The reference's representative is
+fully determined. Everything downstream of the false claim (a twenty-entry
+"report-only" list, a share cap, and the claim that the affected quantities could
+not be compared at any tolerance) came from it.
 
-| observed samples | levels spanned | `coef` | `dof` |
-| --- | --- | --- | --- |
-| 3, all in one group | 1 | **all six `NA`** | 999 |
-| 3, spanning two groups | 2 | 4 finite, `group4`/`group5` = **0**, `x1` = **`NA`** | 0 |
-| 4, spanning two groups | 2 | same shape | 0 |
-| all 30 | 5 | all six finite | 24 |
+### The three real causes, in the order they were found
 
-Three distinct outcomes, and none of them is "report `NA` for every undetermined
-coefficient":
+Each was found by shrinking the disagreement, not by reasoning, and each was
+verified against the oracle before the next was looked for.
+
+**1. The fitted values were `X %*% coef`, but `stats::fitted` is the projection.**
+
+`coef(fit)` carries `NA` for every aliased term, so multiplying it through the
+design made the whole fitted row `NA`. Since `theta` is
+`colMeans(y - fitted, na.rm = TRUE)`, an `NA` does not merely lose one term: it
+drops the taxon out of that sample's mean entirely. Measured on
+`int-sparsity90-5group`, only about a fifth of each sample's observed taxa were
+contributing, three samples had no contributor at all, and `theta` came back `NaN`
+— which then made the whole adjusted-response column `NaN` on the next iteration
+and cascaded. Zeroing the aliased coefficients is not an approximation of the
+projection, it *is* the projection: an aliased column is by definition in the span
+of the columns that were kept.
+
+**2. The rank-deficient path factorised the group's design, not `lm`'s.**
+
+`fit_one` builds `df = data.frame(y_crt = Ymat[i, ], meta_data)` over **all**
+samples and calls `lm`, which drops the incomplete rows and then has
+`model.matrix` apply `drop.unused.levels = TRUE`. So the design `lm` factorises is
+not the group's: every group contrast for a level the taxon never observed is
+absent. That is a different matrix, and it has to be factorised as one — an
+interior rejection of columns cannot be reproduced by factorising the full design
+and patching the answer, because the two pick different bases.
+
+Two details, both measured against the oracle's own `beta_star`:
+
+* the contrast for an **unobserved** level has no name in `coef()` and is written
+  as a literal `0`, from `fit_one`'s `bi = rep(0, p)` initialiser;
+* the **base** level is the first *observed* one, not the first globally. A taxon
+  observed at levels {3, 4, 5} gets columns for 4 and 5 only, so `group3` is `0`
+  even though `group3` is 1 on some of its rows. Reading the base off the contrast
+  indices instead flipped 20 of the 64 rows.
+
+**3. The design's column names never reached the core.**
+
+`build_design` kept them in `Design::colnames` and left `Matrix::colnames` empty,
+so the pipeline's `group_columns(&x.colnames, ...)` returned an empty slice. With
+no group columns, cause 2's filter is a no-op and every rank-deficient taxon is
+fitted as though it had observed every level. `fix_eff` was unaffected because it
+comes from `cfg.fix_eff`, which is why the defect was invisible in the output and
+only showed up as a numeric divergence.
+
+### The evidence
+
+With all three fixed, an independent reimplementation of `.lm_fit_all` driven
+directly from the golden's own `x` and `y1` reproduces the oracle's recorded
+`theta` to **0.0 relative error over all 30 samples**, the first iteration's
+`epsilon` to all eight published digits (`0.99801595`), and `beta_star` row by row.
+The Rust side now matches that reproduction.
+
+### What was removed with the cause
+
+The twenty-entry `INDIRECT_QUANTITIES` list — `theta`, `beta_star`, `delta_em`,
+`beta`, `se`, `p`, `q`, `vcov` and the rest of everything downstream of the first
+MLE — existed to carry those quantities as *reported, not asserted*. It is now an
+empty `const`, and the report-only branches in `compare_indirect` and
+`compare_per_term` are gone. The rank-deficient class is still computed and still
+printed, because the counts are worth seeing, but it gates nothing.
+
+An allowance that no test can trip is worse than no allowance: it reads as a known
+gap in the contract. If a future fixture reintroduces a genuine
+non-reproducibility, it should be added back with the R evidence for it, not
+inherited from this paragraph.
+
+### The two branches, stated plainly
 
 1. **Fewer than two observed levels of a factor aborts `lm`** with *"contrasts can
    be applied only to factors with 2 or more levels"*. `fit_one` wraps the call in
    `try()`, so the whole row stays at its `NA` initialiser and `dof` stays 999.
-2. **A coefficient whose name is absent from `coef()`** -- an unobserved group
-   level -- is written as a literal **0**, because `fit_one` starts from
-   `bi = rep(0, p)` and fills only the names `coef()` returns.
-3. **A coefficient whose name is present but aliased** is **`NA`**, because
-   `coef.lm` keeps the name and sets the value to `NA`.
+2. **A coefficient whose name is absent from `coef()`** — an unobserved group
+   level — is a literal **0**.
+3. **A coefficient whose name is present but aliased** is **`NA`**.
 
-The fill is therefore `0` in one case and `NA` in another, and what decides it is
-whether the *name* survives into `coef()` -- not whether the coefficient is
-estimable. `solve_multi_padded` writes `0.0` for an aliased column, which matches
-case 2 and not case 3.
+What decides 2 versus 3 is whether the *name* survives into `coef()`, not whether
+the coefficient is estimable.
 
-### What was tried, and what it ruled out
+### A related omission, now covered
 
-`solve_multi_padded` fills an aliased column with `0.0`, on the stated belief that
-`lm` drops the aliased name and `.lm_fit_all`'s zero-initialised row therefore makes
-it a literal zero. **That belief is wrong** — verified on this oracle's own R:
-
-```r
-d$b <- 2 * d$a + rnorm(n, sd = 1e-10)
-coef(lm(y ~ a + b, d))   #  a: -0.228,  b: NA
-```
-
-`coef.lm` keeps the name and reports `NA`, so `.bias_em` drops the pair. Filling
-`f64::NAN` instead of `0.0` was implemented and measured.
-
-**It made the mixture further from the oracle, not closer** (worst component
-weight 4.0e-1 → 1.0e+1), and the reason is informative: if both sides then dropped
-the same taxa the mixtures would agree, so they are not dropping the same set. The
-lever is *which* columns are treated as undetermined, not what is written for one.
-The `0.0` was therefore restored rather than shipped, because a
-semantically-closer but measurably-worse intermediate state is not an improvement,
-and the difference it exposed is the real bug.
-
-### What is established, and what is not
-
-Established by measurement on this oracle's own code:
-
-* the rule above, driven through `.lm_fit_all` directly;
-* that the E-M is exact given the oracle's own inputs (4.6e-13);
-* that the divergence enters at `beta_star`, not at the mixture;
-* that the oracle records 28 `NA` stage-1 coefficients on this cell and this
-  implementation records 239, concentrated in taxa whose observed samples are
-  fewer than the six design columns;
-* that changing the aliased fill from `0.0` to `NaN` does **not** change that
-  count, which rules the fill value out as the lever and points at *which* taxa are
-  skipped.
-
-Not yet established: why this implementation leaves roughly forty more rows
-`NA` than the oracle does. The candidate is `per_taxon_lm_would_succeed`, the
-admissibility test for case 1, which decides from the group factor's contrast
-columns whether `lm` would abort; `group_columns` is name-based and does correctly
-exclude the continuous covariate `x1`, so the count it passes is `[1, 2, 3, 4]`,
-and the arithmetic that follows from that has been checked by hand against the
-table above. It has not been narrowed to a specific taxon, so it is recorded as
-the next thing to instrument rather than claimed as the cause.
-
-### The cause: the rank-`n` pivot order, not the rank
-
-Driven through the oracle's own `.lm_fit_all` with a taxon observed on three
-samples spanning three of five levels, R returns
-
-```text
-(Intercept)  group2  group3  group4  group5      x1
- 1.3586796  0.07434 -1.2843  0.00000  0.00000      NA
-```
-
-and this implementation returns, on the same design,
-
-```text
- 0.774775  1.4e-16      NA   0.00000  0.00000  0.450451
-```
-
-Both are rank-3 fits of three points, so **both interpolate them exactly**: these
-are two different representatives of the same affine solution family, which is why
-the disagreement is a 195 % difference in `beta_star` rather than a rounding
-difference. R's `dqrls` picked `(Intercept, group2, group3)`; the rank-revealing QR
-here picked `(Intercept, group2, x1)`.
-
-That single fact explains everything observed on this cell:
-
-* **which** coefficient is reported aliased -- `x1` under R, `group3` here;
-* **the values** of the coefficients that are not;
-* the `NA` count (28 against 239) and everything downstream of it, because
-  `.bias_em` keeps different taxa on the two sides.
-
-Writing `NA` for a *varying* aliased column -- the rule the measurement above
-gives, and the correct one -- was implemented, and it placed the `NA` on `group3`
-instead of `x1`. Right rule, wrong column: it moves the divergence rather than
-closing it, so it was reverted.
-
-**What closing this requires** is the pivot order of `stats::lm`'s `lm.fit`:
-`dqrls`, which calls LINPACK/LAPACK `dqrdc2` and chooses at each step the column
-maximising `|R(j,j)|`. Matching rank and tolerance, as this implementation does,
-is not enough once `n < p`, because every rank-`n` basis fits exactly and only the
-choice among them is observable. `dqrls` is LAPACK's `dqrdc2` with a partial-
-pivoting search over the trailing submatrix; the factorisation here is an
-unpivoted Householder QR with its own column-selection rule.
-
-`an_aliased_column_is_na_and_an_absent_name_is_zero` in `mle.rs` states the
-oracle's expectation as an executable test. It is marked
-`#[ignore = "known divergence: the rank-n pivot order differs from dqrls'"]`, so CI
-stays green and the expectation stays in the tree as the specification of what is
-being matched. It is not a claim that the behaviour is correct; it is a claim that
-the difference is known, located and reproducible.
-
-### What is *not* the cause
-
-The E-M itself is exact. `the_em_reproduces_delta_em_from_the_oracles_own_inputs`
-feeds this implementation the oracle's own `beta_star` and `var1` and it
-reproduces the oracle's `delta_em` to **4.6e-13** on the worst cell and 5.2e-10
-across all four probed. The divergence is entirely in the inputs.
-
-### Why both behaviours are defensible, and which is chosen
-
-`NA` is the honest report: the coefficient is not identified. The minimum-norm
-solution is a *choice* from an affine family, and it is the choice the rest of the
-method then silently makes. This implementation reproduces the choice because its
-whole purpose is bit-level agreement with the reference, and the divergence is
-reported rather than hidden.
-
-### How it is reported rather than hidden
-
-The class is derived **from the golden**, by counting `NA`s in the recorded
-`beta_star` (`aliased_coefficients`), not from a maintained list of cell names — so
-a cell that grows an aliased coefficient is reclassified when its golden is
-regenerated. For a cell in the class:
-
-* the E-M mixture is reported with its worst component-weight deviation, and the
-  count that put it there;
-* the convergence trace is reported with both lengths and the worst iteration
-  disagreement;
-
-and neither is asserted, because there is nothing to assert them against. Every
-other cell asserts both, at the per-fit bounds in
-`docs/numerical_contract.md`.
-
-This is the same mechanism as the rank-deficient exemption the contract already
-carries, arrived at from data rather than from judgement about a fixture: the
-quantities derived from the mixture and the trace are not determined once the two
-sides stop fitting the same taxa.
+`x` itself was in the golden and in the manifest but was never compared; only the
+column *names* were. Adding it at Level A immediately failed on
+`shape-10x10`, which is how cause 3 surfaced — the report could not otherwise name
+the design as the thing that was wrong.
 
 ## 17. What could not be executed here
 

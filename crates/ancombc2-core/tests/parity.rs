@@ -40,7 +40,7 @@ fn run_fixture(id: usize) {
     // called twice with two different responses, so each gets its own flags.
     let design = f.design.select_rows(&r.core.samples);
     let mask = golden::RankDeficientMask::for_run(&design, &r.core.y1, &r.core.y2, &f.group_name);
-    if let Some(d) = compare_core(&g, &r, &mask, f.cfg.p_adj_method) {
+    if let Some(d) = compare_core(&g, &r, &mask, &design, f.cfg.p_adj_method) {
         panic!(
             "fixture {id} diverges from the ANCOMBC 2.15.2 oracle:\n{d}\n({})",
             mask.summary()

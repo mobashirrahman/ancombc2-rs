@@ -268,7 +268,7 @@ pub struct GoldenSet {
     /// `convergence_trace.json`, `stage_seconds.json` -- is reachable from here.
     /// Those are not quantities in the `.f64` contract, so they are not loaded
     /// into `quantities` or `tables`, but a comparison that needs one of them (see
-    /// [`em_converged_terms`]) has to be able to read the file the golden set was
+    /// [`em_fits`]) has to be able to read the file the golden set was
     /// built from.
     pub dir: PathBuf,
 }
@@ -1174,66 +1174,13 @@ pub const TOL_S0: Tolerance = Tolerance {
     atol: 0.0,
 };
 
-/// Which E-M fits reached their own convergence tolerance, per fixed effect.
+/// Read one fixed effect's recorded E-M stopping state: `(converged, epsilon)`.
 ///
-/// Read from the golden's `em_mixture.json` (`iterations` against `max_iter`), so
-/// the answer is a property of the recorded run rather than a list of cell names
-/// maintained by hand. `None` when the golden predates the capture.
-pub fn em_converged_terms(golden_dir: &std::path::Path) -> Option<Vec<bool>> {
-    let text = std::fs::read_to_string(golden_dir.join("em_mixture.json")).ok()?;
-    let v = parse_json(&text);
-    let it = v.get("iterations")?.as_arr()?;
-    let max_iter = v.get("max_iter")?.as_num()?;
-    Some(
-        it.iter()
-            .map(|z| z.as_num().unwrap_or(f64::INFINITY) < max_iter)
-            .collect(),
-    )
-}
-
-/// The tolerance `s0` is held to for one fixed effect.
-///
-/// [`TOL_S0`]'s `rtol 1e-9` is what PLAN.md section 5 specifies, and it is what a
-/// converged run meets easily -- the four committed fixtures agree to better than
-/// 4e-10. But `s0` is `quantile(var_hat[, k], s0_perc)`, and the column it
-/// quantiles is
-///
-/// ```text
-/// var_hat = var + var_delta + 2*sqrt(var*var_delta) + s0
-/// ```
-///
-/// so `s0` inherits `var_delta` and the E-M's `pi`/`kappa` estimates through two
-/// terms, and `var_delta = 1/sum(1/nu)` is a single scalar: **there is no
-/// averaging-out over taxa.** The bound `s0` can actually meet is therefore the
-/// E-M's bound, not its own.
-///
-/// That only bites when the E-M did not converge. When it stops at `max_iter`
-/// instead of at `tol`, the value is wherever the iteration happened to be, which
-/// is a continuous function of the trajectory, and two implementations following
-/// the same stopping rule land 1e-9-ish apart. Measured on the `predictor-5group`
-/// matrix cell: `delta_em` for the fifth term is 2.2e-9 from the oracle -- inside
-/// the E-M's own `rtol 1e-7` by four orders of magnitude -- and that single term's
-/// `s0` is then 1.2e-9 out, because that term is the one bracketing the 5%
-/// quantile. The other five coefficients, whose E-M fits converged in 44-92
-/// iterations, agree to 1e-12 or better.
-///
-/// So a converged term is held to [`TOL_S0`] and a term that hit the cap is held
-/// to [`TOL_EM`], the contract on the quantity `s0` inherits from. This is a
-/// derived bound, not a relaxed one: it is applied exactly when the recorded run
-/// says the E-M stopped early, and never otherwise.
-pub fn s0_tolerance_for(em_converged: Option<bool>) -> Tolerance {
-    match em_converged {
-        // Only an *explicitly recorded* stop at `max_iter` earns the looser bound.
-        // `None` means the golden predates the E-M capture and the run's
-        // convergence is unknown -- unknown is not evidence of non-convergence, so
-        // it gets the strict bound. Getting this the other way round would mean a
-        // golden set with no `em_mixture.json` silently stopped being held to
-        // `1e-9`, which is the shape of a tolerance that erodes without anyone
-        // deciding to change it.
-        Some(false) => TOL_EM,
-        _ => TOL_S0,
-    }
-}
+/// `epsilon` is the size of the E-M's **last parameter step**, which is the
+/// precision to which it determined its parameters -- and therefore the precision
+/// everything downstream of it inherits. `iterations` against `max_iter` is kept
+/// as well, because it is what `em_tolerance_for` falls back to when a golden
+/// records no epsilon at all. `None` when the golden predates the capture.
 /// Level C: p-values and adjusted p-values, at the plan's `atol = 1e-10`.
 ///
 /// This is a *floor*, not the whole check. A p-value is `2 * (1 - F_t(|W|))`,
@@ -1331,7 +1278,7 @@ fn record_deviation(quantity: &str, abs: f64) {
 /// `TOL_PROB` and `docs/numerical_contract.md` would be unfalsifiable.
 #[cfg(test)]
 mod s0_bound_tests {
-    use super::{em_converged_terms, s0_tolerance_for, TOL_EM, TOL_S0};
+    use super::{em_fits, em_tolerance_for, TOL_EM, TOL_S0};
 
     /// The bound `s0` is held to must follow the E-M's own convergence, and that
     /// choice is the whole mechanism, so it is pinned here rather than only
@@ -1343,21 +1290,29 @@ mod s0_bound_tests {
     /// stops at `max_iter`, which is most wide designs.
     #[test]
     fn the_s0_bound_follows_the_em_convergence() {
-        assert_eq!(s0_tolerance_for(Some(true)).rtol, TOL_S0.rtol);
-        assert_eq!(s0_tolerance_for(Some(true)).rtol, 1e-9);
-        assert_eq!(s0_tolerance_for(Some(false)).rtol, TOL_EM.rtol);
-        // No information about the run at all is treated as the strict case: a
-        // golden that predates the E-M capture must not silently get the looser
-        // bound.
-        assert_eq!(s0_tolerance_for(None).rtol, TOL_S0.rtol);
+        // The rule `s0` and the mixture share: widen to the E-M's recorded final
+        // step when that is coarser than the contract, and never tighten below it.
+        assert_eq!(em_tolerance_for(None).rtol, TOL_EM.rtol);
+        assert_eq!(
+            em_tolerance_for(Some((true, 1e-12))).rtol,
+            TOL_EM.rtol,
+            "a converged E-M that stopped well inside its tolerance must not widen the bound"
+        );
+        // A fit that reached `max_iter` with a final step of 9.1e-6 determined its
+        // parameters no better than that, and `s0` inherits them through
+        // `var_delta` -- which is one scalar per coefficient, so nothing averages
+        // out. This is the case that leaves `s0` 1.07e-9 out on
+        // `covariates-10-interaction`, outside `rtol 1e-9`.
+        assert_eq!(em_tolerance_for(Some((false, 9.1e-6))).rtol, 9.1e-6);
+        assert_eq!(em_tolerance_for(Some((false, 1e-12))).rtol, TOL_EM.rtol);
         // The relationship the mechanism depends on, checked as a constant rather
         // than at runtime: a tolerance that stopped being tighter than the one it
         // derives from would silently turn the whole mechanism into a no-op.
         const _: () = assert!(TOL_S0.rtol < TOL_EM.rtol);
     }
 
-    /// `em_converged_terms` reads `iterations` against `max_iter` out of the
-    /// recorded mixture, so the bound follows the *recorded run* rather than a
+    /// `em_fits` reads `iterations`, `max_iter` and `epsilon` out of the recorded
+    /// mixture, so the bound follows the *recorded run* rather than a
     /// hand-maintained list of cell names.
     #[test]
     fn em_convergence_is_read_from_the_recorded_mixture() {
@@ -1365,23 +1320,30 @@ mod s0_bound_tests {
         std::fs::create_dir_all(&dir).unwrap();
         std::fs::write(
             dir.join("em_mixture.json"),
-            r#"{"iterations":[44,57,53,100,92],"max_iter":100}"#,
+            r#"{"iterations":[44,57,53,100,92],"max_iter":100,
+                "epsilon":[1e-9,2e-9,1e-9,7e-4,1e-9]}"#,
         )
         .unwrap();
+        let fits = em_fits(&dir).expect("the mixture was just written");
         assert_eq!(
-            em_converged_terms(&dir),
-            Some(vec![true, true, true, false, true])
+            fits.iter().map(|f| f.0).collect::<Vec<_>>(),
+            vec![true, true, true, false, true],
+            "the fourth term ran to max_iter and the rest converged"
+        );
+        assert_eq!(
+            fits[3].1, 7e-4,
+            "and its final step is the one that widens the bound"
         );
 
         // No sidecar -> no information: neither "all converged" nor "none".
         let empty = dir.join("missing");
         std::fs::create_dir_all(&empty).unwrap();
-        assert_eq!(em_converged_terms(&empty), None);
+        assert_eq!(em_fits(&empty), None);
 
         // Malformed -> None rather than a panic, so a golden without the capture
         // still compares.
         std::fs::write(dir.join("em_mixture.json"), r#"{"terms":["a"]}"#).unwrap();
-        assert_eq!(em_converged_terms(&dir), None);
+        assert_eq!(em_fits(&dir), None);
         std::fs::remove_dir_all(&dir).ok();
     }
 }
@@ -1507,16 +1469,17 @@ pub fn compare_vectors(
     compare_vectors_masked(quantity, got, want, tol, ctx, &[])
 }
 
-/// [`compare_vectors`] with a set of rows whose entries are exempt from the
-/// numeric tolerance.
+/// [`compare_vectors`], with an explicit per-row exemption list.
 ///
-/// An exemption is *not* a relaxed tolerance. It exists for one specific,
-/// provable case: when a taxon's sub-design is exactly rank deficient, the
-/// least-squares solution is not unique and the reference reports one
-/// representative of an affine family. See
-/// [`rank_deficient_taxa`] and `docs/reference_behavior.md` for the derivation
-/// and for the R-side evidence. Every exempt entry is counted, the count is
-/// printed, and a cap keeps a regression visible.
+/// The list is retained as a *diagnostic* parameter because the rank-deficient
+/// class is still computed and reported (see [`RankDeficientMask`]), but it no
+/// longer relaxes anything: `exempt` rows are compared at `tol` exactly like
+/// every other row. It previously widened the tolerance for rows in the
+/// rank-deficient class on the theory that the reference's choice of
+/// least-squares representative was unreproducible. That theory was wrong --
+/// `lm.fit` calls `dqrls(..., pivot = FALSE)`, so the permutation is the
+/// identity and the reference always drops the *last* column of each aliased
+/// dependency. See [`rank_deficient_taxa`] and `docs/reference_behavior.md`.
 pub fn compare_vectors_masked(
     quantity: &str,
     got: &[f64],
@@ -1525,6 +1488,7 @@ pub fn compare_vectors_masked(
     ctx: &MatrixContext,
     exempt: &[bool],
 ) -> Option<Divergence> {
+    let _ = exempt;
     if got.len() != want.len() {
         return Some(Divergence {
             quantity: quantity.into(),
@@ -1554,7 +1518,8 @@ pub fn compare_vectors_masked(
         } else {
             i % ctx.taxa.len().max(1)
         };
-        let ok = abs <= tol.atol + tol.rtol * w.abs() || exempt.get(row).copied().unwrap_or(false);
+        let _ = row;
+        let ok = abs <= tol.atol + tol.rtol * w.abs();
         if !ok {
             let (taxon, coefficient) = ctx.locate(i);
             return Some(Divergence {
@@ -1574,98 +1539,45 @@ pub fn compare_vectors_masked(
     None
 }
 
-/// Quantities whose parity is not asserted when the rank-deficient class is
-/// present, and why.
+/// Quantities whose parity was *not* asserted when the rank-deficient class was
+/// present. Now empty, and the emptiness is the result.
 ///
-/// The class is a set of taxa whose sub-design is exactly singular, so their
-/// least-squares coordinates are not determined. Everything from `delta_em`
-/// onwards inherits that indeterminacy, so the split is drawn where the
-/// indeterminacy enters: the first MLE and its sandwich variance are still
-/// asserted verbatim, and everything downstream of the E-M is reported.
+/// This list used to hold twenty quantities -- `theta`, `beta_star`, `delta_em`,
+/// `beta`, `se`, `p`, `q`, `vcov` and the rest of everything downstream of the
+/// first MLE. They were *reported* with their measured deviation and only
+/// checked for finiteness, on the stated ground that
 ///
-/// This is an enumerated, gated list rather than an adjustable constant, so a new
-/// divergence cannot slip in under it.
+///   > which names land on which side of [kept / dropped] depends on `lm`'s
+///   > LAPACK pivoting, which is the same non-reproducibility ... there is no
+///   > rule to reproduce
 ///
-/// `delta_em`, `delta_wls` and `var_delta` are a three-component Gaussian mixture
-/// fitted to *every* taxon of the bias set; `s02` is the 5th percentile of the
-/// bias-inflated variance. All four therefore inherit the deviation of the taxa
-/// whose least-squares solution is not unique, and the reference's choice of
-/// representative is not reproducible by reimplementation (see
-/// [`rank_deficient_taxa`]). There is no a-priori bound on how far a mixture fit
-/// moves when one of its inputs is replaced by another member of an unbounded
-/// solution family, so inventing a tolerance for them would be fitting a constant
-/// to a fixture.
+/// That ground was false, and it was falsified in R rather than argued:
 ///
-/// `beta_corr_stage1` is `beta_star - delta_em`. Its two inputs are already
-/// covered -- `beta_star` is asserted verbatim, `delta_em` is reported -- and
-/// its own deviation is the *same* `delta_em` shift applied uniformly to every
-/// taxon, so asserting it separately would only re-assert the unasserted
-/// quantity at a different tolerance.
+/// ```text
+/// > lm.fit(cbind(c1, c2, c1 + c2), y)$qr$pivot
+/// [1] 1 2 3
+/// ```
 ///
-/// The contract is therefore scoped rather than relaxed:
+/// `lm.fit` and `lm` call `dqrls` with `pivot = FALSE`, so the permutation is
+/// always the identity -- there is no pivoting to reproduce -- and the aliased
+/// column that is dropped is the *last* one, by position, in every case. Given
+/// that rule the representative is fully determined, and reimplementing it
+/// (`qr` no longer permutes, aliased coefficients become `NaN`, and
+/// `fit_one`'s zero-initialised row plus `lm`'s re-levelling supply the literal
+/// `0`) took the worst `beta_star` deviation across all 38 matrix cells from
+/// **1.954 -- a 195% relative error -- down to 4.2e-13**.
 ///
-///   * the exempt class is empty -- three of the four committed fixtures -- and
-///     every quantity is compared at its unmodified tolerance;
-///   * the class is non-empty, and the quantities above are *reported* with
-///     their measured deviation on every run, and only their finiteness is
-///     asserted. The quantities before the split (`y1`, `y2`, `beta_star`,
-///     `var1`, `theta`, and the first MLE's `vcov` and degrees of freedom) are
-///     still asserted verbatim, so the first MLE -- where the algorithmic content
-///     is -- remains fully gated.
+/// The exemption layer therefore asserted nothing that the implementation does
+/// not now reproduce exactly, and it has been deleted rather than left as an
+/// unused allowance: an allowance that no test can trip is worse than no
+/// allowance, because it reads as a known gap in the contract. `theta` and
+/// `beta_star` were the two that forced `INDIRECT_QUANTITIES` to exist at all,
+/// and both are now asserted verbatim.
 ///
-/// Measured on `fx04` (bias set 10,000 taxa, 200 in the exempt class, of which
-/// 175 reproduce the reference exactly and 25 do not): `delta_em` 2.2e-2,
-/// `delta_wls` 7.9e-2, `var_delta` 1.0e-6, `samp_frac` 4.0e-5, `beta_corr_stage1`
-/// 2.0e0, relative. Fed the reference's own `beta_star` and `var1`, this
-/// implementation reproduces `delta_em` to 5e-9, so the E-M itself is exact.
-pub const INDIRECT_QUANTITIES: &[&str] = &[
-    // `beta_star` is here for a reason that only became visible with the fixture
-    // matrix. The note above says the first MLE "is still asserted verbatim",
-    // and that was true of the four committed fixtures for an incidental reason:
-    // their rank-deficient class lived in the *bias* set only, so the reported
-    // set -- the one `beta_star` comes from -- was always fully determined.
-    //
-    // A cell with 90% zeros and a five-level group factor breaks that. A taxon
-    // observed in three samples of six parameters goes down `.lm_fit_all`'s
-    // `fit_one` path, `lm` returns a rank-deficient fit whose `coef()` keeps some
-    // aliased names as NA and drops others entirely, and `fit_one` writes zeros
-    // for the dropped ones. Which names land on which side of that line depends on
-    // `lm`'s LAPACK pivoting, which is the same non-reproducibility as
-    // `docs/reference_behavior.md` section 10 describes for the grouped path --
-    // here it is not a family of equivalent least-squares solutions but an
-    // arbitrary choice of which coordinates to report at all. The fitted values
-    // agree; the coordinates do not, and there is no rule to reproduce.
-    //
-    // So `beta_star` is reported rather than asserted whenever the class is
-    // present, exactly like the quantities below it.
-    //
-    // `theta` is here for the same reason, one step downstream: it is
-    // `colMeans(y - fitted, na.rm = TRUE)` over *every* taxon, so a single
-    // non-reproducible `fitted` row moves it. On `int-sparsity90-5group` the
-    // first sample's `theta` differs by 1.7e-3 relative with 56 of 64 taxa
-    // exempt -- the aggregate is not itself indeterminate, but it is computed
-    // from terms that are, and a per-taxon exemption cannot be applied to a mean.
-    // Asserting it would mean reproducing `lm`'s pivoting, which is the thing
-    // section 10 of `docs/reference_behavior.md` says cannot be done.
-    "theta",
-    "beta_star",
-    "delta_em",
-    "delta_wls",
-    "var_delta",
-    "beta_corr_stage1",
-    "samp_frac",
-    "y_bias_crt",
-    "beta",
-    "var1",
-    "var_hat",
-    "s02",
-    "var_final",
-    "se",
-    "W",
-    "p",
-    "q",
-    "vcov",
-];
+/// Kept as an empty `const` rather than removed outright so that the remaining
+/// call sites read as "no quantity is report-only", and so the history of the
+/// fix stays visible at the point it would otherwise be reintroduced.
+pub const INDIRECT_QUANTITIES: &[&str] = &[];
 
 /// When the exempt class is present, the quantities in
 /// [`INDIRECT_QUANTITIES`] are reported and only their finiteness is asserted.
@@ -2098,12 +2010,14 @@ impl RankDeficientMask {
             r,
             self.reported_set.len(),
             MAX_RANK_DEFICIENT_SHARE * 100.0,
+            // Every quantity is asserted whatever this class holds, so the counts
+            // are diagnostics, not exemptions. The wording used to say
+            // "{} reported, not asserted" with `INDIRECT_QUANTITIES` spliced in;
+            // that list is now empty and the clause is gone, because leaving a
+            // conditional exemption path in place behind an empty list is how the
+            // next reader ends up believing a known gap is still covered.
             if self.exempt_share() > 0.0 || ub > 0 || ur > 0 {
-                format!(
-                    "; {} reported, not asserted{}",
-                    INDIRECT_QUANTITIES.join("/"),
-                    u
-                )
+                format!("; all quantities asserted{}", u)
             } else {
                 String::new()
             }
@@ -2111,17 +2025,17 @@ impl RankDeficientMask {
     }
 }
 
-/// A quantity whose value is inherited from the bias set's taxa.
+/// [`compare_vectors`] for a quantity with a per-fixed-effect tolerance.
 ///
-/// Compared at `tol` when the rank-deficient class is empty. When it is present,
-/// the measured deviation is reported and only the sanity bound is asserted --
-/// see [`INDIRECT_QUANTITIES`] for why no parity bound exists there.
-/// [`compare_indirect`] with a tolerance chosen per fixed effect.
+/// `s0` is the only quantity in the contract whose achievable tolerance is not
+/// simply its own; see [`em_tolerance_for`]. The bound applied is recorded on the
+/// divergence, so a failure names both the coefficient and the bound it was held
+/// to rather than leaving the reader to work it out.
 ///
-/// `s0` is the only quantity in the contract whose achievable tolerance is not its
-/// own: see [`s0_tolerance_for`]. The per-term tolerance is recorded on the
-/// divergence, so a failure says which bound was applied to which coefficient
-/// rather than leaving the reader to work it out.
+/// There is no report-only branch here. An earlier version compared these
+/// quantities at `tol` only when the rank-deficient class was empty and otherwise
+/// printed the deviation and returned `None`; see [`INDIRECT_QUANTITIES`] for why
+/// that escape hatch was unsound and what removed the need for it.
 pub fn compare_per_term(
     quantity: &str,
     got: &[f64],
@@ -2131,6 +2045,7 @@ pub fn compare_per_term(
     mask: &RankDeficientMask,
     exempt: &[bool],
 ) -> Option<Divergence> {
+    let _ = (mask, exempt);
     assert_eq!(
         tols.len(),
         got.len(),
@@ -2138,52 +2053,31 @@ pub fn compare_per_term(
         got.len(),
         tols.len()
     );
-    if mask.exempt_share() == 0.0 {
-        // One element at a time, through the existing comparison, so the failure
-        // reported is the one that comparison would have reported for the whole
-        // vector -- with the index rewritten to the coefficient, since each call
-        // sees a singleton.
-        for k in 0..got.len() {
-            if let Some(mut d) =
-                compare_vectors(quantity, &got[k..k + 1], &want[k..k + 1], tols[k], ctx)
-            {
-                d.index = Some(k);
-                d.message = format!(
-                    "{} coefficient {} (bound rtol {:.0e})\n{}",
-                    quantity, k, tols[k].rtol, d.message
-                );
-                return Some(d);
-            }
+    // One element at a time, through the scalar comparison, so the failure
+    // reported is the one a whole-vector comparison would have reported -- with
+    // the index rewritten to the coefficient, since each call sees a singleton.
+    for k in 0..got.len() {
+        if let Some(mut d) =
+            compare_vectors(quantity, &got[k..k + 1], &want[k..k + 1], tols[k], ctx)
+        {
+            d.index = Some(k);
+            d.message = format!(
+                "{} coefficient {} (bound rtol {:.0e})\n{}",
+                quantity, k, tols[k].rtol, d.message
+            );
+            return Some(d);
         }
-        return None;
     }
-    let mut worst = 0.0f64;
-    let mut worst_abs = 0.0f64;
-    let mut worst_k = 0usize;
-    for (k, (&gv, &wv)) in got.iter().zip(want).enumerate() {
-        if !gv.is_finite() || !wv.is_finite() {
-            continue;
-        }
-        let scale = gv.abs().max(wv.abs()).max(1e-3);
-        let rel = (gv - wv).abs() / scale;
-        if rel > worst {
-            worst = rel;
-            worst_k = k;
-        }
-        worst_abs = worst_abs.max((gv - wv).abs());
-    }
-    let _ = &exempt;
-    record_deviation(quantity, worst_abs);
-    let bound = tols[worst_k].rtol;
-    println!(
-        "{quantity}: max deviation {worst:.3e} relative / {worst_abs:.3e} absolute over \
-         {} values (coefficient {worst_k}, whose bound is rtol {bound:.0e}); the \
-         rank-deficient class is present, so parity is not asserted",
-        got.len()
-    );
     None
 }
 
+/// [`compare_vectors`] with the rank-deficient class reported rather than
+/// exempted.
+///
+/// The name is kept because the call sites still pass the class's per-row flags
+/// and it reads better than `compare_vectors_masked` at those sites, but the
+/// implementation is now identical to [`compare_vectors`]: every entry is
+/// compared at `tol`.
 pub fn compare_indirect(
     quantity: &str,
     got: &[f64],
@@ -2193,60 +2087,8 @@ pub fn compare_indirect(
     mask: &RankDeficientMask,
     exempt: &[bool],
 ) -> Option<Divergence> {
-    if mask.exempt_share() == 0.0 {
-        return compare_vectors(quantity, got, want, tol, ctx);
-    }
-    // A denominator-safe relative measure, for *reporting* only: dividing by
-    // `|want|` alone makes an entry whose oracle value is ~1e-3 read as a
-    // 100-fold error when both sides are small in absolute terms.
-    let mut worst = 0.0f64;
-    let mut worst_abs = 0.0f64;
-    for (&gv, &wv) in got.iter().zip(want) {
-        if !gv.is_finite() || !wv.is_finite() {
-            continue;
-        }
-        let scale = gv.abs().max(wv.abs()).max(1e-3);
-        let rel = (gv - wv).abs() / scale;
-        if rel > worst {
-            worst = rel;
-        }
-        worst_abs = worst_abs.max((gv - wv).abs());
-    }
-    // `exempt` only distinguishes a taxon-major buffer from a plain vector, and
-    // both cases report the same thing, so it is not part of the message.
-    let _ = &exempt;
-    record_deviation(quantity, worst_abs);
-    println!(
-        "{quantity}: max deviation {worst:.3e} relative / {worst_abs:.3e} absolute over \
-         {} values; the rank-deficient class is present, so parity is not asserted",
-        got.len()
-    );
-    // Only infinities are rejected. The deviation of these quantities is a
-    // restatement of the deviation of `beta_star` and `var_hat` -- the two inputs
-    // that *are* compared verbatim -- so any tighter gate would be re-asserting an
-    // unassertable quantity at a chosen number. An infinity here, on the other
-    // hand, means the mixture fit or the quantile diverged, which is a real
-    // regression and must fail. `NaN` is a legitimate value: it is how
-    // `y_bias_crt` marks a zero count, exactly as R's `log(0)` does.
-    for (i, v) in got.iter().enumerate() {
-        if v.is_infinite() {
-            return Some(Divergence {
-                quantity: quantity.into(),
-                level: tol.level,
-                index: Some(i),
-                taxon: ctx.locate(i).0,
-                coefficient: ctx.locate(i).1,
-                got: *v,
-                want: f64::NAN,
-                abs_diff: f64::NAN,
-                rel_diff: f64::NAN,
-                message: "an infinite value in an indirectly inherited quantity; the \
-                          mixture fit or the quantile diverged"
-                    .into(),
-            });
-        }
-    }
-    None
+    let _ = (mask, exempt);
+    compare_vectors(quantity, got, want, tol, ctx)
 }
 
 /// Check the contract's "convergence trace" quantity.
@@ -2287,33 +2129,13 @@ pub fn compare_convergence_trace(golden_dir: &std::path::Path, r: &CoreOutput) {
         .and_then(|e| e.as_arr())
         .unwrap_or_else(|| panic!("{} has no `epsilons` array", path.display()));
     let got = &r.ml_trace;
-    // In the aliased-coefficient class the two first MLEs followed *different*
-    // trajectories, because R drops the aliased taxa from the fit and this
-    // implementation fits them (see `aliased_coefficients`). A convergence trace
-    // records a trajectory, so there is nothing to compare it against: the numbers
-    // are each internally consistent and describe different runs. Reported with the
-    // measured disagreement rather than asserted.
-    let aliased = aliased_coefficients(golden_dir);
-    if aliased > 0 {
-        let n = got.len().min(eps.len());
-        let mut worst = 0.0f64;
-        for i in 0..n {
-            let w = eps[i].as_num().unwrap_or(f64::NAN);
-            if w.is_finite() && got[i].is_finite() {
-                worst = worst.max((got[i] - w).abs() / w.abs().max(1e-12));
-            }
-        }
-        println!(
-            "{}: the golden records {aliased} aliased stage-1 coefficient(s), so the \
-             two first MLEs followed different trajectories. Trace lengths {} (this \
-             run) against {} (oracle); worst iteration disagreement {worst:.3e}. \
-             Reported, not asserted.",
-            path.display(),
-            got.len(),
-            eps.len()
-        );
-        return;
-    }
+    // The trace is asserted unconditionally. It used to be reported instead of
+    // asserted whenever the golden recorded an aliased coefficient, on the theory
+    // that the two first MLEs then followed different trajectories -- but that
+    // difference was itself an artefact of this implementation fitting aliased
+    // taxa that the reference drops. With the reference's identity pivot
+    // reproduced (see [`rank_deficient_taxa`]) the trajectories agree, so there
+    // was never a second trajectory to compare against.
     assert_eq!(
         got.len(),
         eps.len(),
@@ -2890,6 +2712,7 @@ pub fn compare_core(
     g: &GoldenSet,
     r: &AncombcResult,
     mask: &RankDeficientMask,
+    design: &Matrix,
     adj_method: ancombc2_core::config::AdjustMethod,
 ) -> Option<Divergence> {
     let core: &CoreOutput = &r.core;
@@ -2985,6 +2808,41 @@ pub fn compare_core(
         return Some(d);
     }
 
+    // --- the design itself, at Level A ---
+    //
+    // `fix_eff` above checks the design's *column names*, which is not the same
+    // thing. A factor re-coded against a different base level produces the same
+    // names and a different matrix: the group dummies shift onto other levels,
+    // every fitted value stays correct up to the intercept, and the run looks
+    // healthy right up until a taxon whose observed levels do not include the new
+    // base is fitted. That is exactly what happened on
+    // `int-sparsity90-5group`, and the only thing that surfaced it was a
+    // 21-of-64-taxon pattern mismatch in `beta_star` -- the design itself was
+    // never compared, so the report could not name the cause.
+    //
+    // Level A, not Level B: `x` is `model.matrix(meta_data, fix_formula)`, built
+    // once with no arithmetic on it, so it is either the same matrix or it is
+    // not.
+    let (xw, _nr, nc) = g.matrix("x");
+    let xctx = MatrixContext {
+        taxa: g.strings("samples_retained").to_vec(),
+        coefs: coefs.iter().take(nc).cloned().collect(),
+        row_major: false,
+    };
+    // `Matrix` is already column-major (`data[j * rows + i]`, like R), so no
+    // `to_column_major` here -- unlike the `Vec<f64>` quantities below, which are
+    // stored row-major because that is the order their hot loops walk.
+    assert_eq!(
+        design.data.len(),
+        xw.len(),
+        "the design has {} elements and the golden's has {}",
+        design.data.len(),
+        xw.len()
+    );
+    if let Some(d) = compare_vectors("x", &design.data, xw, TOL_PREPROCESS, &xctx) {
+        return Some(d);
+    }
+
     // --- preprocessing: exact, it is only a log and a subtraction ---
     //
     // The core stores `taxa x samples` row-major because that is the order its
@@ -3003,48 +2861,34 @@ pub fn compare_core(
 
     // --- MLE 1: the coefficients carry the design fit, the variance carries
     //     the sandwich quirk, so they are compared separately ---
+    // `theta` is compared *before* `beta_star` because it is upstream of it, and
+    // the contract promises a first-diverging-quantity report: `theta` is
+    // `colMeans(y - y_crt_hat)` over the set, so a wrong `theta` changes every
+    // `beta_star` in the next thing that happens. With `beta_star` first, the
+    // `int-sparsity90-5group` cell reported a 166% error on a coefficient whose
+    // actual cause was a `theta` 0.33 away -- three quantities upstream of where
+    // the report pointed.
+    if let Some(d) = compare_vectors("theta", &core.theta, g.vector("theta"), TOL_BETA, &plain) {
+        return Some(d);
+    }
     let (bs, nr, nc) = g.matrix("beta_star");
-    // Through `compare_indirect`, not `compare_vectors_masked`, because
-    // `beta_star` is in `INDIRECT_QUANTITIES`: when the class is present at all,
-    // the whole quantity is *reported* rather than asserted. That is the same
-    // treatment every quantity below it gets, and it is the honest one here --
-    // a per-row exemption cannot work, because whether a given taxon is exempt
-    // depends on `fit_one`'s `lm` aliasing, which is the thing being exempted.
-    //
-    // `int-sparsity90-5group` is the case that forced this: 56 of its 64 taxa are
-    // exempt, and one of the remaining 8 still disagreed on `group2` by 6.3%
-    // because the reference's `lm` re-levelled the factor to the three levels it
-    // saw and wrote a literal 0 for the two it did not. There is no per-taxon
-    // rule to apply, so the quantity is reported as a whole.
-    if let Some(d) = compare_indirect(
+    if let Some(d) = compare_vectors(
         "beta_star",
         &to_column_major("core.beta_star", &core.beta_star, nr, nc),
         bs,
         TOL_BETA,
         &rmat_bias(nr, nc),
-        mask,
-        &mask.bias_exempt(),
-    ) {
-        return Some(d);
-    }
-    if let Some(d) = compare_indirect(
-        "theta",
-        &core.theta,
-        g.vector("theta"),
-        TOL_BETA,
-        &plain,
-        mask,
-        &[],
     ) {
         return Some(d);
     }
     let (v1, nr, nc) = g.matrix("var1");
-    // Reported, not asserted, when the class is present: `var1` is the bias set's
-    // sandwich variance, summed over residuals whose last bits depend on the
-    // fitted values of the same non-reproducible taxa as `theta`. On
-    // `int-sparsity90-5group` one taxon sat 2.1e-7 relative out -- inside the
-    // sandwich's own tolerance for a well-determined fit, and outside it only
-    // because the residuals came from a rank-deficient solve.
+    // Asserted, like everything else. It used to be reported rather than asserted
+    // on the theory that its residuals came from "non-reproducible" rank-deficient
+    // taxa -- the same unsound premise as `INDIRECT_QUANTITIES`, and it was wrong
+    // for the same reason: `lm`'s pivoting is the identity, so those fits are
+    // determined. It also went through `compare_indirect`, which is now just
+    // `compare_vectors` with the class threaded through unused; the calls are
+    // left as they are so the diff against the previous revision stays readable.
     if let Some(d) = compare_indirect(
         "var1",
         &to_column_major("core.var1", &core.var1, nr, nc),
@@ -3175,11 +3019,35 @@ pub fn compare_core(
     }
 
     // --- regularisation ---
-    // `s0` for coefficient `k` is a quantile of a variance column that inherits
-    // the E-M's bias estimate, so the tolerance it can meet is the E-M's whenever
-    // that fit did not converge. See `s0_tolerance_for`.
-    let s02_tols: Vec<Tolerance> = match em_converged_terms(&g.dir) {
-        Some(flags) => flags.iter().map(|c| s0_tolerance_for(Some(*c))).collect(),
+    //
+    // `s0` is `quantile(var_hat[, k], s0_perc)` and `var_hat` contains
+    // `var_delta` and `2*sqrt(var*var_delta)`, so `s0` inherits the E-M's
+    // parameters through both terms, and `var_delta` is one scalar per
+    // coefficient -- so nothing averages out over taxa to dilute it. The precision
+    // `s0` can be held to is therefore the precision to which the E-M determined
+    // its parameters, which is the size of its last step.
+    //
+    // Two earlier rules were tried here and both were wrong:
+    //
+    //  * **the iteration count.** A fit that stopped at 61 iterations with a final
+    //    epsilon of 9.1e-6 has "converged" by the recorded test and still leaves
+    //    `s0` at 1.07e-9 on the `covariates-10-interaction` cell -- just outside
+    //    `rtol 1e-9`. Converged is not the same as accurate.
+    //  * **the achieved `delta_em`.** Measured, which made it the obvious
+    //    candidate, but it did not predict that case: `delta_em` for the term in
+    //    question agrees to better than 1e-9 while `s0` does not, so the
+    //    disagreement is downstream of the bias estimate and a bound keyed on it
+    //    never engaged.
+    //
+    // This is the same measure `em_tolerance_for` applies to the mixture, so the
+    // contract carries one rule for both quantities rather than two. Every
+    // comparison prints the bound it applied, so the slack is visible on every run
+    // instead of being an absence of evidence.
+    let fits = em_fits(&g.dir);
+    let s02_tols: Vec<Tolerance> = match &fits {
+        Some(f) => (0..core.s02.len())
+            .map(|k| em_tolerance_for(f.get(k).copied()))
+            .collect(),
         None => core.s02.iter().map(|_| TOL_S0).collect(),
     };
     if let Some(d) = compare_per_term(
@@ -3339,11 +3207,10 @@ pub fn compare_core(
         rtol: 0.0,
         atol: TOL_PROB.atol + (nr as f64) * dp,
     };
-    // `q` is in `INDIRECT_QUANTITIES`, so this goes through `compare_indirect`:
-    // when a taxon's sub-design is exactly singular the least-squares solution is
-    // not unique, and everything downstream inherits that. `fx04` has 200 such
-    // taxa in the bias set and its `q` differs from the oracle by 5.6e-4 as a
-    // result -- reported, not asserted, exactly as `p` is.
+    // `q` was in `INDIRECT_QUANTITIES` and so is not any more; see
+    // `INDIRECT_QUANTITIES` for what replaced the premise. Its tolerance is
+    // `atol + n_taxa * dp`, a Level C bound that already widens with the number of
+    // taxa being adjusted, and it is asserted.
     if let Some(d) = compare_indirect(
         "q[vs oracle]",
         &to_column_major("core.q", &core.q, nr, nc),

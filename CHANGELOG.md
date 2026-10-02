@@ -18,7 +18,87 @@ version bump — plus a re-run of the golden parity suite.
 
 ## [Unreleased]
 
-Nothing yet.
+### Fixed
+
+- **Aliased coefficients: three defects, and the divergence is closed.** The
+  `int-sparsity90-5group` matrix cell was 195 % out on `beta_star` and up to 1.4
+  absolute out on `theta`. The previously documented cause — that the reference's
+  choice of least-squares representative in the rank-deficient path depends on
+  `lm`'s LAPACK pivoting and so cannot be reproduced — was **false**, and is
+  falsifiable in one line on the oracle's own R:
+  `lm.fit(cbind(c1, c2, c1 + c2), y)$qr$pivot` is `[1] 1 2 3`. `dqrls` is called
+  with `pivot = FALSE`, so the permutation is the identity and the dropped column
+  is the last aliased one. The three real causes, in the order they were found:
+
+  1. `fitted` was computed as `X %*% coef`, but `stats::fitted` is `lm.fit`'s
+     *projection* and stays finite when `coef()` is `NA`. The `NA` propagated into
+     `theta = colMeans(y - fitted, na.rm = TRUE)`, which dropped the taxon out of
+     that sample's mean entirely: about a fifth of each sample's observed taxa were
+     contributing, three samples had none at all, and `theta` returned `NaN`, which
+     then made the whole adjusted-response column `NaN` on the next iteration.
+  2. The rank-deficient path factorised the *group's* design instead of the one
+     `lm` builds. `fit_one` calls `lm` on a `na.omit`-reduced frame and
+     `model.matrix` applies `drop.unused.levels`, so every group contrast for an
+     unobserved level is absent from the matrix that is actually factorised. That
+     is a different design, and it has to be factorised as one. Two details, both
+     measured against the oracle's own `beta_star`: an unobserved level's contrast
+     has no name in `coef()` and is written as a literal `0`; and the **base** level
+     is the first *observed* one, not the first globally, so a taxon observed at
+     levels {3, 4, 5} reports `group3` as `0` even though `group3` is 1 on some of
+     its rows.
+  3. `build_design` kept the column names on `Design::colnames` and left
+     `Matrix::colnames` empty, so the pipeline's `group_columns(&x.colnames, ...)`
+     returned an empty slice and defect 2's filter was a no-op. `fix_eff` was
+     unaffected — it comes from `cfg.fix_eff` — so nothing in the output hinted at
+     it.
+
+  With all three fixed, an independent reimplementation of `.lm_fit_all` driven
+  from the golden's own `x` and `y1` reproduces the recorded `theta` to 0.0
+  relative error over all 30 samples and the first iteration's `epsilon` to all
+  eight published digits (`0.99801595`); the Rust side matches that reproduction.
+  See `docs/reference_behavior.md` §16.
+
+- **`x` is compared at Level A.** The design matrix was in every golden and in
+  every manifest but was never compared — only its column *names* were. Adding it
+  is what surfaced defect 3 above, on `shape-10x10`.
+
+- **`theta` is compared before `beta_star`.** `theta` is upstream of it, and the
+  contract promises a first-diverging-quantity report; with `beta_star` first, a
+  166 % error on one coefficient was reported when the actual cause was a `theta`
+  0.33 away.
+
+### Removed
+
+- **The report-only exemption layer.** `INDIRECT_QUANTITIES` held twenty
+  quantities — `theta`, `beta_star`, `delta_em`, `beta`, `se`, `p`, `q`, `vcov` and
+  the rest of everything downstream of the first MLE — which were printed with their
+  measured deviation and only checked for finiteness whenever a rank-deficient taxon
+  was present. That was carried on the false premise above. With the premise gone
+  the list is an empty `const`, the report-only branches in `compare_indirect` and
+  `compare_per_term` are gone, and **every quantity in the contract is asserted on
+  every fixture and every matrix cell**, including the ones whose groups are rank
+  deficient. The rank-deficient class is still computed and printed, because the
+  counts are worth seeing, but it gates nothing.
+
+### Changed
+
+- `s0`'s per-term bound now follows the E-M's **recorded final epsilon** — the size
+  of its last parameter step — rather than whether the iteration hit `max_iter`.
+  Converged is not the same as accurate: a fit that stopped at 61 iterations with
+  a final epsilon of 9.1e-6 leaves `s0` at 1.07e-9, just outside `rtol 1e-9`. A rule
+  keyed on the achieved `delta_em` was tried first and rejected — it never engaged,
+  because `delta_em` for the term in question agrees to better than 1e-9 while `s0`
+  does not. `s0` now uses the same rule as the mixture, so the contract carries one
+  rule for both quantities. See `docs/numerical_contract.md`.
+
+- `qr()` no longer permutes columns. `lm.fit` calls `dqrls` with `pivot = FALSE`,
+  so the identity permutation is the reference's behaviour, not a choice.
+
+### Added
+
+- Regression tests for each of the three defects: `the_base_level_is_the_first_observed_one`,
+  `fitted_is_the_projection_and_interpolates_when_n_equals_rank` (`mle`), and
+  `the_design_matrix_carries_its_own_colnames` (`ancombc2-io`).
 
 ## [0.1.0]
 
