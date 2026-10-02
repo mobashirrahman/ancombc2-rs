@@ -108,12 +108,17 @@ verifies the oracle commit and runs a mirror self-check before writing anything,
 so a drifted oracle fails there rather than quietly rewriting the contract.
 
 `docs/reference_behavior.md` is the honest account of what does not match. In
-short: the reference's quirks are reproduced and listed; one class of input — a
-per-taxon sub-design that is exactly rank deficient — has a non-unique
-least-squares solution whose representative the reference does not fix by any
-documented rule, and on that class the quantities downstream of the E-M are
-reported rather than asserted. The affected fraction is counted, capped at 1%,
-and printed on every run.
+short: the reference's quirks are reproduced and listed, and every quantity in the
+contract is asserted at its own tolerance on every fixture — including the ones
+whose per-taxon sub-designs are exactly rank deficient. That class used to be
+carried as a twenty-entry "report rather than assert" list on the stated ground
+that the reference's choice of least-squares representative was not reproducible;
+it is, `lm.fit` calls `dqrls(pivot = FALSE)` so the column order is the identity
+and the dropped column is the last aliased one, and §16 of that document records
+the three defects that were actually behind the divergence. The rank-deficient
+taxa are still counted and printed on every run — how many there are, how many
+have a per-taxon `lm` that fails outright, how many are under-determined — so a
+change in that population is visible, but it gates nothing.
 
 ### Threading
 

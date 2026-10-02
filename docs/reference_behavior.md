@@ -162,10 +162,7 @@ the two explicitly (`to_column_major`) rather than loosening a tolerance, and
 `to_column_major` asserts the length so a shape mistake is a named error instead
 of an out-of-bounds read.
 
-## 10. Rank-deficient per-taxon designs: the one place parity is not asserted
-
-**This is the only documented scope limit on the golden contract, and it is
-gated, counted, and printed on every run.**
+## 10. Rank-deficient per-taxon designs: parity is asserted here too
 
 ### What happens
 
@@ -179,84 +176,62 @@ beta + c * (-1, 1, 1, ..., 1)
 ```
 
 is a least-squares solution for every `c`. `.lm_fit_all` sees
-`fit$rank < ncol(xr)`, refits the taxon alone with `lm`, and `lm` *drops* the
-aliased coefficient from `coef()`; `.lm_fit_all` then writes the surviving names
-into a zero-initialised row, so the dropped coefficient is a literal **0** and
-the other coefficients absorb `c`.
+`fit$rank < ncol(xr)`, refits the taxon alone with `lm`, and `lm` re-levels the
+factor to the levels that taxon actually observed, so the design it factorises is
+not the design the group was fitted on.
 
-The fitted values are identical for every choice of `c`. So are the residuals,
-the sandwich variance and the sampling fractions. Only the *reported coordinate*
-differs — and which coordinate carries `c` follows from the column order that
-`lm.fit`'s LAPACK/BLINAS path happens to use.
+### Why it is reproducible
 
-### Why it is not reproducible
+An earlier revision of this section said it was not, and gave the reason that
+`lm.fit`'s LAPACK/BLINAS path decides which coordinate an aliased coefficient
+lands on. That reason was wrong: `lm.fit` and `lm` call `dqrls` with
+`pivot = FALSE`, so the permutation is the identity — `lm.fit(X, y)$qr$pivot` is
+`1 2 ... p` even when an early column is an exact combination of later ones — and
+the dropped column is the last aliased one in build order. There is no pivoting to
+reproduce, and the representative is fully determined.
 
-Verified against the oracle for `fx04`:
+The rule that had to be implemented instead is three-part, and all three parts are
+measured against the oracle's own `.lm_fit_all`:
 
-* 200 of 10,000 taxa are in the class. 175 of them reproduce exactly — they are
-  the ones whose absent group owns a dummy column, so that column is exactly
-  zero and is unambiguously the one dropped.
-* The other 25 have the absent group as the *reference* level. There is no zero
-  column to identify, and the reference's choice is not recoverable: `lm.fit`
-  reaches `dqrdc2` (unpivoted), but the oracle's own answer for these taxa is not
-  the answer its unpivoted `R` diagonal would imply, and the oracle's zero lands
-  on a different coordinate for a different response vector. The coordinates the
-  oracle zeroes are spread over the group dummies: 76 / 47 / 41 / 36 across
-  `group2` .. `group5`.
-* Rank determination on an ill-conditioned matrix is not invariant across correct
-  implementations. `kappa` of these sub-designs is ~1e15, and a pivoted
-  Householder QR and an unpivoted one disagree about the rank, not only about the
-  column order.
+1. **Factorise `lm`'s design, not the group's.** `fit_one` calls `lm` on a frame
+   of *all* samples with `NA` where the taxon's response is missing; `lm` drops the
+   incomplete rows, then `model.matrix` applies `drop.unused.levels = TRUE`. Every
+   group contrast for a level the taxon never observed is therefore absent. An
+   unobserved level's contrast has no name in `coef()`, and `fit_one` writes into
+   `rep(0, p)`, so it is a literal **0**; a contrast that *is* named but aliased is
+   **`NA`**.
+2. **The base level is the first observed one**, not the first globally. A taxon
+   observed at levels {3, 4, 5} gets columns for 4 and 5 only, so `group3` is `0`
+   even though `group3` is 1 on some of its rows.
+3. **`stats::fitted` is the projection**, not `X %*% coef`. It stays finite where
+   `coef()` is `NA`, which matters because `theta` is
+   `colMeans(y - fitted, na.rm = TRUE)` and an `NA` there drops the taxon out of
+   that sample's mean entirely.
 
-An unpivoted Householder QR is not an option either: the diagonal magnitudes
-depend on the reflector formula, so two correct implementations disagree on the
-rank of the same matrix. The Rust code uses a pivoted factorisation with
-`lm.fit`'s documented `tol = 1e-7` and the *leading-run* rank rule (stop at the
-first diagonal below `tol * |R_00|`; counting instead of stopping reports a full
-rank for a design whose middle column duplicates an earlier one).
+Rank determination itself uses `lm.fit`'s documented `tol = 1e-7` and the
+*leading-run* rule — stop at the first diagonal below `tol * |R_00|`, rather than
+counting every diagonal that clears it, since counting reports a full rank for a
+design whose middle column duplicates an earlier one.
 
 ### What the contract does
 
-* **Per taxon**, a flag is computed from the factorisation: is this taxon's
-  usable-sample sub-design rank deficient? Those entries are exempt from the
-  numeric tolerance. The tolerance itself is unchanged.
-* The exempt share is **capped** at 1% (`MAX_RANK_DEFICIENT_SHARE`). `fx04` needs
-  0.16%. Exceeding the cap fails the run, so a change in how many taxa fall in
-  the class is a visible regression rather than a silent pass.
-* **Everything downstream of `delta_em`** then inherits the indeterminacy: the
-  three-component mixture is fitted to every taxon of the bias set, so one
-  non-unique coordinate moves the posterior weights. The split is therefore drawn
-  where the indeterminacy enters. `y1`, `y2`, `beta_star`, `var1`, `theta` and the
-  first MLE's `vcov` and degrees of freedom are still asserted **verbatim**;
-  `delta_em`, `delta_wls`, `var_delta`, `beta_corr_stage1`, `samp_frac`,
-  `y_bias_crt`, `beta`, `var_hat`, `s02`, `var_final`, `vcov`, `se`, `W`, `p` and
-  `q` are *reported* with their measured deviation on every run, and only their
-  finiteness is asserted (`INDIRECT_QUANTITIES`).
-* The bound is gated on the class being present. A fixture with no rank-deficient
-  taxa — three of the four committed fixtures — is held to the unmodified
-  tolerance for every quantity, so this cannot mask an ordinary regression.
+**Nothing special.** Every quantity in the contract is compared at its own
+tolerance, and the tolerance is never widened for these taxa. The rank-deficient
+class is still computed and still printed on every run — how many taxa are in it,
+how many of those have a per-taxon `lm` that fails outright, how many are
+under-determined — because the counts are worth seeing and a change in them should
+be visible. The share caps fail the run if it moves; they gate nothing about what
+is compared.
+
+The twenty-entry report-only list that used to cover this class is gone rather than
+left empty; §16 records why, and what would have to be supplied to bring a
+genuine exemption back.
 
 ### Measured, on `fx04`
 
-| quantity | max deviation (relative / absolute) |
-| --- | --- |
-| `beta_star` | 125 of 80,000 entries, all in the class |
-| `var1`, `theta` | 1.2e-14 / 1.8e-13 |
-| `delta_em` | 2.2e-2 / 1.0e-4 |
-| `delta_wls` | 7.9e-2 / 2.9e-4 |
-| `var_delta` | 1.0e-6 / 1.0e-9 |
-| `samp_frac` | 4.3e-2 / 1.0e-4 |
-| `beta` | 1.0e-1 / 1.0e-4 |
-| `var_hat` | 4.9e-15 / 1.9e-16 |
-| `se` | 1.2e-6 / 3.2e-7 |
-| `p` | 1.6e-3 / 3.9e-4 |
-
-The E-M itself is exact: fed the oracle's own `beta_star` and `var1`, this
-implementation reproduces `delta_em` to **5e-9**.
-
-`diff_abn` is Level A and exact, and matches on all four fixtures including
-`fx04` — the 1e-4 shift in the coefficients does not move a single significance
-call.
+200 of its 10,000 taxa are in the class, and the largest deviation anywhere in the
+contract is now at the tolerance the quantity itself carries. `diff_abn` is Level A
+and exact, and matches on all four fixtures.
 
 ## 12. Two rows of the edge-case matrix name parameters this oracle lacks
 
@@ -341,12 +316,12 @@ matrix's `int-sparsity90-5group` cell (six columns, 90% zeros, 30 samples) has
 groups narrower than they are tall.
 
 All four are reproduced, and each is pinned by a test that states the rule rather
-than the output. What remains unreproducible is *which* coordinates the reference
-reports when the fit is rank deficient: `lm`'s LAPACK pivoting decides whether an
-aliased column arrives as an NA or is dropped entirely, and that is the same
-non-reproducibility as §10. `beta_star`, `theta`, `var1` and the quantities below
-them are therefore **reported, not asserted** when the class is present, and the
-counts are printed with their own caps.
+than the output. The last of them — "an `NA` aliased column becomes `NA` in the
+reported coefficients" — was the open question for a while, on the belief that
+`lm`'s pivoting made it unreproducible; it is `dqrls(pivot = FALSE)` and it is
+reproducible. See §10 and §16. Every quantity is asserted, and `beta_star`,
+`theta` and `var1` agree at their own tolerances on every cell including this
+one.
 
 ## 14. The formula normaliser used to delete every interaction
 

@@ -183,9 +183,9 @@ they have different causes and different correct rates.
 
 Check 2 against the golden `q` is the one that was missing. Comparing our `q` with
 `p_adjust(our p)` alone proves the pipeline is internally coherent, but a `q` that
-is a deterministic function of a wrong `p` passes it. It is listed in
-`INDIRECT_QUANTITIES`, so under a rank-deficient fixture it routes through
-`compare_indirect` and is reported rather than asserted, exactly as `p` is.
+is a deterministic function of a wrong `p` passes it. It was once listed in
+`INDIRECT_QUANTITIES` and so reported rather than asserted under a rank-deficient
+fixture; the list is now empty and `q` is asserted everywhere, exactly as `p` is.
 
 ## 5. Failures report the first diverging quantity
 
