@@ -174,6 +174,17 @@ The definition of done, item by item:
 | all Levels A–D passing | **met** | 8 parity tests green, 9 matrix, 12 edge, 18 property |
 | all property tests including thread invariance | **met** | 18 passed, `p15` among them |
 | simulation FDR/power parity | **met** | `full` grid, 252 cells x 1000 reps, both arms: **0 divergent**. `lfc_bias` agrees on 252/252 cells, `empirical_fdr` on 161/161 comparable cells, `power` on 124/124. See `docs/simulation_results.md` |
+
+The Layer 3 evidence was re-verified after the rank-deficient and design-building
+fixes, rather than assumed unaffected: the **whole** Rust arm was re-run over the
+full grid -- 249,600 replicates, 72 minutes -- and every per-cell metric came out
+bit-identical to the committed summary. Zero values moved. So the fixes do not
+touch this path, which is what one would expect (the simulation harness builds its
+own design and its cells have no rank-deficient groups), but it is now a
+measurement rather than an inference. The 517 replicates the arm reports as failed
+are the documented "all taxa contain structural zeros" guard on the 90 %-zero cells;
+the R arm fails 1511 rows on those same cells, so the Rust arm is the stricter
+one there, not the looser.
 | real-data `diff_abn` concordance >= 99.99% | **met** | 1.0 on all four datasets |
 | complete benchmarks with all gates reported | **met** | 6 datasets, 7 arms, 5 gates, 0 absent |
 | complete docs | **met** | the eight required documents plus `simulation_results.md` |

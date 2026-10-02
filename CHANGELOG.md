@@ -166,6 +166,13 @@ column *set* is identical, no golden exercises it, and the difference is stated 
 
 ### Re-measured
 
+- **Layer 3 re-verified end to end.** The whole Rust arm was re-run over the full
+  simulation grid -- 249,600 replicates, 72 minutes -- and every per-cell metric is
+  bit-identical to the committed `full.summary.json`. Zero values moved, so the
+  fixes do not touch this path; that is now a measurement rather than an inference.
+  The 517 reported failures are the documented structural-zero guard, and the R arm
+  fails 1511 rows on the same cells.
+
 - **The whole 42-arm benchmark surface**, because the numbers in
   `benchmarks/results/results.jsonl` came from a binary that factorised the wrong
   design on the rank-deficient path and so described a different program. All five
