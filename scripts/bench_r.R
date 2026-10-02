@@ -144,6 +144,27 @@ t_all <- proc.time()[["elapsed"]] - t_all
 n_sig <- if (!is.null(res$diff_abn)) sum(res$diff_abn, na.rm = TRUE) else NA
 n_taxa <- if (!is.null(res$taxa_retained)) length(res$taxa_retained) else nrow(counts)
 
+# Per-stage timings, under the same key names the Rust arm writes, so the two can
+# be compared stage for stage rather than only in total.
+#
+# These were collected by `ref_run` all along and simply never written out, while
+# this file's own header said they were. That is worse than missing: a reader
+# checking whether the R arm reports stage timings would have believed the header.
+# Without them there is no way to say *which* stage R is faster in -- only that it
+# is faster overall on bm6, which is the question that actually needs answering
+# before the MLE can be improved.
+stage <- res$stage_seconds
+stage_names <- names(stage)
+stage_lines <- if (length(stage_names) == 0L) {
+  character(0)
+} else {
+  c(
+    sprintf("stage_seconds_total\t%.6f", sum(as.numeric(stage), na.rm = TRUE)),
+    sprintf("stage_seconds.%s\t%.6f", stage_names,
+            vapply(stage, function(v) as.numeric(v), numeric(1)))
+  )
+}
+
 meta_lines <- c(
   env_lines,
   sprintf("arm\tr-%s", if (identical(threads, "1") || identical(threads, "1-sequential")) "1core" else "parallel"),
@@ -152,6 +173,7 @@ meta_lines <- c(
   "peak_rss_source\tgc() Vcells, a lower bound (not a process high-water mark)",
   sprintf("n_taxa_reported\t%d", n_taxa),
   sprintf("n_diff_abn\t%d", n_sig),
+  stage_lines,
   "status\tok"
 )
 writeLines(meta_lines, file.path(out_dir, "run_metadata.tsv"))
