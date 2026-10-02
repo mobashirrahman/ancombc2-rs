@@ -15,10 +15,14 @@
 
 load_harness <- function(oracle_dir = NULL) {
   if (is.null(oracle_dir)) {
-    oracle_dir <- Sys.getenv("ANCOMBC_ORACLE_DIR", unset = NULL)
-  }
-  if (is.null(oracle_dir)) {
-    stop("set ANCOMBC_ORACLE_DIR or pass oracle_dir=")
+    # `Sys.getenv`'s `unset` must be a character; `NULL` is a type error, so the
+    # documented `load_harness()` call -- with the directory coming from the
+    # environment -- failed outright with "wrong type for argument". Every script
+    # here happens to pass `oracle_dir` explicitly, which is why it went unnoticed.
+    oracle_dir <- Sys.getenv("ANCOMBC_ORACLE_DIR", unset = "")
+    if (!nzchar(oracle_dir)) {
+      stop("set ANCOMBC_ORACLE_DIR or pass oracle_dir=")
+    }
   }
   here <- environment()
   source(file.path(oracle_dir, "..", "R", "oracle.R"), local = TRUE)

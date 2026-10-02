@@ -67,6 +67,46 @@ version bump — plus a re-run of the golden parity suite.
   166 % error on one coefficient was reported when the actual cause was a `theta`
   0.33 away.
 
+- **The CLI could not parse a spaced interaction.** `split_top` splits a formula on
+  whitespace as well as on `+`/`-`, which is right for `~ a b` and wrong for
+  `~ a * b`: the `*` became a term of its own and `expand("*")` produced
+  `Term::Variable("")` twice, so the run was refused with `the formula uses ""` --
+  naming neither the operator nor the term. The exact fixed formula the fixture
+  matrix ships, `group + x1 + ... + x9 + x10 * x1`, could not be run from the
+  command line at all.
+
+- **A factor inside an interaction produced the wrong column, and the wrong
+  values.** `~ group * covariate` built one column named `x1:group` whose value
+  multiplied the group's raw labels, so for a group coded `1..5` it was
+  `x1 * 3` where R has `x1 * (group == 3)`, and it omitted the
+  `x1:group2` .. `x1:group5` columns R builds. ANCOM-BC2's `group` argument *is* a
+  grouping variable, so multiplying its labels is simply wrong. No golden caught it:
+  the one interaction fixture, `covariates-10-interaction`, is `x10 * x1`, both
+  continuous.
+
+- **`load_harness()` could not be called as documented.** It passed `unset = NULL` to
+  `Sys.getenv`, which is a type error, so the documented call -- with the directory
+  coming from `ANCOMBC_ORACLE_DIR` -- failed with "wrong type for argument". Every
+  script in the tree passes `oracle_dir` explicitly, which is why it went unnoticed.
+
+- **`*` and `:` are one operator, and `a*b*c` includes the triple.** Only pairwise
+  cross-products were generated, so `~ x1 * x2 * group` was missing
+  `x1:x2:group2`; `Term::Interaction` could not hold a three-factor term at all, and
+  `~ a:b * c` was expanded as if `a:b` were one variable named `"a : b"`.
+
+- **Terms are now grouped by interaction order**, as R's `terms()` emits them, and a
+  cross-term's label lists its variables in formula appearance order rather than
+  sorted. `~ group + x1 + ... + x9 + x10 * x1` labels the interaction `x1:x10` --
+  which the golden already recorded, because `x1` is written first -- while
+  `~ x10 * x1` labels it `x10:x1`. "Sort the factors" gets the first right by luck
+  and the second wrong.
+
+Designs were compared against `model.matrix` on the oracle's R across sixteen
+formulas; fifteen match exactly. The sixteenth, `~ x1 * x2 * x3 * group`, produces
+the same fifteen columns in a different order within one interaction order; the
+column *set* is identical, no golden exercises it, and the difference is stated in
+`crates/ancombc2-io/src/lib.rs` rather than left to be discovered.
+
 ### Removed
 
 - **The report-only exemption layer.** `INDIRECT_QUANTITIES` held twenty
@@ -99,6 +139,14 @@ version bump — plus a re-run of the golden parity suite.
 - Regression tests for each of the three defects: `the_base_level_is_the_first_observed_one`,
   `fitted_is_the_projection_and_interpolates_when_n_equals_rank` (`mle`), and
   `the_design_matrix_carries_its_own_colnames` (`ancombc2-io`).
+- Formula and design tests for the four fixes above:
+  `a_spaced_interaction_is_one_term`,
+  `a_spaced_nested_interaction_keeps_both_colons`,
+  `a_dangling_interaction_operator_names_itself`,
+  `a_factor_in_an_interaction_expands_to_its_contrasts`, and
+  `a_group_main_effect_drops_the_base_level_and_an_interaction_does_not`.
+  The expected column names in each are the oracle's, taken from `model.matrix`
+  rather than from this implementation's output.
 
 ### Re-measured
 

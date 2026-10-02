@@ -513,77 +513,174 @@ pub fn build_design(
         matrix.set(i, 0, 1.0);
     }
     let mut colnames = vec!["(Intercept)".to_string()];
+
+    // The columns one variable contributes to the design: `(label, values)` pairs.
+    //
+    // A continuous variable is one numeric column under its own name. A factor --
+    // the group column by construction, or any column whose labels are text --
+    // becomes one column per level but the first, named `name<level>`. Both arms
+    // of the term loop below need this, and so does the interaction case, where a
+    // factor has to expand rather than multiply.
+    // A factor drops its first level **only in the term that is the factor's main
+    // effect**. Every other term that contains it keeps all of its levels, because
+    // there is no main-effect column for the dropped level to be absorbed into --
+    // and that is per *term*, not per variable: `~ group + group:x1` drops the base
+    // level from the `group` term and keeps both from the `group:x1` term.
+    //
+    // ```text
+    // > colnames(model.matrix(~ group, m))          # base level absorbed
+    // [1] "(Intercept)" "group2"
+    // > colnames(model.matrix(~ group:x1, m))       # no main-effect term here
+    // [1] "(Intercept)" "group1:x1" "group2:x1"
+    // > colnames(model.matrix(~ group + group:x1, m))
+    // [1] "(Intercept)" "group2" "group1:x1" "group2:x1"
+    // ```
+    let columns_for = |v: &str, is_main_effect: bool| -> Vec<(String, Vec<f64>)> {
+        let col = meta.column(v).expect("checked above");
+        let as_group = Some(v) == group;
+        let levels = if as_group {
+            Some(as_factor_levels(col).unwrap_or_else(|| numeric_levels(col)))
+        } else {
+            as_factor_levels(col)
+        };
+        match levels {
+            // Numeric in the data frame: used numerically. A continuous covariate
+            // read as text is numeric, and treating its 100 distinct values as 100
+            // levels would build a 200-column design and lose the intercept to
+            // collinearity.
+            None => vec![(
+                v.to_string(),
+                col.iter()
+                    .map(|c| parse_count(c).unwrap_or(f64::NAN))
+                    .collect(),
+            )],
+            // A one-level factor: R errors on it, and a constant numeric column is
+            // collinear with the intercept. Let the core report the unidentifiable
+            // covariate rather than inventing a contrast for it.
+            Some(levels) if levels.len() < 2 => vec![(
+                v.to_string(),
+                col.iter()
+                    .map(|c| parse_count(c).unwrap_or(f64::NAN))
+                    .collect(),
+            )],
+            // Not the main-effect term: every level survives.
+            Some(levels) if !is_main_effect => levels
+                .iter()
+                .map(|lv| {
+                    (
+                        format!("{v}{lv}"),
+                        col.iter()
+                            .map(|c| if c == lv { 1.0 } else { 0.0 })
+                            .collect(),
+                    )
+                })
+                .collect(),
+            // The main-effect term: `model.matrix` drops the first level, because
+            // the intercept column absorbs it.
+            Some(levels) => levels[1..]
+                .iter()
+                .map(|lv| {
+                    (
+                        format!("{v}{lv}"),
+                        col.iter()
+                            .map(|c| if c == lv { 1.0 } else { 0.0 })
+                            .collect(),
+                    )
+                })
+                .collect(),
+        }
+    };
+    let push = |matrix: &mut Matrix, colnames: &mut Vec<String>, label: String, values: &[f64]| {
+        let mut m = Matrix::zeros(n, 1);
+        for (i, v) in values.iter().take(n).enumerate() {
+            m.set(i, 0, *v);
+        }
+        *matrix = append_column(std::mem::take(matrix), m);
+        colnames.push(label);
+    };
     for term in &formula.terms {
         match term {
             Term::Intercept => {}
             Term::Variable(v) => {
-                let col = meta.column(v).expect("checked above");
-                // The group column is a factor by construction. ANCOM-BC2's `group`
-                // argument *is* a grouping variable, and the reference harness
-                // coerces it before `model.matrix`, so a metadata column whose
-                // labels happen to be numbers still becomes `group2`, `group3`, ...
-                // rather than one numeric column.
-                let as_group = Some(v.as_str()) == group;
-                if as_group {
-                    let levels = as_factor_levels(col).unwrap_or_else(|| numeric_levels(col));
-                    if levels.len() >= 2 {
-                        for lv in &levels[1..] {
-                            let name = format!("{v}{lv}");
-                            let mut m = Matrix::zeros(n, 1);
-                            for (i, ci) in col.iter().enumerate().take(n) {
-                                m.set(i, 0, if ci == lv { 1.0 } else { 0.0 });
-                            }
-                            matrix = append_column(matrix, m);
-                            colnames.push(name);
-                        }
-                        continue;
-                    }
-                }
-                // R's rule, from `model.matrix` and `data_sanity_check`: a column
-                // that is *numeric* in the data frame is used numerically, and only
-                // a non-numeric one is coerced with `as.factor`. A continuous
-                // covariate read as text is therefore numeric, and treating its
-                // 100 distinct values as 100 levels would build a 200-column
-                // design and lose the intercept to collinearity.
-                match as_factor_levels(col) {
-                    None => add_numeric_column(&mut matrix, &mut colnames, v.to_string(), col),
-                    Some(levels) if levels.len() < 2 => {
-                        // A one-level factor: R errors on it, and a constant numeric
-                        // column is collinear with the intercept. Let the core
-                        // report the unidentifiable covariate.
-                        add_numeric_column(&mut matrix, &mut colnames, v.to_string(), col);
-                    }
-                    Some(levels) => {
-                        // `model.matrix` drops the first level of a factor.
-                        for lv in &levels[1..] {
-                            let name = format!("{v}{lv}");
-                            let mut m = Matrix::zeros(n, 1);
-                            for (i, ci) in col.iter().enumerate().take(n) {
-                                m.set(i, 0, if ci == lv { 1.0 } else { 0.0 });
-                            }
-                            matrix = append_column(matrix, m);
-                            colnames.push(name);
-                        }
-                    }
+                // This *is* the main-effect term, so a factor drops its base level.
+                for (label, values) in columns_for(v, true) {
+                    push(&mut matrix, &mut colnames, label, &values);
                 }
             }
-            Term::Interaction(a, b) => {
-                let (ca, cb) = (
-                    meta.column(a).expect("checked above"),
-                    meta.column(b).expect("checked above"),
-                );
-                let name = format!("{a}:{b}");
-                let mut m = Matrix::zeros(n, 1);
-                for i in 0..n {
-                    m.set(
-                        i,
-                        0,
-                        parse_count(&ca[i]).unwrap_or(f64::NAN)
-                            * parse_count(&cb[i]).unwrap_or(f64::NAN),
-                    );
+            Term::Interaction(factors, from_star) => {
+                // A factor inside an interaction expands into one column per
+                // contrast, so `~ x1 * group` on a five-level group is *four*
+                // columns named `x1:group2` .. `x1:group5`, not one column called
+                // `x1:group`. Two things were wrong before: the label kept the
+                // factor's name instead of the contrast's, and the value multiplied
+                // the factor's *labels*, so for a group coded 1..5 the "product"
+                // was `x1 * 3` rather than `x1 * (group == 3)`.
+                //
+                // Verified against `model.matrix` on the five-level fixture:
+                //
+                // ```text
+                // > colnames(model.matrix(~ x1 * group, m))[-1]
+                // [1] "x1" "group2" "group3" "group4" "group5"
+                // [6] "x1:group2" "x1:group3" "x1:group4" "x1:group5"
+                // ```
+                //
+                // Column order is the cartesian product over the term's factors in
+                // order, with the **last** factor varying fastest -- so `~ group * x1`
+                // labels the cross terms `group2:x1`, `group3:x1`, ...
+                //
+                // Known difference, stated rather than hidden: for a term crossing a
+                // factor with **three or more** continuous covariates, the set of
+                // columns matches but the order within one interaction order does
+                // not. `~ x1 * x2 * x3 * group` gives the oracle
+                //
+                // ```text
+                // x1:x2, x1:x3, x2:x3, x1:group2, x2:group2, x3:group2, ...
+                // ```
+                //
+                // and this implementation the same seven columns in a different
+                // sequence. R's order comes from `terms.formula`'s internal
+                // recursion, which is not a rule that can be read off the output;
+                // it is reproduced for one and two continuous covariates, which is
+                // what the fixture matrix and every committed golden use, and not
+                // beyond. No golden exercises the wider case.
+                // A factor drops its base level in this term only when the term
+                // came from a `*` expansion, because a `*` also produced the
+                // factor's main effect for the dropped level to be absorbed into.
+                // Written with `:`, it keeps every level:
+                //
+                // ```text
+                // > colnames(model.matrix(~ x1 * group, m))[-1]     # from `*`
+                // [1] "x1" "group2" "group3" "group4" "group5"
+                // [6] "x1:group2" "x1:group3" "x1:group4" "x1:group5"
+                // > colnames(model.matrix(~ group + group:x1, m))[-1]   # written `:`
+                // [1] "group2" "group3" "group4" "group5"
+                // [6] "group1:x1" "group2:x1" "group3:x1" "group4:x1" "group5:x1"
+                // ```
+                let per_factor: Vec<Vec<(String, Vec<f64>)>> =
+                    factors.iter().map(|v| columns_for(v, *from_star)).collect();
+                let mut combos: Vec<(Vec<usize>, Vec<String>, Vec<f64>)> =
+                    vec![(Vec::new(), Vec::new(), vec![1.0; n])];
+                for cols in &per_factor {
+                    let mut next = Vec::with_capacity(combos.len() * cols.len().max(1));
+                    for (idx, labels, acc) in &combos {
+                        if cols.is_empty() {
+                            next.push((idx.clone(), labels.clone(), acc.clone()));
+                            continue;
+                        }
+                        for (k, (label, values)) in cols.iter().enumerate() {
+                            let mut i2 = idx.clone();
+                            i2.push(k);
+                            let mut l2 = labels.clone();
+                            l2.push(label.clone());
+                            let v2: Vec<f64> = (0..n).map(|i| acc[i] * values[i]).collect();
+                            next.push((i2, l2, v2));
+                        }
+                    }
+                    combos = next;
                 }
-                matrix = append_column(matrix, m);
-                colnames.push(name);
+                for (_, labels, values) in combos {
+                    push(&mut matrix, &mut colnames, labels.join(":"), &values);
+                }
             }
         }
     }
@@ -609,6 +706,21 @@ pub fn build_design(
     })
 }
 
+fn append_column(left: Matrix, right: Matrix) -> Matrix {
+    let rows = left.rows;
+    let p = left.cols + right.cols;
+    let mut out = Matrix::zeros(rows, p);
+    for i in 0..rows {
+        for j in 0..left.cols {
+            out.set(i, j, left.get(i, j));
+        }
+        for j in 0..right.cols {
+            out.set(i, left.cols + j, right.get(i, j));
+        }
+    }
+    out
+}
+
 /// The levels of a *non-numeric* column, in the order `factor()` would order
 /// them, or `None` when every value parses as a number -- because then R keeps the
 /// column numeric and `model.matrix` gives it one column, not one per value.
@@ -631,39 +743,6 @@ pub fn as_factor_levels(col: &[String]) -> Option<Vec<String>> {
     // closest available and agrees for the ASCII labels a group column has.
     levels.sort();
     Some(levels)
-}
-
-fn add_numeric_column(
-    matrix: &mut Matrix,
-    colnames: &mut Vec<String>,
-    name: String,
-    col: &[String],
-) {
-    let n = col.len();
-    let mut m = Matrix::zeros(n, 1);
-    for (i, ci) in col.iter().enumerate() {
-        m.set(i, 0, parse_count(ci).unwrap_or(f64::NAN));
-    }
-    // `append_column` copies, so the existing intercept and earlier columns
-    // survive; replacing the matrix instead would drop them.
-    let left = std::mem::replace(matrix, Matrix::zeros(n, 1));
-    *matrix = append_column(left, m);
-    colnames.push(name);
-}
-
-fn append_column(left: Matrix, right: Matrix) -> Matrix {
-    let rows = left.rows;
-    let p = left.cols + right.cols;
-    let mut out = Matrix::zeros(rows, p);
-    for i in 0..rows {
-        for j in 0..left.cols {
-            out.set(i, j, left.get(i, j));
-        }
-        for j in 0..right.cols {
-            out.set(i, left.cols + j, right.get(i, j));
-        }
-    }
-    out
 }
 
 /// The levels of a numeric column, ordered as numbers. Used for the group
@@ -938,6 +1017,138 @@ mod tests {
             "and the group contrasts are recoverable from the matrix alone, which \
              is the only place the core can look"
         );
+    }
+
+    /// A factor inside an interaction expands into one column per contrast, and
+    /// the values are contrast products rather than products of the factor's
+    /// *labels*.
+    ///
+    /// Two things were wrong here and neither showed up in a golden, because no
+    /// committed fixture crosses the group with a covariate -- the one interaction
+    /// fixture, `covariates-10-interaction`, is `x10 * x1`, both continuous.
+    ///
+    /// 1. The column was named `x1:group`, keeping the factor's name. R names it
+    ///    after the contrast, `x1:group2`.
+    /// 2. The *value* multiplied the group's raw labels, so for a group coded
+    ///    `1..5` the column was `x1 * 3` where R has `x1 * (group == 3)`. A group
+    ///    coded 1..5 is the ordinary case; ANCOM-BC2's `group` argument is a
+    ///    grouping variable, so treating it as a number is simply wrong.
+    ///
+    /// Verified against `model.matrix` on a five-level group:
+    ///
+    /// ```text
+    /// > colnames(model.matrix(~ x1 * group, m))[-1]
+    /// [1] "x1" "group2" "group3" "group4" "group5"
+    /// [6] "x1:group2" "x1:group3" "x1:group4" "x1:group5"
+    /// ```
+    #[test]
+    fn a_factor_in_an_interaction_expands_to_its_contrasts() {
+        let meta = five_level_meta();
+        let f = crate::formula::parse("~ x1 * group").expect("formula parses");
+        let design = build_design(&meta, &f, Some("group")).expect("design builds");
+        assert_eq!(
+            design.colnames,
+            vec![
+                "(Intercept)",
+                "x1",
+                "group2",
+                "group3",
+                "group4",
+                "group5",
+                "x1:group2",
+                "x1:group3",
+                "x1:group4",
+                "x1:group5",
+            ],
+            "one column per contrast, labelled after the contrast; the `*` \
+             expansion also produced `group`'s main effect, so the base level is \
+             dropped in the interaction too"
+        );
+        // Sample 0 is group 1 and sample 2 is group 3. `x1:group3` must therefore
+        // be `x1` at sample 2 and 0 at sample 0 -- not `x1 * 3`.
+        let col = design
+            .colnames
+            .iter()
+            .position(|c| c == "x1:group3")
+            .expect("column exists");
+        let x1 = design
+            .colnames
+            .iter()
+            .position(|c| c == "x1")
+            .expect("column exists");
+        let v3 = design.matrix.get(2, col);
+        assert_eq!(
+            v3,
+            design.matrix.get(2, x1),
+            "x1:group3 is x1 where group == 3"
+        );
+        assert_eq!(design.matrix.get(0, col), 0.0, "and zero where group == 1");
+        assert_eq!(
+            design.matrix.get(1, col),
+            0.0,
+            "and zero where group == 2 -- not `x1 * 2`"
+        );
+    }
+
+    /// `~ group * x1` is refused by the reference on a two-level group -- the
+    /// design it builds is rank deficient and `model.matrix` is not the thing that
+    /// objects -- so this pins the *design*, not a run.
+    #[test]
+    fn a_group_main_effect_drops_the_base_level_and_an_interaction_does_not() {
+        let meta = five_level_meta();
+        for (f, want) in [
+            (
+                "~ group",
+                vec!["(Intercept)", "group2", "group3", "group4", "group5"],
+            ),
+            (
+                "~ group:x1",
+                vec![
+                    "(Intercept)",
+                    "group1:x1",
+                    "group2:x1",
+                    "group3:x1",
+                    "group4:x1",
+                    "group5:x1",
+                ],
+            ),
+            (
+                "~ group + group:x1",
+                vec![
+                    "(Intercept)",
+                    "group2",
+                    "group3",
+                    "group4",
+                    "group5",
+                    "group1:x1",
+                    "group2:x1",
+                    "group3:x1",
+                    "group4:x1",
+                    "group5:x1",
+                ],
+            ),
+        ] {
+            let f = crate::formula::parse(f).expect("formula parses");
+            let d = build_design(&meta, &f, Some("group")).expect("design builds");
+            assert_eq!(d.colnames, want, "for `{f}`");
+        }
+    }
+
+    /// Ten samples across five levels of `group`, plus `x1` and `x2`.
+    fn five_level_meta() -> Metadata {
+        Metadata {
+            sample_names: (0..10).map(|i| format!("s{i}")).collect(),
+            columns: vec!["group".into(), "x1".into(), "x2".into()],
+            values: vec![
+                (0..10).map(|i| (i % 5 + 1).to_string()).collect(),
+                (0..10)
+                    .map(|i| (i as f64 * 0.5 + 1.0).to_string())
+                    .collect(),
+                (0..10)
+                    .map(|i| (i as f64 * -0.25 + 2.0).to_string())
+                    .collect(),
+            ],
+        }
     }
 
     #[test]
