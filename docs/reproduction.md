@@ -113,6 +113,41 @@ it is a nightly/weekly check, not a per-commit one.
 
 This is what the CI `oracle` job runs.
 
+## Two committed files are over GitHub's 100 MB limit
+
+```
+148M  validation/golden/fx04/golden.rds
+133M  validation/matrix/golden/shape-10000x500/golden.rds
+```
+
+Both are the R serialisations of the two largest golden sets, and both are
+committed. **GitHub rejects a push containing a blob over 100 MB**, so adding a
+remote to this repository as it stands will fail. This is recorded here rather
+than left for whoever clones it to discover.
+
+The files are kept because the golden contract is specified to be stored "in both
+.rds and a canonical little-endian f64 format plus JSON metadata", and because
+`make goldens-drift` regenerates and writes them. What the *tests* read is the
+canonical side: `crates/ancombc2-core/tests/golden/mod.rs` loads the `.f64` and
+`.json`, so dropping the `.rds` files would not weaken a single assertion --
+`make goldens-drift` would report it, since it regenerates rather than skips.
+
+Options if a remote is wanted, in the order I would pick them:
+
+1. **Git LFS** for `*.rds`. Keeps the contract intact and the working tree
+   unchanged; needs a remote with LFS, and `git lfs install` before the first
+   clone.
+2. **Drop the `.rds` from the tree** and have `make goldens-drift` write them to a
+   gitignored directory. Cheap, keeps every assertion, at the cost of the `.rds`
+   half of the stated format being generated rather than committed.
+3. Ship them as release artefacts. Works, but a clone no longer has the full
+   contract.
+
+Option 1 is the one that changes the least and loses nothing.
+
+The repository has no remote and is not published; this is a note for whoever
+does that next, not a current failure.
+
 ## The golden format
 
 Each fixture directory holds, per quantity:
