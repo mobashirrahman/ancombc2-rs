@@ -1,0 +1,16 @@
+[package]
+name = "ancombc2-io"
+description = "Matrix and configuration IO for ancombc2-rs"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+ancombc2-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+csv.workspace = true
+thiserror.workspace = true

@@ -1,0 +1,316 @@
+{
+ "datasets": [
+  {
+   "dataset": "atlas1006",
+   "coefficient": "sexmale",
+   "coefficient_rust": "sexmale",
+   "coefficient_r": "sexmale",
+   "coefficients_agree": true,
+   "n_taxa_in": 130,
+   "n_samp_in": 1151,
+   "n_taxa_retained_rust": 121,
+   "n_taxa_retained_r": 121,
+   "n_paired": 121,
+   "taxa_only_in_rust": [],
+   "taxa_only_in_r": [],
+   "retained_sets_agree": true,
+   "beta": {
+    "n": 121,
+    "n_nonfinite_skipped": 0,
+    "pearson": 1.0,
+    "spearman": 1.0,
+    "max_abs_diff": 7.389922007661198e-14,
+    "mean_abs_diff": 6.765023089610288e-14,
+    "max_rel_diff": 8.114807532077735e-11
+   },
+   "se": {
+    "n": 121,
+    "n_nonfinite_skipped": 0,
+    "pearson": 1.0000000000000002,
+    "spearman": 1.0,
+    "max_abs_diff": 5.551115123125783e-17,
+    "mean_abs_diff": 1.7719985258738295e-17,
+    "max_rel_diff": 1.2326856569211436e-15
+   },
+   "p": {
+    "n": 121,
+    "n_nonfinite_skipped": 0,
+    "pearson": 1.0,
+    "spearman": 1.0,
+    "max_abs_diff": 2.2870594307278225e-12,
+    "mean_abs_diff": 7.388300525069981e-13,
+    "max_rel_diff": 6.830088386480395e-12
+   },
+   "q": {
+    "n": 121,
+    "n_nonfinite_skipped": 0,
+    "pearson": 1.0,
+    "spearman": 1.0,
+    "max_abs_diff": 2.5092150579553163e-12,
+    "mean_abs_diff": 1.2542054028720575e-12,
+    "max_rel_diff": 4.8017117745541084e-12
+   },
+   "diff_abn": {
+    "n": 121,
+    "n_not_compared": 0,
+    "agreement": 1.0,
+    "n_disagree": 0,
+    "called_only_by_rust": [],
+    "called_only_by_r": []
+   },
+   "passed_ss": {
+    "n": 121,
+    "n_not_compared": 0,
+    "agreement": 1.0,
+    "n_disagree": 0,
+    "called_only_by_rust": [],
+    "called_only_by_r": []
+   },
+   "diff_robust": {
+    "n": 121,
+    "n_not_compared": 0,
+    "agreement": 1.0,
+    "n_disagree": 0,
+    "called_only_by_rust": [],
+    "called_only_by_r": []
+   },
+   "significant_jaccard": 1.0,
+   "diff_abn_agreement_threshold": 0.9999,
+   "passes_diff_abn_threshold": true,
+   "total_flag_disagreements": 0,
+   "status": "ok"
+  },
+  {
+   "dataset": "dietswap",
+   "coefficient": "groupED",
+   "coefficient_rust": "groupED",
+   "coefficient_r": "groupED",
+   "coefficients_agree": true,
+   "n_taxa_in": 130,
+   "n_samp_in": 222,
+   "n_taxa_retained_rust": 110,
+   "n_taxa_retained_r": 110,
+   "n_paired": 110,
+   "taxa_only_in_rust": [],
+   "taxa_only_in_r": [],
+   "retained_sets_agree": true,
+   "beta": {
+    "n": 110,
+    "n_nonfinite_skipped": 0,
+    "pearson": 1.0,
+    "spearman": 1.0,
+    "max_abs_diff": 2.4980018054066022e-14,
+    "mean_abs_diff": 2.1889074458452976e-14,
+    "max_rel_diff": 2.2249899400744556e-10
+   },
+   "se": {
+    "n": 110,
+    "n_nonfinite_skipped": 0,
+    "pearson": 1.0,
+    "spearman": 1.0,
+    "max_abs_diff": 1.1657341758564144e-15,
+    "mean_abs_diff": 2.75474087985117e-16,
+    "max_rel_diff": 4.3281569532885145e-15
+   },
+   "p": {
+    "n": 110,
+    "n_nonfinite_skipped": 0,
+    "pearson": 1.0,
+    "spearman": 1.0,
+    "max_abs_diff": 5.28532773103052e-12,
+    "mean_abs_diff": 1.7009610260702732e-13,
+    "max_rel_diff": 5.289705196212978e-12
+   },
+   "q": {
+    "n": 110,
+    "n_nonfinite_skipped": 0,
+    "pearson": 1.0000000000000002,
+    "spearman": 1.0,
+    "max_abs_diff": 5.28532773103052e-12,
+    "mean_abs_diff": 3.60066522052772e-13,
+    "max_rel_diff": 5.289705196212978e-12
+   },
+   "diff_abn": {
+    "n": 110,
+    "n_not_compared": 0,
+    "agreement": 1.0,
+    "n_disagree": 0,
+    "called_only_by_rust": [],
+    "called_only_by_r": []
+   },
+   "passed_ss": {
+    "n": 0,
+    "agreement": null,
+    "n_not_compared": 0,
+    "reason": "the analysis did not produce this feature"
+   },
+   "diff_robust": {
+    "n": 0,
+    "agreement": null,
+    "n_not_compared": 0,
+    "reason": "the analysis did not produce this feature"
+   },
+   "significant_jaccard": null,
+   "diff_abn_agreement_threshold": 0.9999,
+   "passes_diff_abn_threshold": true,
+   "total_flag_disagreements": 0,
+   "status": "ok"
+  },
+  {
+   "dataset": "qmp-real",
+   "coefficient": "groupdisease_cohort",
+   "coefficient_rust": "groupdisease_cohort",
+   "coefficient_r": "groupdisease_cohort",
+   "coefficients_agree": true,
+   "n_taxa_in": 91,
+   "n_samp_in": 106,
+   "n_taxa_retained_rust": 81,
+   "n_taxa_retained_r": 81,
+   "n_paired": 81,
+   "taxa_only_in_rust": [],
+   "taxa_only_in_r": [],
+   "retained_sets_agree": true,
+   "beta": {
+    "n": 81,
+    "n_nonfinite_skipped": 0,
+    "pearson": 1.0,
+    "spearman": 1.0,
+    "max_abs_diff": 4.973799150320701e-14,
+    "mean_abs_diff": 1.069694744304928e-14,
+    "max_rel_diff": 2.1678625007961963e-13
+   },
+   "se": {
+    "n": 81,
+    "n_nonfinite_skipped": 0,
+    "pearson": 1.0,
+    "spearman": 1.0,
+    "max_abs_diff": 1.1102230246251565e-15,
+    "mean_abs_diff": 3.1456319031046104e-16,
+    "max_rel_diff": 7.661085770193834e-16
+   },
+   "p": {
+    "n": 81,
+    "n_nonfinite_skipped": 0,
+    "pearson": 1.0,
+    "spearman": 1.0,
+    "max_abs_diff": 4.007905118896815e-14,
+    "mean_abs_diff": 4.820427534325318e-15,
+    "max_rel_diff": 1.9076125987096564e-13
+   },
+   "q": {
+    "n": 81,
+    "n_nonfinite_skipped": 0,
+    "pearson": 1.0,
+    "spearman": 1.0,
+    "max_abs_diff": 4.007905118896815e-14,
+    "mean_abs_diff": 6.234478842748261e-15,
+    "max_rel_diff": 1.9079864205005067e-13
+   },
+   "diff_abn": {
+    "n": 81,
+    "n_not_compared": 0,
+    "agreement": 1.0,
+    "n_disagree": 0,
+    "called_only_by_rust": [],
+    "called_only_by_r": []
+   },
+   "passed_ss": {
+    "n": 0,
+    "agreement": null,
+    "n_not_compared": 0,
+    "reason": "the analysis did not produce this feature"
+   },
+   "diff_robust": {
+    "n": 0,
+    "agreement": null,
+    "n_not_compared": 0,
+    "reason": "the analysis did not produce this feature"
+   },
+   "significant_jaccard": 1.0,
+   "diff_abn_agreement_threshold": 0.9999,
+   "passes_diff_abn_threshold": true,
+   "total_flag_disagreements": 0,
+   "status": "ok"
+  },
+  {
+   "dataset": "qmp-vignette",
+   "coefficient": "grouptreated",
+   "coefficient_rust": "grouptreated",
+   "coefficient_r": "grouptreated",
+   "coefficients_agree": true,
+   "n_taxa_in": 91,
+   "n_samp_in": 150,
+   "n_taxa_retained_rust": 91,
+   "n_taxa_retained_r": 91,
+   "n_paired": 91,
+   "taxa_only_in_rust": [],
+   "taxa_only_in_r": [],
+   "retained_sets_agree": true,
+   "beta": {
+    "n": 91,
+    "n_nonfinite_skipped": 0,
+    "pearson": 1.0,
+    "spearman": 1.0,
+    "max_abs_diff": 1.2628786905111156e-15,
+    "mean_abs_diff": 1.1711548888611022e-15,
+    "max_rel_diff": 2.6622246745094173e-11
+   },
+   "se": {
+    "n": 91,
+    "n_nonfinite_skipped": 0,
+    "pearson": 0.9999999999999998,
+    "spearman": 1.0,
+    "max_abs_diff": 6.938893903907228e-17,
+    "mean_abs_diff": 1.5231253376983176e-17,
+    "max_rel_diff": 3.595356174197664e-15
+   },
+   "p": {
+    "n": 91,
+    "n_nonfinite_skipped": 0,
+    "pearson": 1.0,
+    "spearman": 1.0,
+    "max_abs_diff": 4.438671652451376e-13,
+    "mean_abs_diff": 5.70474680925317e-14,
+    "max_rel_diff": 4.4956335894820775e-13
+   },
+   "q": {
+    "n": 91,
+    "n_nonfinite_skipped": 0,
+    "pearson": null,
+    "spearman": null,
+    "max_abs_diff": 5.329070518200751e-15,
+    "mean_abs_diff": 5.329070518200751e-15,
+    "max_rel_diff": 5.3648911854309706e-15
+   },
+   "diff_abn": {
+    "n": 91,
+    "n_not_compared": 0,
+    "agreement": 1.0,
+    "n_disagree": 0,
+    "called_only_by_rust": [],
+    "called_only_by_r": []
+   },
+   "passed_ss": {
+    "n": 0,
+    "agreement": null,
+    "n_not_compared": 0,
+    "reason": "the analysis did not produce this feature"
+   },
+   "diff_robust": {
+    "n": 0,
+    "agreement": null,
+    "n_not_compared": 0,
+    "reason": "the analysis did not produce this feature"
+   },
+   "significant_jaccard": null,
+   "diff_abn_agreement_threshold": 0.9999,
+   "passes_diff_abn_threshold": true,
+   "total_flag_disagreements": 0,
+   "status": "ok"
+  }
+ ],
+ "n_ok": 4,
+ "n_passing": 4,
+ "threshold": 0.9999,
+ "note": "Pearson and Spearman are reported as diagnostics, not gates: both are dominated by a few large coefficients, so a port that is catastrophically wrong on 1% of taxa can score higher than one that is uniformly 1e-7 off. The gate is diff_abn agreement plus a matching retained set, neither of which has that failure mode."
+}

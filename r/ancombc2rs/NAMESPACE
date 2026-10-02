@@ -1,0 +1,11 @@
+useDynLib(ancombc2rs, .registration = TRUE)
+
+export(ancombc2)
+export(ancombc2_compat_target)
+export(ancombc2_available)
+
+importFrom(stats, model.matrix, terms, reformulate, pt, quantile)
+importFrom(utils, head)
+
+S3method(print, ancombc2_result)
+S3method(summary, ancombc2_result)

@@ -1,0 +1,1 @@
+{"note":"Wall-clock seconds per stage, recorded from the oracle. Not a compared quantity: wall time is not reproducible and parity is asserted on the stage names and their being finite and non-negative, never on the values.","seconds":{"sanity_check":0.0010000000000047748,"structural_zeros":0,"preprocess":0,"core":0.47399999999998954}}

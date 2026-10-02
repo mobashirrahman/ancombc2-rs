@@ -1,0 +1,19 @@
+[package]
+name = "ancombc2-ffi"
+description = "C ABI for the ancombc2rs R package"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[lib]
+# `cdylib` is what R links; `rlib` is what this crate's own tests use. Both, so
+# `cargo test -p ancombc2-ffi` works without building a shared object first.
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+ancombc2-core.workspace = true
+serde.workspace = true
+serde_json.workspace = true

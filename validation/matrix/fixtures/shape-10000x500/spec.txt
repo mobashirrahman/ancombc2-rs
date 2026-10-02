@@ -1,0 +1,13 @@
+cell=shape-10000x500
+n_tax=10000
+n_samp=500
+n_group=2
+zero_rate=0
+struc_zero=FALSE
+n_cont=1
+predictor=continuous
+interact=FALSE
+balanced=TRUE
+seed=8688925
+zero_fraction=0.000199
+group_sizes=250,250

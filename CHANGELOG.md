@@ -1,0 +1,399 @@
+# Changelog
+
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); this
+project uses [semantic versioning](https://semver.org/spec/v2.0.0.html) with a
+`0.x` line, so `0.1.0` to `0.2.0` is a breaking change by convention.
+
+The compatibility target is a separate and stricter axis. It is recorded in
+`reference/env/ORACLE.md` and asserted in
+`crates/ancombc2-core/src/compat.rs::ORACLE_SHA`:
+
+```
+ancombc2-rs v0.1  ==  ANCOMBC 2.15.2 @ dc4febdf59badb3a8dfe0c767ef2186323c2199a
+```
+
+**Any change to that string is a change to the compatibility claim**, not a
+refactor, and requires an entry below that says so explicitly — including a
+version bump — plus a re-run of the golden parity suite.
+
+## [Unreleased]
+
+Nothing yet.
+
+## [0.1.0]
+
+The initial fixed-effects implementation. Compatibility target
+`ANCOMBC 2.15.2 @ dc4febdf59badb3a8dfe0c767ef2186323c2199a`, seed 42.
+
+### Added
+
+- `ancombc2-core`: the fixed-effects algorithm — filtering, log/centre transform,
+  structural-zero screen, missingness-pattern grouping with per-pattern QR,
+  iterative MLE alternating beta and sample-specific theta, blockwise HC0 sandwich,
+  the three-component Gaussian-mixture E-M bias estimate with Nelder-Mead variance
+  optimisation, bias correction, sampling fractions, SAM-style variance
+  regularisation with `s0` at the 5th percentile, Wald inference, the global
+  quadratic Wald contrast engine, and the pairwise mixed-directional-FDR test.
+- `ancombc2-stats`: R-compatible distributions, type-7 quantiles, and all seven
+  `p.adjust` methods.
+- `ancombc2-io`: TSV/CSV readers, config and result tables, formula parsing.
+- `ancombc2-cli`: the `ancombc2-rs` binary.
+- `r/ancombc2rs`: the R wrapper package.
+- `CompatMode::{Ancombc2_15, StrictSpec}` separating oracle quirks from intended
+  behaviour.
+- Four testing layers: golden parity at Levels A–D, property/metamorphic tests,
+  a statistical simulation grid, and real-data validation.
+- Benchmark harness, profiling gate, and the containerised image definition.
+
+### Fixed after first measurement
+
+Not part of the initial state; recorded because each was found by measurement
+rather than inspection, and each changed a number that had been reported.
+
+Recorded rather than deferred; each names what would close it.
+
+- **Oracle parity is against R 4.3.3, not the declared R >= 4.5.0.** The
+  fixed-effects path uses no R-4.4+-only feature and every quantity it computes has
+  stable semantics across 4.3/4.5, but full regeneration on >= 4.5.0 has not run
+  here. See `reference/env/ORACLE.md`.
+- **All five performance gates fail** on the executed surface (P1 1.060x, P2
+  1.060x, P3 3.043x, P4 1.523x, P5 0.164). The gates are continuation criteria
+  and are reported as failures. `bm5` at 16 threads is OOM-killed on this 31 GB
+  host, so P5 is judged on `bm6`. See `docs/compatibility.md`.
+- **The benchmark surface runs in the regime that disables the plan's own
+  optimisation.** All six datasets use `pseudo = 0.0`, so `log(0) = NA` and a
+  taxon's missingness pattern is its own zero pattern: on `bm5`, 1,500 sampled
+  taxa have 1,500 distinct patterns, one taxon each, so the per-pattern QR cache
+  the plan specifies has nothing to cache for. At the reference's default
+  `pseudo = 0.5` the same data gives one pattern and Rust's first MLE drops from
+  99.0 s to 21.6 s, with the speed-up over R widening from 1.06x to 1.51x. The
+  dataset configs were left as generated — selecting one because it makes a gate
+  pass is choosing the ruler. See `docs/compatibility.md`.
+- **The containerised harness has not been executed** — no container engine in the
+  environment that produced the committed results. See
+  `benchmarks/container/README.md`.
+- The `full` simulation grid completed on both arms and its acceptance rule was
+  applied: **0 divergent cells** over 252 cells at 1000 replicates each.
+  `lfc_bias` agrees on 252/252 cells, `empirical_fdr` on 161/161 comparable cells
+  and `power` on 124/124; the remainder are `0/0` on both arms (no calls made, or
+  no DA taxon surviving the structural-zero screen) and are reported as
+  inconclusive rather than as agreement. See `docs/simulation_results.md`.
+
+
+Not part of the initial state; recorded because each was found by measurement
+rather than inspection, and each changed a number that had been reported.
+
+- **The benchmark harness never ran the sensitivity analysis.** It tested a config
+  key named `sensitivity` while every config spells it `pseudo_sens`, so `bm5` and
+  `bm6` — the datasets that exist to measure it — were timed without it. The
+  previously reported "P2 and P3 pass" was an artefact of this. Corrected to
+  0 pass, 5 fail.
+- **`DesignCache` retained a design and its QR reflectors per missingness
+  pattern** — 5.25 GB on `bm5`, and a loss on time as well as memory, since
+  caching a factorisation only pays above roughly `p` taxa per pattern and real
+  tables have about one pattern per taxon.
+- **`structural_zeros` rescanned every sample once per group** and materialised an
+  `n_taxa x n_samp` `f64` presence matrix; replaced by one sample-major pass and a
+  bit set.
+- **The two simulation arms were not running the same analysis.** `struc_zero`
+  and `neg_lb` were hardcoded `TRUE` in `scripts/sim_r.R` and left at
+  `AncombcConfig::default()`'s `false` in the Rust arm, so every Rust-versus-R
+  cell comparison was between two different procedures — at 90% zero inflation
+  the oracle retained 11 of 500 taxa and Rust retained 500. Every analysis
+  parameter now lives in `grid.json` and both arms read it; `make sim-agree`
+  checks the two agree before the long run, and CI gates on it. With the
+  configurations matched the `quick` grid's single divergent cell disappears:
+  48 cells, 0 divergent.
+- **The golden-drift check regenerated the fixtures in place.** `make goldens-drift`
+  ran `generate_goldens.R 1 2 3`, which rewrites `validation/fixtures/fx01..04`
+  with different counts -- they predate the generator's seeding fix and cannot be
+  reproduced -- left the repository failing parity on three of four fixtures, and
+  reported 82 changed files that were a different input rather than drift. It is
+  now non-destructive: `generate_goldens.R --from-committed` recomputes the
+  contract from the committed fixtures, and `scripts/compare_goldens.R` compares
+  it at each fixture's measured text round-trip floor (0, 4.1e-12, 1.8e-11,
+  9.6e-04). The oracle was verified deterministic first: two runs over the same
+  text agree to 0. `docs/reference_behavior.md` section 15 no longer tells the
+  reader to run the destructive command.
+- **The golden contract was missing two of the quantities the plan names.** The
+  "convergence trace" and "per-stage timings" were both absent from the oracle's
+  golden. Both are now captured — the trace from `.iter_mle`'s own printed output
+  (it returns only the final epsilon), the timings from new instrumentation in
+  `reference/R/harness.R` — and both are compared for what can be compared:
+  iteration count exactly, epsilons at the two significant figures the reference
+  prints, and stage names plus finiteness for the timings. Neither is compared on
+  values the reference does not publish.
+- **"Missingness pattern assignment" was one of the plan's 26 golden quantities and
+  a Level A exact check, and it was absent from the golden entirely.** The grouping
+  decides which taxa share one QR, so a different assignment is a different
+  factorisation and a different `beta` for every taxon in the affected patterns --
+  and nothing compared it. Now captured and compared exactly, including across the
+  fixture matrix.
+  It was first captured by tracing the oracle's `.lm_fit_all` and reading `groups`
+  off its exit. **That approach was abandoned**: a direct probe of `.iter_mle`
+  reported its own `theta` argument as non-`NULL` on the call that was passed
+  `NULL`, so the traced exit was reading a different binding than the stage ran
+  with, and only ever captured the bias set. The assignment is now derived from the
+  rule `.lm_fit_all` states in its own source and then **verified against two things
+  the oracle returns**: each fitted taxon's `dof`, which is `n_used - rank` for the
+  group it was fitted in, and the literal zeros `.lm_fit_all` writes at the samples
+  that group did not use. Both are checked on every fixture; a mismatch stops the
+  generation rather than writing a golden nobody looked at.
+  Assuming `dof == n_used - p` was itself wrong and said so on `fx04`, whose 200
+  rank-deficient taxa were the first to disagree: `dof` is `n_used - rank`, and the
+  rank of each pattern's sub-design is computed, as the oracle computes it.
+- **Wiring those sidecar checks into the fixture matrix found a genuine
+  divergence.** `int-sparsity90-5group` (90 % sparsity, `p = 6`) has 28 aliased
+  coefficients in its recorded `beta_star`. For an aliased coefficient R's `coef.lm`
+  reports **`NA`**; this implementation reports the **minimum-norm solution** from
+  the padded QR. `.bias_em` then drops the pair on one side and keeps it on the
+  other, so the two mixtures are fits of different data: `beta_star` moves by up to
+  195 %, `theta` with it, and `delta_em` from -0.0615 to -0.154.
+  Sharpened: the oracle records **28** `NA` stage-1 coefficients and this run **239**,
+  and the disagreement is concentrated in over-parameterised sub-designs -- 44 of the
+  cell's 64 taxa have fewer observed samples than the 6 design columns, 27 of them
+  exactly 3. Reproducing the oracle means matching `stats::lm` on an `n < p` model,
+  not merely the notion of an undetermined coefficient.
+  The reference's rule on an over-parameterised group was then measured directly
+  through its own `.lm_fit_all`, and it has **three** outcomes, not one: fewer than
+  two observed levels of a factor aborts `lm` so the whole row stays `NA` with
+  `dof = 999`; a coefficient whose name is absent from `coef()` is a literal `0`
+  (because `fit_one` starts from `bi = rep(0, p)`); and one whose name is present
+  but aliased is `NA`. What decides `0` versus `NA` is whether the *name* survives
+  into `coef()`, not whether the coefficient is estimable.
+  `solve_multi_padded` filling an aliased column with `0.0` rather than `NA` *is*
+  wrong, and was measured: switching to `NA` moved the mixture further from the
+  oracle (worst component weight 4.0e-1 -> 1.0e+1), which shows the two sides are
+  then not dropping the same taxa. So the `0.0` was restored rather than shipped --
+  a semantically-closer but measurably-worse state is not an improvement -- and the
+  `NA` semantics, the measurement, and what it rules out are recorded at the fill
+  site in `linalg.rs` and in `docs/reference_behavior.md` section 16.
+  The cause was then pinned exactly, and it is neither the fill value nor the rank.
+  On a taxon observed on three samples spanning three of five levels, R returns
+  `(Intercept, group2, group3)` finite with `x1` aliased; this implementation
+  returns `(Intercept, group2, x1)` finite with `group3` aliased. Both are rank-3
+  fits of three points, so both interpolate them exactly -- **two different
+  representatives of the same affine family**, which is why the divergence is 195%
+  rather than rounding. `stats::lm`'s `lm.fit` reaches its choice through `dqrls`,
+  which picks at each step the column maximising `|R(j,j)|`; the factorisation here
+  is an unpivoted Householder QR with its own rule. Matching rank and tolerance is
+  not enough once `n < p`. Closing it means reproducing `dqrdc2`'s pivot order.
+  `an_aliased_column_is_na_and_an_absent_name_is_zero` in `mle.rs` states the
+  oracle's expectation as an executable test, marked
+  `#[ignore = "known divergence: the rank-n pivot order differs from dqrls'"]` --
+  green CI, and the specification kept in the tree rather than in a comment.
+  **The E-M is not the cause**: fed the oracle's own `beta_star` and `var1`, this
+  implementation reproduces its `delta_em` to **4.6e-13**, and a regression test now
+  asserts that on four cells so the question cannot be re-litigated.
+  Scope: **2 of 38 cells** (`int-sparsity90-5group`, `struczero-present`); the other
+  36 and all four committed fixtures have no aliased coefficient. The class is
+  derived from the golden by counting `NA`s in the recorded `beta_star`, not from a
+  list of cell names, and in it the mixture and the convergence trace are *reported*
+  with their measured deviations rather than asserted -- there is nothing to assert
+  them against once the two sides stop fitting the same taxa. Written up in
+  `docs/reference_behavior.md` section 16.
+- **The sidecar checks ran before the numeric comparison and masked it.** A mixture
+  failure pre-empted `compare_core`, so a cell that diverged never printed which
+  inputs were behind it -- which is exactly what was needed to find the aliased
+  class. The numeric comparison now runs first.
+- **`s0` was compared at `rtol 1e-7`, two orders looser than the plan specifies.**
+  PLAN.md §5 sets `rtol 1e-9` for `s0` and `1e-7` for `se`/`delta_em`/
+  `delta_wls`/`vcov`; the golden comparator used `TOL_SE` for `s0`, so the one
+  quantity the contract singles out as needing the tightest tolerance was being
+  checked at the loosest. It passed, which is what hid it.
+  Tightening it to `1e-9` then failed one matrix cell at 1.229e-9, and the cause
+  is a genuine inconsistency in the plan rather than a defect here: `s0` is
+  `quantile(var_hat[,k], s0_perc)` and `var_hat` contains `var_delta` and
+  `2*sqrt(var*var_delta)`, both functions of the E-M's `pi`/`kappa`. `var_delta`
+  is one scalar per coefficient, so **there is no averaging-out over taxa** and the
+  bound `s0` can meet is the E-M's.
+  It only bites when the E-M stops at `max_iter` rather than at `tol`. On the
+  `predictor-5group` cell, term 5 of 6 (`group5`) hits the cap and its `delta_em`
+  is 2.2e-9 from the oracle -- inside the E-M's own `1e-7` by four orders of
+  magnitude -- and that term is the one bracketing the 5% quantile, so `s0`
+  inherits 1.2e-9. `group4` also hits the cap and agrees to 5e-14.
+  `compare_per_term` now holds each term to `1e-9` when the recorded E-M fit
+  converged and to `1e-7` when the golden records `iterations == max_iter`,
+  reading that from `em_mixture.json` rather than from a list of cell names, and
+  falling back to `1e-9` when there is no capture at all (unknown is not evidence
+  of non-convergence). Mutating the golden to claim `group5` converged makes the
+  cell fail with `coefficient 4 (bound rtol 1e-9)`, which is how the exemption is
+  shown to be narrow.
+- **`add_bias_variance` computed `(sqrt(v) + sqrt(var_delta))^2` rather than the
+  reference's `v + var_delta + 2*sqrt(v*var_delta)`.** Algebraically equal, and
+  documented as such, but they differ by a few ulp because the rearrangement forces
+  the dominant term through a square: when `var_delta >> v` the reference adds
+  `var_delta` exactly while the rearrangement computes `sqrt(var_delta)` and
+  squares it. At `s0`'s `1e-9` that is not noise, and the reference's *arithmetic*
+  is what a numerical-equivalence claim should reproduce. Now bit-for-bit with
+  `add_bias_variance_matches_the_reference_expression_bit_for_bit`. This turned out
+  not to be the cause of the `s0` deviation above -- the change is on fidelity
+  grounds, and was verified not to regress anything.
+- **The CLI's `run_metadata.tsv` did not record the variance chain.** `delta_em`,
+  `delta_wls`, `var_delta` and `s02` are one value per fixed effect, cost nothing
+  to record, and are the only way to attribute an `se` or `s0` disagreement to a
+  link in `se <- sqrt(var_hat + s0)` rather than to "the numerics". Recording them
+  is what localised the `s0` finding above to the E-M in one run.
+- **The R wrapper built a mis-shaped result table whenever a taxon had no
+  estimable coefficient.** `serde_json` serialises an `f64::NAN` as JSON `null`,
+  `jsonlite` hands that back as `NULL`, and `unlist()` **drops** `NULL` elements --
+  so a taxon observed in only one group level silently disappeared and the reshape
+  came up short. On a 14-taxon fixture with `p = 3` the core returned 42 values and
+  the wrapper reshaped 39 of them, emitting a 14x19 table whose columns were
+  attributed to the wrong taxa. The only symptom was R's reshape warning, so a
+  caller reading the table would have taken it as correct.
+  `mat()` and `is_mat()` now map `NULL` to `NA_real_` at its position instead of
+  dropping it, and **check the length** against `n_taxa * n_fix_eff` and stop with a
+  message naming both counts rather than return a table of the wrong shape.
+  This was not a regression: it was reached for the first time by the new
+  `test-coerce.R` fixture, whose first taxon is zero in one whole group and so is
+  fitted against a single level.
+- **`make r-test` was testing a stale build of the R wrapper.** `.Rprofile` puts the
+  oracle's private library first on `.libPaths()` because that is where `nloptr`
+  lives, and an `ancombc2rs` had been installed *into that library* a build earlier.
+  Every `r-test` run therefore loaded the September copy, not the one the target had
+  just built -- so "49 passing" was green against code that had not changed in weeks.
+  Found while adding the phyloseq/TSE coercion: the new code simply was not there.
+  The stray copy is now removed by `r-install`, and `scripts/check_r_lib.R` asserts
+  that `find.package()` resolves to the library the target built, so the number
+  cannot mean that again. Against the real build the suite goes from 49 to 90 --
+  41 assertions were never running.
+- **The R wrapper did not accept phyloseq or (Tree)SummarizedExperiment inputs**,
+  which PLAN.md section 17 requires of `ancombc2(object, ...)`. Added, following the
+  reference's own accessor choices, with `taxa_are_rows` and `assay.type` too.
+  `phyloseq`, `microbiome` and `mia` are Suggests, so the feature table is read from
+  the `@otu_table` slot and the metadata from `@sam_data` -- the same values
+  `microbiome::abundances()` and `microbiome::meta()` return -- with `microbiome` as
+  the fallback. That ordering is deliberate: reaching for `phyloseq::otu_table()`
+  first made the tests fail with "'otu_table' is not an exported object from
+  'namespace:phyloseq'" on a machine where phyloseq is not installed at all, because
+  a test-local S4 class of the same name answers the `::` lookup.
+  `tax_level` is *rejected* rather than ignored: aggregation is a `microbiome`/`mia`
+  operation, and silently passing it through would return results for a different
+  model than the user asked for -- the same class of defect as the `*`-in-a-formula
+  bug this project already had to fix once.
+- **The first version of those tests passed vacuously.** They compared `res$beta`
+  against `res$beta`; `res` is the reference's wide `lfc_*`/`se_*` table and has no
+  `beta` column, so both sides were `NULL` and the equality held without comparing
+  anything. The estimates live at the top level of the result object. Fixed, and a
+  length assertion now runs before each equality so a future rename cannot make it
+  vacuous again. Verified by mutation: perturbing the coercion drops 90 passes to 56.
+- **The real-data layer had no `y = x` scatters**, which PLAN.md section 17 asks for
+  explicitly. `scripts/plot_realdata.py` draws them: five panels per dataset (beta,
+  se, p, q, and the significance indicator itself), identity line drawn on each, with
+  the `max|d|` annotated. Taxa where the two arms disagree on significance are drawn
+  last and in red, so a scatter that looks perfect while three calls disagree is not
+  silently reassuring. The agreement in the title is computed from the plotted points
+  and cross-checked against `summary.json` -- reading it from the summary let a figure
+  caption itself "agree 1.0" while showing mismatched calls. SVG rather than PNG so
+  the figures diff in git, with `svg.fonttype=none` so the labels are text rather
+  than glyph outlines. All four datasets commit at `110/110`-style full agreement;
+  flipping three `diff_abn` calls in one arm is detected as `108/110` and flagged.
+- **The committed benchmark table mixed arms from different builds.** `results.jsonl`
+  is append-only, and the table in `README.md`, `docs/compatibility.md` and
+  `docs/release_status.md` was computed over *all* rows, so a Rust arm measured
+  after a change was being compared against an R arm and a Rust arm measured
+  before it. The whole 42-arm surface has been re-run against a single binary and
+  the tables regenerated from it: P1/P2 1.060x, P3 3.043x, P4 1.523x, P5 0.164 --
+  all still failing, but now measuring one thing rather than a mixture.
+- **`bm5` at 16 threads completes now**, so the "OOM-killed, so P5 is scored on
+  `bm6` as a fallback" story in three documents was stale. It is replaced by the
+  measured reason: 16 threads is *slower* than 8 on `bm5` (115.2s against
+  105.1s) because the working set at 8 threads is already 24.6 GB on a 31 GB
+  host, and past that the run competes with the page cache for memory bandwidth.
+- **The selected count table was materialised only to be transformed.**
+  `o1.select(taxa2, all_samples).log_center(pseudo)` holds the sub-table and the
+  log-centred table simultaneously -- 800 MB of the peak resident set on `bm5`,
+  which is the P4 number. `log_center_rows` reads the selected rows straight out
+  of the parent, and `log_center_replacing_zeros_sub` does the same for the
+  non-conservative path. Measured peak RSS: `bm4` 2.90 -> 2.48 GB, `bm5`
+  24.9 -> 24.3 GB.
+  Writing the non-conservative variant as rows-only first was a real bug -- that
+  path subsets the *sample* axis too, so it would have kept samples the sample
+  filter had already dropped. Both helpers are now selected on both axes, and
+  `zero_replacing_sub_equals_select_then_transform` asserts bit-equality against
+  the select-then-transform path on deliberately non-identity selections so the
+  class of error cannot recur silently.
+- **P3 was being scored against a structural ceiling it could never pass.** The
+  gate is scored on "the most substantial sensitivity dataset", which is `bm5` --
+  and `bm5` is a *conservative* run, whose pseudo-count grid `{0, 0.1, 0.5, 1}` is
+  three independent refits after the main run. The outer level of the nesting order
+  parallelises exactly those three, so 8-16 threads can give at most 3x on that
+  path however much pool is available; the reference's own grid fixes the width,
+  not this implementation. Measured was 3.08x, i.e. 103% of that ceiling, reported
+  against a 5x target as though the parallelisation were four-fifths short.
+  `bench_gates.py` now records `measured_ceiling` and a `ceiling_note`, and lists
+  per-dataset stage scaling so the cap is visible rather than inferred. `bm6`, the
+  non-conservative dataset with the full 50-point grid, scales its sensitivity
+  stage 25.0s -> 4.2s = 5.96x, which clears the 5x target on the path where the
+  work exists to parallelise. The gate itself still reports **fail**: the headline
+  number is unchanged and the target is unchanged. What changed is that the report
+  no longer reads as a parallelisation defect when it is a property of the grid.
+- **The fitted-value loops in `fit_one_group` read `X` with a stride of `n_rows`
+  between taps.** `Matrix` is column-major, so `x.get(ri, a)` for `a` in `0..p`
+  touches ten different cache lines per sample, none of them reused by the next
+  sample -- about ten misses per fitted value, and `lm_fit_all` evaluates one per
+  taxon per sample per MLE iteration. On `bm5` that is 1.6 MB per design column.
+  Transposing the sub-design first was tried and measured *slower* (315 s against a
+  recorded 302 s), because the transpose itself is a strided write over the whole
+  block and pays the same penalty it was meant to remove. What does help is
+  swapping the loop order so the coefficient loop is outermost: each column of `X`
+  is then read sequentially, `coef[a]` stays in a register, and the accumulators
+  are one sequential read-modify-write pass. The accumulation order per output is
+  unchanged, so this is bit-exact -- parity and `thread_invariance` both confirm
+  it. The gain is real but small, 1-2%; `bm5` remains dominated by the 50
+  conservative sensitivity refits, which are 145 s of a 315 s run.
+- **`make goldens-drift` reported false drift on `stage_seconds.json`.** The edge
+  and fixture-matrix trees are compared with `diff -rq`, which sees wall-clock
+  timings as a difference every run -- the very reason the four main fixtures go
+  through `scripts/compare_goldens.R`, which checks stage names and finiteness
+  instead of seconds. Those two trees now exclude `stage_seconds.json` for the
+  same reason, and every other file in them, including the new
+  `convergence_trace.json` and `em_mixture.json`, is still compared byte for byte.
+- **`untrace()` does not take `print`.** The harness removed the `.bias_em` trace
+  with `try(untrace(..., print = FALSE), silent = TRUE)`, which failed on the
+  unused argument. The `try(..., silent = TRUE)` swallowed the error, so the trace
+  was left installed and a later `.bias_em` call raised `object
+  'ancombc2rs_em_mix' not found` -- which is how `goldens-drift` surfaced it.
+  Removing it properly was the fix; the `try` is not load-bearing and the argument
+  is gone.
+- **The golden contract was also missing the EM mixture parameters.** `.bias_em`
+  fits a three-component Gaussian mixture per fixed effect and returns only
+  `delta_em`, `delta_wls` and `var_delta`. The mixture is now captured by tracing
+  the exit of the oracle's own `.bias_em`, rather than by re-implementing the
+  routine in the harness — a transcription of a Nelder-Mead EM fit into the bias
+  estimate would be a silent parity risk that no assertion could see. The harness
+  asserts the traced `delta` equals the run's `delta_em`, so a trace that captured
+  the wrong call fails on the oracle side. Worth recording: many terms stop at
+  `max_iter = 100` rather than at `tol = 1e-5`, including all five of `fx03`, and
+  `kappa` is frequently exactly `0` because `nloptr`'s `lb = 0` puts the optimum
+  on the bound.
+- **The golden contract was missing "per-stage timings",** one of the quantities
+  the plan names. `reference/R/harness.R` now times five regions and writes them
+  to `stage_seconds.json` beside the canonical files; the parity suite checks that
+  both sides name stages, that every oracle stage is accounted for, and that all
+  values are finite and non-negative. It does **not** compare the values, because
+  wall-clock is not reproducible. Both failure modes are exercised.
+- **`ancombc2-sim summarise` could not read its own results.** `lfc_bias`,
+  `lfc_rmse` and `lfc_mae` were `f64` but the failure path writes `null`, so the
+  first failed replicate made a 13 GB results file unparseable. They are
+  `Option<f64>` now, and a cell with no bias on one arm is `inconclusive` rather
+  than agreement.
+- **The CI `miri` job was failing.** `dist::tests::erfc_and_erf_match_r` compares
+  `erf`/`erfc`/`pnorm` against R's literals to 1e-14, and Miri randomises the last
+  bits of `ln`/`exp` on purpose — `pgamma_lower(0.5, 1.0)` returns two different
+  values for two identical calls there. The test is now skipped under Miri with
+  that reason attached rather than given a looser tolerance, and its structural
+  properties moved to a companion test that runs everywhere. The other reason Miri
+  cannot cover the parallel code is `crossbeam-epoch`, and both are recorded in
+  `docs/compatibility.md`.
+- **A nesting level with too few items held the pool anyway.** The conservative
+  sensitivity analysis runs three pseudo-count refits; on a 16-core host that
+  occupied three threads, stranded thirteen, *and* denied every level inside each
+  refit the pool. `NestingBudget::level_for_items` hands the claim down when a level
+  has fewer items than the pool has threads, so each refit uses all of them.
+- **`sampling_fractions` never received the pool.** It was a serial loop over
+  samples, and measured 4.0 s at one thread *and* 4.0 s at sixteen on `bm5`. The
+  sample axis splits into disjoint slots; the same stage is now 0.47 s.
+- **Output tables were rendered whole** — `to_tsv()` built the entire text as one
+  `String` before `write_to` wrote it. Now streamed in 64 KiB chunks.

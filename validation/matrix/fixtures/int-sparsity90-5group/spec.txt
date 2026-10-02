@@ -1,0 +1,13 @@
+cell=int-sparsity90-5group
+n_tax=100
+n_samp=30
+n_group=5
+zero_rate=0.9
+struc_zero=FALSE
+n_cont=1
+predictor=continuous
+interact=FALSE
+balanced=TRUE
+seed=16188218
+zero_fraction=0.886000
+group_sizes=6,6,6,6,6

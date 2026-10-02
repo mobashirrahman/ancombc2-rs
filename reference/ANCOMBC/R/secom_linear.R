@@ -1,0 +1,330 @@
+#' @title Sparse estimation of linear correlations among microbiomes
+#'
+#' @description Obtain the sparse correlation matrix for linear correlations
+#' between taxa. The current version of \code{secom_linear} function supports
+#' either of the two correlation coefficients: Pearson and Spearman.
+#'
+#' @param data a \code{list} of the input data.
+#' The \code{data} parameter should be either a
+#' \code{matrix}, \code{data.frame}, \code{phyloseq} or a \code{TreeSummarizedExperiment}
+#' object. Both \code{phyloseq} and \code{TreeSummarizedExperiment} objects
+#' consist of a feature table (microbial count table), a sample metadata table,
+#' a taxonomy table (optional), and a phylogenetic tree (optional).
+#' If a \code{matrix} or \code{data.frame} is provided, ensure that the row
+#' names of the \code{metadata} match the sample names (column names if
+#' \code{taxa_are_rows} is TRUE, and row names otherwise) in \code{data}.
+#' if a \code{phyloseq} or a \code{TreeSummarizedExperiment} is used, this
+#' standard has already been enforced. For detailed information, refer to
+#' \code{?phyloseq::phyloseq} or
+#' \code{?TreeSummarizedExperiment::TreeSummarizedExperiment}.
+#' It is recommended to use low taxonomic levels, such as OTU or species level,
+#' as the estimation of sampling fractions requires a large number of taxa.
+#' If working with multiple ecosystems, such as gut and tongue, stack the data
+#' by specifying the list of input data as
+#' \code{data = list(gut = pseq1, tongue = pseq2)}.
+#' @param taxa_are_rows logical. Whether taxa are positioned in the rows of the
+#' feature table. Default is TRUE.
+#' @param assay_name character. Name of the feature table within the data object
+#' (only applicable if the data object is a \code{(Tree)SummarizedExperiment}).
+#' Default is "counts".
+#' See \code{?SummarizedExperiment::assay} for more details.
+#' @param assay.type alias for \code{assay_name}.
+#' @param tax_level character. The taxonomic level of interest. The input data
+#' can be agglomerated at different taxonomic levels based on your research
+#' interest. Default is NULL, i.e., do not perform agglomeration, and the
+#' SECOM analysis will be performed at the lowest taxonomic level of the
+#' input \code{data}.
+#' @param rank alias for \code{tax_level}.
+#' @param aggregate_data The abundance data that has been aggregated to the desired
+#' taxonomic level. This parameter is required only when the input data is in
+#' \code{matrix} or \code{data.frame} format. For \code{phyloseq} or \code{TreeSummarizedExperiment}
+#' data, aggregation is performed by specifying the \code{tax_level} parameter.
+#' @param meta_data a \code{data.frame} containing sample metadata.
+#' This parameter is mandatory when the input \code{data} is a generic
+#' \code{matrix} or \code{data.frame}. Ensure that the row names of the \code{metadata} match the
+#' sample names (column names if \code{taxa_are_rows} is TRUE, and row names
+#' otherwise) in \code{data}.
+#' @param pseudo numeric. Add pseudo-counts to the data.
+#' Default is 0 (no pseudo-counts).
+#' @param prv_cut a numerical fraction between 0 and 1. Taxa with prevalences
+#' (the proportion of samples in which the taxon is present)
+#' less than \code{prv_cut} will be excluded in the analysis. For example,
+#' if there are 100 samples, and a taxon has nonzero counts present in less than
+#' 100*prv_cut samples, it will not be considered in the analysis.
+#' Default is 0.50.
+#' @param lib_cut a numerical threshold for filtering samples based on library
+#' sizes. Samples with library sizes less than \code{lib_cut} will be
+#' excluded in the analysis. Default is 1000.
+#' @param corr_cut numeric. To avoid false positives caused by taxa with small
+#' variances, taxa with Pearson correlation coefficients greater than
+#' \code{corr_cut} with the estimated sample-specific bias will be flagged.
+#' When taxa are flagged, the pairwise correlation coefficient between them will
+#' be set to 0s. Default is 0.5.
+#' @param wins_quant a numeric vector of probabilities with values between
+#' 0 and 1. Replace extreme values in the abundance data with less
+#' extreme values. Default is \code{c(0.05, 0.95)}. For details,
+#' see \code{?DescTools::Winsorize}.
+#' @param method character. The correlation coefficient to be computed. It is
+#' either "pearson" or "spearman". Default is "pearson".
+#' @param soft logical. \code{TRUE} indicates that soft thresholding is applied
+#' to achieve the sparsity of the correlation matrix. \code{FALSE} indicates
+#' that hard thresholding is applied to achieve the sparsity of the correlation
+#' matrix. Default is \code{FALSE}.
+#' @param alpha_grid a numeric vector of penalty parameters for the element-wise
+#' L1 norm to induce sparsity. Default is 0.
+#' @param thresh_len numeric. Grid-search is implemented to find the optimal
+#' values over \code{thresh_len} thresholds for the thresholding operator.
+#' Default is 100.
+#' @param n_cv numeric. The fold number in cross validation.
+#' Default is 10 (10-fold cross validation).
+#' @param thresh_hard Numeric. Pairwise correlation coefficients
+#' (in their absolute value) that are less than or equal to \code{thresh_hard}
+#' will be set to 0. Default is 0, i.e. do not apply hard thresholding.
+#' @param max_p numeric. Obtain the sparse correlation matrix by
+#' p-value filtering. Pairwise correlation coefficients with p-value greater
+#' than \code{max_p} will be set to 0s. Default is 0.005.
+#' @param n_cl numeric. The number of nodes to be forked. For details, see
+#' \code{?parallel::makeCluster}. Default is 1 (no parallel computing).
+#' @param verbose logical. Whether to display detailed progress messages.
+#' Default is TRUE.
+#'
+#' @return a \code{list} with components:
+#'         \itemize{
+#'         \item{ \code{s_diff_hat}, a numeric vector of estimated
+#'         sample-specific biases.}
+#'         \item{ \code{y_hat}, a matrix of bias-corrected abundances}
+#'         \item{ \code{cv_error}, a numeric vector of cross-validation error
+#'         estimates, which are the Frobenius norm differences between
+#'         correlation matrices using training set and validation set,
+#'         respectively.}
+#'         \item{ \code{thresh_grid}, a numeric vector of thresholds
+#'         in the cross-validation.}
+#'         \item{ \code{thresh_opt}, numeric. The optimal threshold through
+#'         cross-validation.}
+#'         \item{ \code{alpha_opt}, numeric. The optimal penalty parameter for
+#'         the element-wise L1 norm through cross-validation, selected from
+#'         \code{alpha_grid}.}
+#'         \item{ \code{mat_cooccur}, a matrix of taxon-taxon co-occurrence
+#'         pattern. The number in each cell represents the number of complete
+#'         (nonzero) samples for the corresponding pair of taxa.}
+#'         \item{ \code{corr}, the sample correlation matrix (using the measure
+#'         specified in \code{method}) computed using the bias-corrected
+#'         abundances \code{y_hat}.}
+#'         \item{ \code{corr_p}, the p-value matrix corresponding to the sample
+#'         correlation matrix \code{corr}.}
+#'         \item{ \code{corr_th}, the sparse correlation matrix obtained by
+#'         thresholding \code{corr} at \code{thresh_opt} based on the method
+#'         specified in \code{soft}, followed by hard thresholding at
+#'         \code{thresh_hard}.}
+#'         \item{ \code{corr_fl}, the sparse correlation matrix obtained by
+#'         p-value filtering \code{corr} based on the cutoff specified in
+#'         \code{max_p}, followed by hard thresholding at \code{thresh_hard}.}
+#'         \item{ \code{corr_reg}, the correlation matrix obtained by
+#'         winsorizing small eigenvalues.}
+#'         }
+#'
+#' @seealso \code{\link{secom_dist}} \code{\link{data_sanity_check}}
+#'
+#' @examples
+#' library(ANCOMBC)
+#' if (requireNamespace("microbiome", quietly = TRUE)) {
+#'     data(atlas1006, package = "microbiome")
+#'     # subset to baseline
+#'     pseq = phyloseq::subset_samples(atlas1006, time == 0)
+#'
+#'     # run secom_linear function
+#'     set.seed(123)
+#'     # Setting thresh_len = 20 reduces the running time of the example
+#'     # Use the default value of 100 for thresh_len in an analysis
+#'     res_linear = secom_linear(data = list(pseq), taxa_are_rows = TRUE,
+#'                               tax_level = "Phylum",
+#'                               aggregate_data = NULL, meta_data = NULL, pseudo = 0,
+#'                               prv_cut = 0.5, lib_cut = 1000, corr_cut = 0.5,
+#'                               wins_quant = c(0.05, 0.95), method = "pearson",
+#'                               soft = FALSE, alpha_grid = 0,
+#'                               thresh_len = 20, n_cv = 10,
+#'                               thresh_hard = 0.3, max_p = 0.005, n_cl = 2)
+#'
+#'     corr_th = res_linear$corr_th
+#'     corr_fl = res_linear$corr_fl
+#' } else {
+#'     message("The 'microbiome' package is not installed. Please install it to use this example.")
+#' }
+#'
+#' @author Huang Lin
+#'
+#' @importFrom energy dcor dcor.test
+#' @importFrom parallel makeCluster stopCluster
+#' @importFrom foreach foreach %dopar%
+#' @importFrom doParallel registerDoParallel
+#' @importFrom doRNG %dorng%
+#' @importFrom gtools smartbind
+#' @importFrom Hmisc rcorr
+#' @importFrom DescTools Winsorize
+#' @importFrom Rdpack reprompt
+#'
+#' @export
+secom_linear = function(data, taxa_are_rows = TRUE,
+                        assay.type = assay_name, assay_name = "counts",
+                        rank = tax_level, tax_level = NULL,
+                        aggregate_data = NULL, meta_data = NULL,
+                        pseudo = 0, prv_cut = 0.5, lib_cut = 1000,
+                        corr_cut = 0.5, wins_quant = c(0.05, 0.95),
+                        method = c("pearson", "spearman"),
+                        soft = FALSE, alpha_grid = 0,
+                        thresh_len = 100, n_cv = 10,
+                        thresh_hard = 0, max_p = 0.005, n_cl = 1,
+                        verbose = TRUE) {
+    method = match.arg(method)
+
+    # ===========Sampling fraction and absolute abundance estimation============
+    if (length(data) == 1) {
+        # Data sanity check
+        check_results = data_sanity_check(data = data[[1]],
+                                          taxa_are_rows = taxa_are_rows,
+                                          assay.type = assay_name,
+                                          assay_name = assay_name,
+                                          rank = tax_level,
+                                          tax_level = tax_level,
+                                          aggregate_data = aggregate_data[[1]],
+                                          meta_data = meta_data[[1]],
+                                          fix_formula = NULL,
+                                          verbose = verbose)
+        feature_table = check_results$feature_table
+        feature_table_aggregate = check_results$feature_table_aggregate
+        meta_data = check_results$meta_data
+
+        abn_list = .abn_est(data = feature_table,
+                            aggregate_data = feature_table_aggregate,
+                            meta_data = meta_data, pseudo = pseudo,
+                            prv_cut = prv_cut, lib_cut = lib_cut)
+        s_diff_hat = abn_list$s_diff_hat
+        y_hat = abn_list$y_hat
+    } else {
+        if (is.null(names(data))) names(data) = paste0("data", seq_along(data))
+
+        # Data sanity check
+        check_results_list = lapply(seq_along(data), function(i) {
+            check_results = data_sanity_check(data = data[[i]],
+                                              taxa_are_rows = taxa_are_rows,
+                                              assay.type = assay_name[i],
+                                              assay_name = assay_name[i],
+                                              rank = tax_level[i],
+                                              tax_level = tax_level[i],
+                                              aggregate_data = aggregate_data[[i]],
+                                              meta_data = meta_data[[i]],
+                                              fix_formula = NULL,
+                                              verbose = verbose)
+            return(check_results)
+        })
+        feature_table_list = lapply(seq_along(data), function(i) {
+            check_results_list[[i]]$feature_table
+        })
+        feature_table_aggregate_list = lapply(seq_along(data), function(i) {
+            check_results_list[[i]]$feature_table_aggregate
+        })
+        meta_data_list = lapply(seq_along(data), function(i) {
+            check_results_list[[i]]$meta_data
+        })
+
+        # Check common samples
+        samp_names = lapply(feature_table_list, function(x) colnames(x))
+        samp_common = Reduce(intersect, samp_names)
+        samp_txt = sprintf(paste0("Number of common samples ",
+                                  "across datasets: ",
+                                  length(samp_common)))
+        message(samp_txt)
+        if (length(samp_common) < 10) {
+            stop_txt = paste0("Insufficient common samples: ",
+                              "Multi-dataset computation not recommended")
+            stop(stop_txt)
+        }
+
+        # Rename taxa
+        for (i in seq_along(data)) {
+            rownames(feature_table_list[[i]]) =
+                paste(names(data)[[i]],
+                      rownames(feature_table_list[[i]]),
+                      sep = " - ")
+        }
+
+        for (i in seq_along(data)) {
+            rownames(feature_table_aggregate_list[[i]]) =
+                paste(names(data)[[i]],
+                      rownames(feature_table_aggregate_list[[i]]),
+                      sep = " - ")
+        }
+
+        abn_list = lapply(seq_along(data), function(i) {
+            .abn_est(data = feature_table_list[[i]],
+                     aggregate_data = feature_table_aggregate_list[[i]],
+                     meta_data = meta_data_list[[i]],
+                     pseudo = pseudo,
+                     prv_cut = prv_cut,
+                     lib_cut = lib_cut)
+        })
+        s_diff_hat = lapply(abn_list, function(x) x$s_diff_hat)
+        y_hat = do.call(gtools::smartbind, lapply(abn_list, function(x) as.data.frame(x$y_hat)))
+        y_hat_rownames = do.call(c, lapply(abn_list, function(x) rownames(x$y_hat)))
+        y_hat = as.matrix(y_hat)
+        rownames(y_hat) = y_hat_rownames
+    }
+
+    # =================Sparse estimation on linear correlations=================
+    mat_y = t(y_hat)
+
+    if (n_cl > 1) {
+      cl = parallel::makeCluster(n_cl)
+      doParallel::registerDoParallel(cl)
+    } else {
+      foreach::registerDoSEQ()
+    }
+
+    if (method %in% c("pearson", "spearman")) {
+        res_corr = .sparse_linear(mat = mat_y, wins_quant, method,
+                                  soft, alpha_grid, thresh_len, n_cv,
+                                  thresh_hard, max_p)
+    } else {
+        stop_txt = paste0("The specified correlation coefficient type is not valid \n",
+                          "Please choose either 'pearson' or 'spearman' as the type of correlation coefficient")
+        stop(stop_txt, call. = FALSE)
+    }
+
+    if (n_cl > 1) {
+      parallel::stopCluster(cl)
+    }
+
+    # To prevent false positives from taxa with extremely small variances
+    if (length(data) == 1) {
+        corr_s = stats::cor(s_diff_hat, mat_y,
+                            use = "pairwise.complete.obs")[1, ]
+        fp_flag = corr_s > corr_cut
+        fp_ind = outer(fp_flag, fp_flag, "&")
+        diag(fp_ind) = FALSE
+        res_corr$corr[fp_ind] = 0
+        res_corr$corr_th[fp_ind] = 0
+        res_corr$corr_fl[fp_ind] = 0
+        res_corr$corr_reg[fp_ind] = 0
+        res_corr$corr_p[fp_ind] = 1
+    } else {
+        for (i in seq_along(data)) {
+            s_i = s_diff_hat[[i]]
+            s_samp = s_i[match(rownames(mat_y), names(s_i))]
+
+            corr_s = stats::cor(s_samp, mat_y,
+                                use = "pairwise.complete.obs")[1, ]
+            fp_flag = corr_s > corr_cut
+            fp_ind = outer(fp_flag, fp_flag, "&")
+            diag(fp_ind) = FALSE
+            res_corr$corr[fp_ind] = 0
+            res_corr$corr_th[fp_ind] = 0
+            res_corr$corr_fl[fp_ind] = 0
+            res_corr$corr_reg[fp_ind] = 0
+            res_corr$corr_p[fp_ind] = 1
+        }
+    }
+
+    # ==================================Outputs=================================
+    res = c(list(s_diff_hat = s_diff_hat, y_hat = y_hat), res_corr)
+    return(res)
+}

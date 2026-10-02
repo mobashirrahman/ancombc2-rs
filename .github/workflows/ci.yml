@@ -1,0 +1,473 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # The R regeneration job and the weekly jobs are the reason this file is more
+  # than a lint-and-test matrix: a golden that has drifted from the oracle is
+  # worse than no golden, because every parity number it produces is then a
+  # comparison against the wrong thing.
+  schedule:
+    - cron: "17 4 * * 1"   # weekly, Monday 04:17 UTC
+    - cron: "41 4 * * 0"   # weekly, Sunday 04:41 UTC
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+
+jobs:
+  # ---------------------------------------------------------------------
+  # A push must be lint-clean and green on the small fixtures.
+  # ---------------------------------------------------------------------
+  lint:
+    name: fmt and clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo doc --workspace --no-deps
+        env:
+          RUSTDOCFLAGS: -D warnings
+
+  r-wrapper:
+    name: R wrapper (testthat)
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.3.3'
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: any::has
+          pak: true
+      - name: the vendored oracle is the pinned commit
+        run: make oracle-sha
+      - name: the testthat suite
+        run: make r-test ANCOMBC2RS_RLIB=${{ runner.temp }}/rlib
+      - name: the FFI's own Rust tests
+        run: cargo test -p ancombc2-ffi
+
+  test:
+    name: unit, property and small parity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --workspace --locked
+      # Determinism: the same binary, twice, byte-identical. The thread-count
+      # property test covers the in-process case; this catches anything that
+      # depends on the environment.
+      - name: determinism
+        run: |
+          cargo build --release
+          ./target/release/ancombc2-rs --counts validation/fixtures/fx03/counts.tsv \
+              --meta validation/fixtures/fx03/meta.tsv \
+              --formula "$(cat validation/fixtures/fx03/formula.txt)" \
+              --group group --global --pairwise --struc-zero --pseudo-sens \
+              --conservative --out /tmp/run1
+          ./target/release/ancombc2-rs --counts validation/fixtures/fx03/counts.tsv \
+              --meta validation/fixtures/fx03/meta.tsv \
+              --formula "$(cat validation/fixtures/fx03/formula.txt)" \
+              --group group --global --pairwise --struc-zero --pseudo-sens \
+              --conservative --threads 1 --out /tmp/run2
+          diff -r /tmp/run1 /tmp/run2 --exclude=run_metadata.tsv \
+            && echo "1 thread and 16 threads agree byte for byte"
+
+  miri:
+    name: miri smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+        with:
+          components: miri
+      - uses: Swatinem/rust-cache@v2
+      # Miri is far too slow for the whole suite. The numeric kernels are where
+      # undefined behaviour would live, so the small binaries are what runs.
+      #
+      # The scope is `ancombc2-stats` in full plus the `matrix::` tests, and the
+      # limit is **Rayon, not this crate**. Any Miri run that reaches
+      # `NestingBudget::map_par` trips an aliasing violation inside
+      # `crossbeam-epoch` -- the work-stealing deque Rayon is built on:
+      #
+      #   error: Undefined Behavior: trying to retag from <N> for SharedReadWrite
+      #          permission ... at crossbeam-epoch-0.9.21/src/internal.rs:567
+      #     --> crates/ancombc2-core/src/parallel.rs:278:9
+      #
+      # `crates/ancombc2-core/src/parallel.rs:278` is the `par_iter().collect()`
+      # call site; every frame above it is inside the dependency, including the
+      # `integer-to-pointer cast` warnings that precede it. It reproduces with
+      # `RAYON_NUM_THREADS=1` and in `parallel`'s own tests, so it is not a
+      # consequence of running work concurrently.
+      #
+      # `matrix::` was chosen because it exercises the linear algebra and the
+      # pattern bitsets without reaching the pool. That is a real limit on what
+      # Miri checks here, and it is recorded in `docs/compatibility.md` rather than
+      # worked around: suppressing a Stacked Borrows report to widen coverage
+      # would be disabling the check that produced it.
+      - run: cargo +nightly miri setup
+      - run: cargo +nightly miri test -p ancombc2-stats
+      - run: cargo +nightly miri test -p ancombc2-core --lib 'matrix::'
+
+  # ---------------------------------------------------------------------
+  # The large golden fixture, on a machine with cores.
+  # ---------------------------------------------------------------------
+  parity-large:
+    name: large golden parity
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo test --release -p ancombc2-core --test parity -- --ignored --nocapture
+
+  # ---------------------------------------------------------------------
+  # The oracle. Regeneration is a *drift detector*: it fails if the committed
+  # goldens differ from what the pinned oracle produces now.
+  # ---------------------------------------------------------------------
+  oracle:
+    name: R oracle and golden drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.3.3'
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: |
+            any::has
+          pak: true
+      - name: install nloptr from source
+        run: |
+          mkdir -p "$HOME/rlib"
+          Rscript -e 'install.packages("nloptr", lib = file.path(Sys.getenv("HOME"), "rlib"), repos = "https://cloud.r-project.org")'
+          echo "R_LIBS_USER=$HOME/rlib" >> "$GITHUB_ENV"
+      - name: fetch the pinned ANCOMBC
+        run: |
+          # The canonical repository named in reference/env/ORACLE.md. This
+          # previously pointed at `zdk123/ANCOMBC`, a different repository, so both
+          # jobs that fetch the oracle would have failed at the checkout -- or,
+          # worse, fetched a same-named fork and benchmarked against a different
+          # package. The `test` below is ORACLE.md's own verification, promoted
+          # from documentation into the job that depends on it.
+          git clone https://github.com/FrederickHuangLin/ANCOMBC.git reference/ANCOMBC
+          git -C reference/ANCOMBC checkout --detach dc4febdf59badb3a8dfe0c767ef2186323c2199a
+          test "$(git -C reference/ANCOMBC rev-parse HEAD)" = dc4febdf59badb3a8dfe0c767ef2186323c2199a
+      - name: record the environment
+        run: |
+          mkdir -p reference/env
+          {
+            echo "# Recorded at CI time; reference/env/ORACLE.md is the committed record."
+            echo "date: $(date -u +%FT%TZ)"
+            Rscript -e 'cat("R:", R.version.string, "\nplatform:", R.version$platform, "\n")'
+            Rscript -e 'cat("BLAS:", extSoftVersion()[["BLAS"]], "\n")'
+            Rscript -e 'sessionInfo()'
+          } | tee reference/env/CI_ENVIRONMENT.md
+      - name: mirror self-check
+        run: Rscript scripts/smoke_oracle.R
+      # Non-destructive. The four committed fixtures predate the generator's
+      # seeding fix and cannot be regenerated (docs/reference_behavior.md section
+      # 15), so this recomputes their contract from the committed inputs and
+      # compares at the text round-trip floor rather than regenerating in place.
+      # An earlier version of this job ran `generate_goldens.R 1 2 3` and diffed,
+      # which rewrote the fixtures and reported 82 changed files that were a
+      # different input rather than drift.
+      - name: the committed goldens still match the pinned oracle
+        run: make goldens-drift
+      - name: and the matrix still passes against them
+        run: make matrix
+
+  # ---------------------------------------------------------------------
+  # Nightly: the full simulation grid, both arms, compared.
+  #
+  # Three steps, because the two arms must analyse the *same* tables: the Rust
+  # generator writes them, the R arm reads them back, and only then are the arms
+  # pooled and compared. A summary without an R arm is a calibration report, not
+  # a comparison, and the summary says so when the R rows are absent -- so this
+  # job checks that they are present.
+  #
+  # The oracle is the pinned checkout under reference/ANCOMBC, which is a
+  # submodule-free vendored copy, so no extra install step is needed; the R arm
+  # sources it rather than installing it (see reference/env/ORACLE.md).
+  # ---------------------------------------------------------------------
+  simulation:
+    name: statistical simulation
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      - run: cargo build --release
+      - name: generate the replicates
+        run: |
+          ./target/release/ancombc2-sim generate \
+            --grid validation/simulation/full \
+            --out sim-data
+      - name: rust arm
+        run: |
+          ./target/release/ancombc2-sim rust \
+            --grid validation/simulation/full \
+            --out validation/simulation/results/full.rust.jsonl \
+            --progress
+      # Before spending hours on both arms, check they are running the *same*
+      # analysis. The two arms once disagreed on `struc_zero`/`neg_lb` -- TRUE
+      # hardcoded in sim_r.R, FALSE by default in the Rust config -- and every
+      # cell comparison was between two different procedures. `grid.json` is now
+      # the single source both read; this is the check that it stays so.
+      - name: the two arms are configured identically
+        env:
+          ANCOMBC_ORACLE_DIR: reference/ANCOMBC
+        run: |
+          Rscript -e 'install.packages("jsonlite", repos = "https://cloud.r-project.org")'
+          python3 scripts/check_sim_arms_agree.py \
+            --grid validation/simulation/full/grid.json \
+            --data sim-data --cells 0,60,120 --reps 3
+      - name: R arm
+        env:
+          ANCOMBC_ORACLE_DIR: reference/ANCOMBC
+        run: |
+          Rscript --vanilla scripts/sim_r.R \
+            --data sim-data \
+            --grid validation/simulation/full/grid.json \
+            --out validation/simulation/results/full.r.jsonl
+      - name: pool and compare
+        run: |
+          ./target/release/ancombc2-sim summarise \
+            --grid validation/simulation/full \
+            --rust validation/simulation/results/full.rust.jsonl \
+            --r validation/simulation/results/full.r.jsonl \
+            --out validation/simulation/results/full.summary.json
+      # A divergence is a finding, not a build failure, so this does not exit
+      # non-zero on the summary's own verdict. It fails only if the R arm
+      # produced nothing, which would turn the whole comparison into a
+      # Rust-only report that reads like a pass.
+      - name: the R arm must have produced rows
+        run: |
+          test -s validation/simulation/results/full.r.jsonl
+          n=$(wc -l < validation/simulation/results/full.r.jsonl)
+          echo "R arm produced $n row(s)"
+          test "$n" -gt 0
+      - uses: actions/upload-artifact@v4
+        with:
+          name: simulation-results
+          path: validation/simulation/results
+
+  # ---------------------------------------------------------------------
+  # The structural-zero and edge-case matrix (PLAN.md section 5.5).
+  #
+  # Cheap enough to run on every push, which is the point: these are the cases
+  # that pin the *predicates* -- which taxa are flagged, what a boundary means,
+  # when the reference refuses outright -- rather than a set of coefficients.
+  # The goldens are committed, so this needs no R and no oracle; `edge-gen`
+  # (below, in the `oracle` job) is what re-derives them.
+  # ---------------------------------------------------------------------
+  edge-cases:
+    name: structural-zero and edge cases
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: make edge-cases
+
+  # ---------------------------------------------------------------------
+  # The golden fixture matrix (PLAN.md section 5.5).
+  #
+  # Runs on a push. It reads only committed goldens, so it needs neither R nor
+  # the oracle, and it is fast -- about 24 seconds of Rust for all 38 cells --
+  # which is what makes it affordable on every push.
+  #
+  # Four of its nine tests are structural rather than numeric, and they are the
+  # reason this is not just a longer `parity`: they assert that the matrix still
+  # covers every axis level the plan lists, that each sweep varies exactly the
+  # axis it is named for, that the config-only sweeps analyse one shared table,
+  # and that `conservative` is only swept where the sensitivity analysis is on.
+  # Without those, a matrix that quietly shrank to the four committed fixtures
+  # would still be green.
+  # ---------------------------------------------------------------------
+  matrix:
+    name: golden fixture matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The matrix goldens are ~375 MB, mostly the 5000x500 and 10000x500
+          # cells. GitHub's blob filter would drop them from a shallow checkout
+          # and every cell would report a missing golden.
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - run: make matrix
+
+  # ---------------------------------------------------------------------
+  # Real-data validation (Layer 4).
+  #
+  # Runs on a push, not only nightly: the comparison is fast (about four
+  # seconds of R plus a fraction of a second of Rust) and the plan's Level D
+  # real-data gate -- `diff_abn` agreement >= 99.99% -- is a release criterion,
+  # so it should not sit for a week before anyone notices it broke.
+  #
+  # The two phyloseq-sourced datasets need the S4 class definitions, which CI
+  # *can* install normally (the class shim is only a fallback for machines
+  # without root), so the real package is used here. Either way the datasets are
+  # committed, and this job analyses the committed files -- re-deriving them
+  # would mean two reconstructions of the same input.
+  # ---------------------------------------------------------------------
+  realdata:
+    name: real-data validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+      # `nloptr` is the oracle harness's only non-base dependency, and the
+      # reference declares R >= 4.5.0 so it cannot be installed as a package
+      # here; the harness sources the pinned R files instead. See
+      # reference/env/ORACLE.md.
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          packages: any::nloptr, any::MASS
+      - run: cargo build --release --workspace
+      - name: the R arm
+        env:
+          ANCOMBC_ORACLE_DIR: reference/ANCOMBC
+        run: make realdata-r
+      - name: the Rust arm
+        run: make realdata-rust
+      - name: compare, and fail below the 99.99% diff_abn threshold
+        run: make realdata-summary
+      - name: the threshold is a gate
+        run: |
+          python3 scripts/compare_realdata.py \
+            --rust validation/realdata/results/rust.jsonl \
+            --r validation/realdata/results/r.jsonl --fail
+      # The scatters are the "scatter visually on y = x" step of PLAN.md section
+      # 17, run in CI so the figures under review are always the ones produced by
+      # the code being merged. They are skipped, not failed, when matplotlib is
+      # absent: matplotlib is a build-time-only convenience and the numeric gate
+      # above is what the layer turns on.
+      - name: the y = x scatters
+        run: make realdata-scatter
+      - uses: actions/upload-artifact@v4
+        with:
+          name: realdata-results
+          path: validation/realdata/results
+
+  # ---------------------------------------------------------------------
+  # Nightly: the benchmark surface and the gates.
+  # ---------------------------------------------------------------------
+  bench-container:
+    name: container harness builds and runs
+    # GitHub's runners have Docker, so the containerised surface is exercised here
+    # even though the machine that produced the committed results had no container
+    # engine. This job *runs the surface in the image*; it is the evidence that the
+    # Dockerfile, the oracle verification and the entrypoint all work.
+    #
+    # It is `if: always()`-style manual plus a schedule, not on every push: the
+    # image build clones the oracle and compiles Rust, which is minutes of work for
+    # something that changes rarely. It uploads its results so a container-measured
+    # gate can be compared against the host-measured one rather than assumed equal.
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - name: build the image
+        run: docker build -f benchmarks/container/Dockerfile -t ancombc2-bench:ci .
+      - name: what the image actually is
+        # BLAS/LAPACK are reported, not chosen; this makes the report a committed
+        # artifact rather than something a reader has to trust.
+        run: |
+          docker run --rm --entrypoint R ancombc2-bench:ci -e 'sessionInfo(); sessionInfo()$BLAS; sessionInfo()$LAPACK'
+      - name: run one dataset end to end in the image
+        run: |
+          docker run --rm \
+            -v "$PWD:/work" \
+            -v "$PWD/benchmarks/results:/work/benchmarks/results" \
+            ancombc2-bench:ci --datasets bm3
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: container-benchmark-results
+          path: benchmarks/results/
+
+  benchmarks:
+    name: benchmarks and gates
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: '4.3.3'
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --release
+      - name: install nloptr and fetch the oracle
+        run: |
+          mkdir -p "$HOME/rlib"
+          Rscript -e 'install.packages("nloptr", lib = file.path(Sys.getenv("HOME"), "rlib"), repos = "https://cloud.r-project.org")'
+          echo "R_LIBS_USER=$HOME/rlib" >> "$GITHUB_ENV"
+          # The canonical repository named in reference/env/ORACLE.md. This
+          # previously pointed at `zdk123/ANCOMBC`, a different repository, so both
+          # jobs that fetch the oracle would have failed at the checkout -- or,
+          # worse, fetched a same-named fork and benchmarked against a different
+          # package. The `test` below is ORACLE.md's own verification, promoted
+          # from documentation into the job that depends on it.
+          git clone https://github.com/FrederickHuangLin/ANCOMBC.git reference/ANCOMBC
+          git -C reference/ANCOMBC checkout --detach dc4febdf59badb3a8dfe0c767ef2186323c2199a
+          test "$(git -C reference/ANCOMBC rev-parse HEAD)" = dc4febdf59badb3a8dfe0c767ef2186323c2199a
+      - name: generate the datasets
+        run: python3 scripts/make_bench_data.py --out benchmarks/datasets
+      - name: run the surface
+        run: |
+          ANCOMBC_ORACLE_DIR=reference/ANCOMBC \
+            python3 scripts/run_benchmarks.py \
+              --data benchmarks/datasets \
+              --results benchmarks/results/results.jsonl
+      - name: evaluate the gates
+        # Not `--strict`: a failing gate is a *result*, and the weekly job's job
+        # is to record it, not to hide it. The report is uploaded either way.
+        run: |
+          python3 scripts/bench_gates.py \
+            --results benchmarks/results/results.jsonl \
+            --report benchmarks/results/gates.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-results
+          path: |
+            benchmarks/results/results.jsonl
+            benchmarks/results/gates.json

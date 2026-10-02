@@ -1,0 +1,13 @@
+cell=predictor-3group
+n_tax=100
+n_samp=30
+n_group=3
+zero_rate=0
+struc_zero=FALSE
+n_cont=1
+predictor=continuous
+interact=FALSE
+balanced=TRUE
+seed=12973104
+zero_fraction=0.000000
+group_sizes=10,10,10

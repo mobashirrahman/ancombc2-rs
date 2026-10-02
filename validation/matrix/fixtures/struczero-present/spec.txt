@@ -1,0 +1,13 @@
+cell=struczero-present
+n_tax=100
+n_samp=30
+n_group=2
+zero_rate=0
+struc_zero=TRUE
+n_cont=1
+predictor=continuous
+interact=FALSE
+balanced=TRUE
+seed=14541066
+zero_fraction=0.025000
+group_sizes=15,15

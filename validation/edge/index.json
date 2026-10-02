@@ -1,0 +1,15 @@
+{
+ "matrix": "PLAN.md section 5.5, structural-zero and edge cases",
+ "note": "Two of the plan's rows name parameters ANCOMBC 2.15.2 does
+ not have (keep_zero, perc_thres); the substitutions used are recorded
+ per case and in docs/reference_behavior.md.",
+ "cases": [
+  {"name":"absent_in_group_a","plan_row":"Completely absent in group A","about":"taxon T1 is zero in every sample of g1 and present in g2, so its group-1 prevalence is 0 and it must be flagged for that group only","dir":"absent_in_group_a"},
+  {"name":"rare_in_group_a","plan_row":"Rare in group A (< 1 obs)","about":"taxon T2 has exactly one observation in g1, so its g1 prevalence is 1/5. The reference's `neg_lb` widens the net beyond a strict zero, so it should still be flagged -- which is the point of the case: a `< 1 obs` taxon and a structurally-zero one are not the same test","dir":"rare_in_group_a"},
+  {"name":"present_in_every_group","plan_row":"Present in every group","about":"every taxon is observed in every sample of every group, so no taxon may be flagged. This is the negative control for the two cases above: a rule that flags too eagerly passes those and fails this","dir":"present_in_every_group"},
+  {"name":"na_counts","plan_row":"NA in counts","about":"T3 is NA across g1 and T4 is zero across g1, so the two differ only in how they are missing. The reference's sandwich replaces an NA term with 0.1 rather than skipping it (docs/reference_behavior.md section 2), and this case pins that behaviour as a contract rather than a caveat","dir":"na_counts"},
+  {"name":"group_of_size_one","plan_row":"Group of size 1","about":"g2 has exactly one sample, which is the plan's case. The reference validates group sizes before anything else, so this is expected to be a refusal rather than a result; the golden records whichever it is, and the Rust side must match it either way. Written as sizes c(6, 1) rather than by alternating the levels, which would have produced 4/3 and tested nothing","dir":"group_of_size_one"},
+  {"name":"struc_zero_off","plan_row":"keep_zero = TRUE (as struc_zero = FALSE)","about":"the same fixture as `absent_in_group_a` with the structural- zero removal switched off, so T1 is retained *and* still reported in the zero_ind table. ANCOMBC 2.15.2 has no `keep_zero` argument; `struc_zero` is the nearest one and this is the documented substitution","dir":"struc_zero_off"},
+  {"name":"prv_cut_boundary","plan_row":"perc_thres exactly at boundary (as prv_cut)","about":"T2 is observed in exactly 3 of 10 samples and prv_cut is 0.3, so its prevalence equals the cut. `ancombc_prep.R` filters on `prevalence >= prv_cut`, so T2 is kept and T3 (2/10) is not. ANCOMBC 2.15.2 has no `perc_thres`; `prv_cut` is the nearest one and this is the documented substitution","dir":"prv_cut_boundary"}
+  ]
+}

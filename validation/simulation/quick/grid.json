@@ -1,0 +1,47 @@
+{
+  "name": "quick",
+  "note": "The pull-request surface from PLAN.md 5.3, cut down to what a short CI run can afford. It keeps one level of every factor that the method's failure modes attach to -- zero levels, no, some and most DA; both effect directions; sparsity; and the confounded arm -- at a size and rep count that runs in minutes. It is a smoke test of the harness and of the method's gross behaviour, NOT a substitute for the full grid: the per-cell Monte-Carlo error here is far too wide to resolve the 3 SE acceptance rule, so a cell that 'agrees' in this grid has not demonstrated agreement.",
+  "seed": 20240215,
+  "n_taxa": [
+    100
+  ],
+  "n_samp": [
+    20,
+    50
+  ],
+  "da_proportion": [
+    0.0,
+    0.3,
+    0.5
+  ],
+  "log_fc": [
+    1.0,
+    2.0
+  ],
+  "zero_inflation": [
+    0.0,
+    0.5
+  ],
+  "lib_mean": [
+    10000.0
+  ],
+  "lib_cv": [
+    0.3
+  ],
+  "confound": [
+    false,
+    true
+  ],
+  "dispersion": 1.0,
+  "abundance_sd": 0.5,
+  "reps": 20,
+  "alpha": 0.05,
+  "pseudo": 0.5,
+  "sensitivity": "none",
+  "prevalence": 0.0,
+  "lib_size": 0.0,
+  "p_adjust": "BH",
+  "struc_zero": true,
+  "neg_lb": true,
+  "s0_perc": 0.05
+}

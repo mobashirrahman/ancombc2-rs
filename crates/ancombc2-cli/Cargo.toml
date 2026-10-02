@@ -1,0 +1,18 @@
+[package]
+name = "ancombc2-cli"
+description = "Command-line interface for ancombc2-rs"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "ancombc2-rs"
+path = "src/main.rs"
+
+[dependencies]
+ancombc2-core.workspace = true
+ancombc2-io.workspace = true
+rayon.workspace = true

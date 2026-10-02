@@ -1,0 +1,206 @@
+{
+  "name": "full",
+  "note": "The PLAN.md 5.3 surface, expressed as blocks. The full cross product of the seven listed factors is 96768 cells x 1000 reps = 97 million replicates, which is not a design anyone can run or read, and a one-factor-at-a-time sweep would leave the interactions unmeasured. Each block below is a full cross product over the factors it names at a stated background, so every level of every factor appears and the interactions inside each block are measured. WHAT IS NOT COVERED: the cross-block interactions (in particular DA proportion x sample count at large taxon counts, and library size x sparsity) are not estimated, and no block varies more than four factors at once. Per-cell Monte-Carlo error at 1000 reps and 50 DA taxa is about 0.016 on power, so the 3 SE acceptance band is roughly 0.05 wide; cells with fewer DA taxa cannot resolve it and are reported as inconclusive rather than as agreement.",
+  "seed": 20240215,
+  "n_taxa": [
+    500
+  ],
+  "n_samp": [
+    50
+  ],
+  "da_proportion": [
+    0.3
+  ],
+  "log_fc": [
+    1.0
+  ],
+  "zero_inflation": [
+    0.1
+  ],
+  "lib_mean": [
+    10000.0
+  ],
+  "lib_cv": [
+    0.3
+  ],
+  "confound": [
+    false
+  ],
+  "dispersion": 1.0,
+  "abundance_sd": 0.5,
+  "reps": 1000,
+  "alpha": 0.05,
+  "pseudo": 0.5,
+  "sensitivity": "none",
+  "prevalence": 0.0,
+  "lib_size": 0.0,
+  "p_adjust": "BH",
+  "blocks": [
+    {
+      "name": "detection-surface",
+      "n_taxa": [
+        500
+      ],
+      "n_samp": [
+        50
+      ],
+      "da_proportion": [
+        0.0,
+        0.05,
+        0.1,
+        0.3,
+        0.5,
+        0.7,
+        0.9
+      ],
+      "log_fc": [
+        0.5,
+        1.0,
+        2.0,
+        4.0
+      ],
+      "zero_inflation": [
+        0.0,
+        0.1,
+        0.5,
+        0.9
+      ],
+      "confound": [
+        false,
+        true
+      ]
+    },
+    {
+      "name": "size",
+      "n_taxa": [
+        100,
+        500,
+        1000,
+        5000
+      ],
+      "n_samp": [
+        20,
+        50,
+        100,
+        500
+      ],
+      "da_proportion": [
+        0.3
+      ],
+      "log_fc": [
+        1.0
+      ],
+      "zero_inflation": [
+        0.1
+      ],
+      "confound": [
+        false
+      ]
+    },
+    {
+      "name": "library-size",
+      "n_taxa": [
+        500
+      ],
+      "n_samp": [
+        50
+      ],
+      "da_proportion": [
+        0.3
+      ],
+      "log_fc": [
+        1.0
+      ],
+      "zero_inflation": [
+        0.1
+      ],
+      "lib_mean": [
+        1000.0,
+        10000.0,
+        100000.0
+      ],
+      "lib_cv": [
+        0.0,
+        0.3,
+        0.6
+      ],
+      "confound": [
+        false
+      ]
+    },
+    {
+      "name": "sensitivity-conservative",
+      "n_taxa": [
+        500
+      ],
+      "n_samp": [
+        50
+      ],
+      "da_proportion": [
+        0.3
+      ],
+      "log_fc": [
+        1.0
+      ],
+      "zero_inflation": [
+        0.1
+      ],
+      "confound": [
+        false
+      ],
+      "sensitivity": "conservative",
+      "reps": 200
+    },
+    {
+      "name": "sensitivity-nonconservative",
+      "n_taxa": [
+        500
+      ],
+      "n_samp": [
+        50
+      ],
+      "da_proportion": [
+        0.3
+      ],
+      "log_fc": [
+        1.0
+      ],
+      "zero_inflation": [
+        0.1
+      ],
+      "confound": [
+        false
+      ],
+      "sensitivity": "nonconservative",
+      "reps": 200
+    },
+    {
+      "name": "filters",
+      "n_taxa": [
+        500
+      ],
+      "n_samp": [
+        50
+      ],
+      "da_proportion": [
+        0.3
+      ],
+      "log_fc": [
+        1.0
+      ],
+      "zero_inflation": [
+        0.1
+      ],
+      "confound": [
+        false
+      ],
+      "prevalence": 0.0,
+      "lib_size": 0.0,
+      "p_adjust": "BH",
+      "reps": 200
+    }
+  ],
+  "struc_zero": true,
+  "neg_lb": true,
+  "s0_perc": 0.05
+}

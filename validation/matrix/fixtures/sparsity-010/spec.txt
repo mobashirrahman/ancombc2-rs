@@ -1,0 +1,13 @@
+cell=sparsity-010
+n_tax=100
+n_samp=30
+n_group=2
+zero_rate=0.1
+struc_zero=FALSE
+n_cont=1
+predictor=continuous
+interact=FALSE
+balanced=TRUE
+seed=8696844
+zero_fraction=0.103667
+group_sizes=15,15

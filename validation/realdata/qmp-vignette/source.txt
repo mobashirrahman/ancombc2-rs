@@ -1,0 +1,23 @@
+# qmp-vignette: the ANCOM-BC2 vignette's own dataset, built exactly as
+# ANCOMBC2.Rmd (around line 914) builds it.
+# 
+#   data(QMP, package = "ANCOMBC"); set.seed(123)
+#   abn_data = sim_plnm(abn_table = QMP, taxa_are_rows = FALSE, prv_cut = 0.05,
+#                       n = 150, lib_mean = 1e8, disp = 0.5)
+#   # sim_plnm already returns taxa x samples
+# 
+# THIS DATASET IS SYNTHETIC. Its abundance structure comes from the real QMP
+# table, and its sampling fractions differ by batch exactly as the vignette
+# sets them, but the counts are generated. It is included because it is the
+# configuration the documentation tells users to copy, and because the
+# batch/group-crossed sampling fractions are the confounding the
+# sampling-fraction correction exists to absorb -- a property the two real
+# datasets do not have a controlled version of.
+# 
+# The continuous covariate `cont_cov` and the sampling fractions are drawn with
+# set.seed(20240215), recorded here so the table is reproducible; the vignette
+# does not seed them, and matching it exactly would mean relying on R's global
+# RNG state at a particular line of a particular document.
+# 
+# 91 taxa x 150 samples. Formula: ~ group + cont_cov, with the group contrast
+# as the coefficient under comparison.

@@ -1,0 +1,11 @@
+[package]
+name = "ancombc2-stats"
+description = "R-compatible statistical primitives for ancombc2-rs"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]

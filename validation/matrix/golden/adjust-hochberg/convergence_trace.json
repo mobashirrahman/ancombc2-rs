@@ -1,0 +1,1 @@
+{"note":"Per-iteration epsilon of the first .iter_mle, captured from the oracle's own verbose trace. Compared by level A: the Rust run must take the same number of iterations to the same epsilon, or one of them stopped early.","epsilons":[2.5,3.0999999999999999e-15],"iterations":[1,2],"tol":0.01,"max_iter":20}

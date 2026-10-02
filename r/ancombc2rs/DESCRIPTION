@@ -1,0 +1,25 @@
+Package: ancombc2rs
+Type: Package
+Title: ANCOM-BC2 Differential Abundance, Backed by Rust
+Version: 0.1.0
+Authors@R: person("ancombc2-rs", "contributors", role = c("aut", "cre"),
+                  email = "noreply@example.invalid")
+Description: A wrapper for 'ancombc2-rs', a Rust reimplementation of ANCOM-BC2.
+    The analysis itself runs in Rust; this package builds the design matrix with
+    R's own 'model.matrix', calls the core through a C ABI, and returns the
+    reference's result tables. The compatibility target is ANCOMBC 2.15.2 at
+    commit dc4febdf59badb3a8dfe0c767ef2186323c2199a, under R 4.5.x with seed 42.
+License: Artistic-2.0
+Encoding: UTF-8
+Depends: R (>= 4.1.0)
+Imports: jsonlite, stats, utils
+Suggests:
+    testthat (>= 3.0.0),
+    microbiome,
+    mia,
+    phyloseq,
+    SummarizedExperiment
+SystemRequirements: Rust (>= 1.75) and a C compiler, for building the bundled
+    core; see src/Makevars and README.md
+Config/testthat/edition: 3
+RoxygenNote: 7.3.2

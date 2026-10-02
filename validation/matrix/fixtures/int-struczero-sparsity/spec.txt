@@ -1,0 +1,13 @@
+cell=int-struczero-sparsity
+n_tax=100
+n_samp=30
+n_group=2
+zero_rate=0.5
+struc_zero=TRUE
+n_cont=1
+predictor=continuous
+interact=FALSE
+balanced=TRUE
+seed=18516404
+zero_fraction=0.507667
+group_sizes=15,15

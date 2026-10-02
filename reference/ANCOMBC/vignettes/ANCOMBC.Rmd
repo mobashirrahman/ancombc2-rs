@@ -1,0 +1,389 @@
+---
+title: "ANCOM-BC Tutorial"
+author: 
+  - Huang Lin$^1$
+  - $^1$University of Maryland, College Park, MD 20742
+date: '`r format(Sys.Date(), "%B %d, %Y")`'
+output: rmarkdown::html_vignette
+bibliography: bibliography.bib
+vignette: >
+  %\VignetteIndexEntry{ANCOM-BC Tutorial}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, message = FALSE, warning = FALSE, comment = NA}
+knitr::opts_chunk$set(message = FALSE, warning = FALSE, comment = NA, 
+                      fig.width = 6.25, fig.height = 5)
+library(ANCOMBC)
+library(tidyverse)
+library(DT)
+options(DT.options = list(
+  initComplete = JS("function(settings, json) {",
+  "$(this.api().table().header()).css({'background-color': 
+  '#000', 'color': '#fff'});","}")))
+```
+
+# 1. Introduction
+
+Analysis of Compositions of Microbiomes with Bias Correction (ANCOM-BC) [@lin2020analysis] 
+is a methodology of differential abundance (DA) analysis for microbial absolute
+abundances. ANCOM-BC estimates the unknown sampling fractions, corrects
+the bias induced by their differences through a log linear regression model
+including the estimated sampling fraction as an offset term, and identifies
+taxa that are differentially abundant according to the variable of interest.
+For more details, see the
+[ANCOM-BC](https://doi.org/10.1038/s41467-020-17041-7) paper.
+
+# 2. Installation
+
+Download package. 
+
+```{r getPackage, eval=FALSE}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install("ANCOMBC")
+```
+
+Load the package. 
+
+```{r load, eval=FALSE}
+library(ANCOMBC)
+```
+
+# 3. Example Data
+
+The HITChip Atlas dataset contains genus-level microbiota profiling with 
+HITChip for 1006 western adults with no reported health complications, 
+reported in [@lahti2014tipping]. The dataset is available via the 
+microbiome R package [@lahti2017tools] in phyloseq [@mcmurdie2013phyloseq] 
+format. In this tutorial, we consider the following covariates:
+
+* Continuous covariates: "age"
+
+* Categorical covariates: "region", "bmi"
+
+* The group variable of interest: "bmi"
+
+    + Three groups: "lean", "overweight", "obese"
+    
+    + The reference group: "obese"
+
+```{r, child = "children/child_atlas1006.Rmd"}
+```
+
+# 4 ANCOM-BC Implementation
+
+## 4.1 Run `ancombc` function using the `phyloseq` object
+
+```{r}
+out = ancombc(data = pseq, tax_level = "Family", 
+              formula = "age + region + bmi", 
+              p_adj_method = "holm", prv_cut = 0.10, lib_cut = 1000, 
+              group = "bmi", struc_zero = TRUE, neg_lb = TRUE, tol = 1e-5, 
+              max_iter = 100, conserve = TRUE, alpha = 0.05, global = TRUE,
+              n_cl = 1, verbose = TRUE)
+
+res = out$res
+res_global = out$res_global
+```
+
+Tests for interactions are supported by specifying the interactions in
+`formula`. Interactions between variables must be written with the `*` operator,
+as the `:` operator is not recognized by the `ancombc` function and results in
+an error.
+
+When the `group` variable is involved in an interaction term, only its main
+effect is used in multi-group comparisons.
+
+```{r, eval=FALSE}
+out = ancombc(data = pseq, tax_level = "Family", 
+              formula = "age + region * bmi", 
+              p_adj_method = "holm", prv_cut = 0.10, lib_cut = 1000, 
+              group = "bmi", struc_zero = TRUE, neg_lb = TRUE, tol = 1e-5, 
+              max_iter = 100, conserve = TRUE, alpha = 0.05, global = TRUE,
+              n_cl = 1, verbose = TRUE)
+
+res = out$res
+res_global = out$res_global
+```
+
+## 4.2 ANCOMBC primary result {.tabset}
+
+The primary result of the ANCOM-BC log-linear model identifies the taxa that are
+differentially abundant with respect to the covariate of interest. For each
+taxon and each covariate it reports the log fold change (lfc, on the natural
+log scale), its standard error (se), the test statistic $W = \text{lfc}/\text{se}$,
+the p-value, the adjusted p-value, and the indicator of differential
+abundance (TRUE or FALSE).
+
+### LFC
+
+```{r}
+tab_lfc = res$lfc
+col_name = c("Taxon", "Intercept", "Age", "NE - CE", "SE - CE", 
+             "US - CE", "Overweight - Obese", "Lean - Obese")
+colnames(tab_lfc) = col_name
+tab_lfc %>% 
+  datatable(caption = "Log Fold Changes from the Primary Result") %>%
+  formatRound(col_name[-1], digits = 2)
+```
+
+### SE
+
+```{r}
+tab_se = res$se
+colnames(tab_se) = col_name
+tab_se %>% 
+  datatable(caption = "SEs from the Primary Result") %>%
+  formatRound(col_name[-1], digits = 2)
+```
+
+### Test statistic
+
+```{r}
+tab_w = res$W
+colnames(tab_w) = col_name
+tab_w %>% 
+  datatable(caption = "Test Statistics from the Primary Result") %>%
+  formatRound(col_name[-1], digits = 2)
+```
+
+### P-values
+
+```{r}
+tab_p = res$p_val
+colnames(tab_p) = col_name
+tab_p %>% 
+  datatable(caption = "P-values from the Primary Result") %>%
+  formatRound(col_name[-1], digits = 2)
+```
+
+### Adjusted p-values
+
+```{r}
+tab_q = res$q_val
+colnames(tab_q) = col_name
+tab_q %>% 
+  datatable(caption = "Adjusted p-values from the Primary Result") %>%
+  formatRound(col_name[-1], digits = 2)
+```
+
+### Differentially abundant taxa
+
+```{r}
+tab_diff = res$diff_abn
+colnames(tab_diff) = col_name
+tab_diff %>% 
+  datatable(caption = "Differentially Abundant Taxa from the Primary Result")
+```
+
+### Bias-corrected abundances
+
+Bias-corrected abundances are obtained in two steps.
+
+Step 1: Take the estimated sampling fractions, on the log scale.
+
+Step 2: Subtract the estimated sampling fraction of each sample from the log
+observed abundances of that sample.
+
+Sampling fractions are estimated up to an additive constant, so that only
+differences between bias-corrected abundances are interpretable. Taxon-specific
+biases are not removed in this calculation, because they are assumed to vary
+across taxa but to remain constant across the samples within a taxon.
+
+```{r}
+samp_frac = out$samp_frac
+# Replace NA with 0
+samp_frac[is.na(samp_frac)] = 0 
+# Add a pseudo-count (1) to avoid taking the log of 0
+log_obs_abn = log(out$feature_table + 1)
+# Adjust the log observed abundances
+log_corr_abn = t(t(log_obs_abn) - samp_frac)
+# Show the first 6 samples
+round(log_corr_abn[, 1:6], 2) %>% 
+  datatable(caption = "Bias-corrected log observed abundances")
+```
+
+### Visualization for age
+
+```{r}
+df_lfc = data.frame(res$lfc[, -1] * res$diff_abn[, -1], check.names = FALSE) %>%
+    mutate(taxon_id = res$diff_abn$taxon) %>%
+    dplyr::select(taxon_id, everything())
+df_se = data.frame(res$se[, -1] * res$diff_abn[, -1], check.names = FALSE) %>% 
+  mutate(taxon_id = res$diff_abn$taxon) %>%
+    dplyr::select(taxon_id, everything())
+colnames(df_se)[-1] = paste0(colnames(df_se)[-1], "SE")
+
+df_fig_age = df_lfc %>% 
+  dplyr::left_join(df_se, by = "taxon_id") %>%
+  dplyr::transmute(taxon_id, age, ageSE) %>%
+  dplyr::filter(age != 0) %>% 
+  dplyr::arrange(desc(age)) %>%
+  dplyr::mutate(direct = ifelse(age > 0, "Positive LFC", "Negative LFC"))
+df_fig_age$taxon_id = factor(df_fig_age$taxon_id, levels = df_fig_age$taxon_id)
+df_fig_age$direct = factor(df_fig_age$direct, 
+                        levels = c("Positive LFC", "Negative LFC"))
+  
+p_age = ggplot(data = df_fig_age, 
+           aes(x = taxon_id, y = age, fill = direct, color = direct)) + 
+  geom_bar(stat = "identity", width = 0.7, 
+           position = position_dodge(width = 0.4)) +
+  geom_errorbar(aes(ymin = age - ageSE, ymax = age + ageSE), width = 0.2,
+                position = position_dodge(0.05), color = "black") + 
+  labs(x = NULL, y = "Log fold change", 
+       title = "Log fold changes as one unit increase of age") + 
+  scale_fill_discrete(name = NULL) +
+  scale_color_discrete(name = NULL) +
+  theme_bw() + 
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid.minor.y = element_blank(),
+        axis.text.x = element_text(angle = 60, hjust = 1))
+p_age
+```
+
+### Visualization for BMI
+
+```{r}
+df_fig_bmi = df_lfc %>% 
+  filter(bmioverweight != 0 | bmilean != 0) %>%
+  transmute(taxon_id, 
+            `Overweight vs. Obese` = round(bmioverweight, 2),
+            `Lean vs. Obese` = round(bmilean, 2)) %>%
+  pivot_longer(cols = `Overweight vs. Obese`:`Lean vs. Obese`, 
+               names_to = "group", values_to = "value") %>%
+  arrange(taxon_id)
+lo = floor(min(df_fig_bmi$value))
+up = ceiling(max(df_fig_bmi$value))
+mid = (lo + up)/2
+p_bmi = df_fig_bmi %>%
+  ggplot(aes(x = group, y = taxon_id, fill = value)) + 
+  geom_tile(color = "black") +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                       na.value = "white", midpoint = mid, limit = c(lo, up),
+                       name = NULL) +
+  geom_text(aes(group, taxon_id, label = value), color = "black", size = 4) +
+  labs(x = NULL, y = NULL, title = "Log fold changes as compared to obese subjects") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+p_bmi
+```
+
+## 4.3 ANCOMBC global test result {.tabset}
+
+The ANCOM-BC global test identifies taxa that are differentially abundant
+between at least two groups when three or more groups are compared. The group
+variable of this analysis is `bmi`, so the test identifies taxa that are
+differentially abundant between at least two of the categories obese,
+overweight, and lean. For each taxon the result reports the test statistic, the
+p-value, the adjusted p-value, and the indicator of differential abundance
+(TRUE or FALSE).
+
+### Test statistics
+
+```{r}
+tab_w = res_global[, c("taxon", "W")]
+tab_w %>% datatable(caption = "Test Statistics 
+                    from the Global Test Result") %>%
+      formatRound(c("W"), digits = 2)
+```
+
+### P-values
+
+```{r}
+tab_p = res_global[, c("taxon", "p_val")]
+tab_p %>% datatable(caption = "P-values 
+                    from the Global Test Result") %>%
+      formatRound(c("p_val"), digits = 2)
+```
+
+### Adjusted p-values
+
+```{r}
+tab_q = res_global[, c("taxon", "q_val")]
+tab_q %>% datatable(caption = "Adjusted p-values 
+                    from the Global Test Result") %>%
+      formatRound(c("q_val"), digits = 2)
+```
+
+### Differentially abundant taxa
+
+```{r}
+tab_diff = res_global[, c("taxon", "diff_abn")]
+tab_diff %>% datatable(caption = "Differentially Abundant Taxa 
+                       from the Global Test Result")
+```
+
+### Visualization
+
+```{r}
+sig_taxa = res_global %>%
+  dplyr::filter(diff_abn == TRUE) %>%
+  .$taxon
+
+df_bmi = tab_lfc %>%
+    dplyr::select(Taxon, `Overweight - Obese`, `Lean - Obese`) %>%
+    filter(Taxon %in% sig_taxa)
+
+df_heat = df_bmi %>%
+    pivot_longer(cols = -one_of("Taxon"),
+                 names_to = "group", values_to = "value") %>%
+    mutate(value = round(value, 2))
+df_heat$Taxon = factor(df_heat$Taxon, levels = sort(sig_taxa))
+
+lo = floor(min(df_heat$value))
+up = ceiling(max(df_heat$value))
+mid = (lo + up)/2
+p_heat = df_heat %>%
+  ggplot(aes(x = group, y = Taxon, fill = value)) +
+  geom_tile(color = "black") +
+  scale_fill_gradient2(low = "blue", high = "red", mid = "white", 
+                       na.value = "white", midpoint = mid, limit = c(lo, up),
+                       name = NULL) +
+  geom_text(aes(group, Taxon, label = value), color = "black", size = 4) +
+  labs(x = NULL, y = NULL, 
+       title = "Log fold changes for globally significant taxa") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5))
+p_heat
+```
+
+## 4.4 Alternative input formats
+
+The call in Section 4.1 also accepts a `TreeSummarizedExperiment` object or a
+count matrix. Only the data arguments differ; all other arguments are unchanged.
+
+For a `TreeSummarizedExperiment` object, pass `data = tse` and
+`assay_name = "counts"`.
+
+```{r, eval=FALSE}
+tse = mia::makeTreeSummarizedExperimentFromPhyloseq(pseq)
+```
+
+For a count matrix, aggregation to the analysis level is performed beforehand.
+Pass `data = abundance_data`, `aggregate_data = aggregate_data`, and
+`meta_data = meta_data`, and drop `tax_level`.
+
+```{r, eval=FALSE}
+abundance_data = microbiome::abundances(pseq)
+aggregate_data = microbiome::abundances(microbiome::aggregate_taxa(pseq, "Family"))
+meta_data = microbiome::meta(pseq)
+```
+
+# Session information
+
+```{r sessionInfo, message = FALSE, warning = FALSE, comment = NA}
+sessionInfo()
+```
+
+# References
+
+
+
+
+
+
+
+
+

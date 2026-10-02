@@ -1,0 +1,61 @@
+# Rprof of validation/fixtures/fx03/counts.tsv
+# formula: group + x1 + x2
+# shape: 1000 taxa x 100 samples
+# wall: 3.315 s
+# samples: 81
+
+## by total time (inclusive)
+function                                     total%    self%    seconds
+"H$ref_run"                                  100.00     0.00      3.310
+"ref_run"                                    100.00     0.00      3.310
+"ref_core"                                    96.68     0.00      3.200
+"oracle$.bias_em"                             75.83     0.91      2.510
+"%dorng%"                                     75.83     0.00      2.510
+"eval"                                        75.83     0.00      2.510
+"nloptr::nloptr"                              68.88     1.51      2.280
+"eval_f"                                      41.09    12.69      1.360
+"<Anonymous>"                                 40.48     1.21      1.340
+"dnorm"                                       25.98    25.68      0.860
+"nloptr.add.default.options"                  18.43     0.91      0.610
+"oracle$.iter_mle"                            17.52     0.00      0.580
+"nloptr.get.default.options"                  13.29     0.00      0.440
+".lm_fit_all"                                 12.99     3.32      0.430
+"data.frame"                                  12.99     0.30      0.430
+"doTryCatch"                                  10.88     0.00      0.360
+"tryCatch"                                    10.88     0.00      0.360
+"tryCatchList"                                10.88     0.00      0.360
+"tryCatchOne"                                 10.88     0.00      0.360
+"cmpfun"                                      10.27     0.00      0.340
+"compiler:::tryCmpfun"                        10.27     0.00      0.340
+"h"                                            9.06     0.60      0.300
+"cmpCall"                                      9.06     0.30      0.300
+"cmp"                                          9.06     0.00      0.300
+"genCode"                                      9.06     0.00      0.300
+
+## by self time (exclusive)
+function                                     total%    self%    seconds
+"oracle$.bias_em"                             75.83     0.91      0.030
+"nloptr::nloptr"                              68.88     1.51      0.050
+"eval_f"                                      41.09    12.69      0.420
+"<Anonymous>"                                 40.48     1.21      0.040
+"dnorm"                                       25.98    25.68      0.850
+"nloptr.add.default.options"                  18.43     0.91      0.030
+".lm_fit_all"                                 12.99     3.32      0.110
+"data.frame"                                  12.99     0.30      0.010
+"h"                                            9.06     0.60      0.020
+"cmpCall"                                      9.06     0.30      0.010
+"rbind"                                        6.04     2.72      0.090
+"parse"                                        5.74     1.51      0.050
+"cmpSymbolAssign"                              5.74     0.30      0.010
+"stats::lm.fit"                                4.83     3.32      0.110
+"paste"                                        3.63     3.63      0.120
+".sandwich_vcov"                               3.32     0.91      0.030
+"["                                            3.32     0.30      0.010
+"t"                                            3.02     2.72      0.090
+"[.data.frame"                                 3.02     1.81      0.060
+"findCenvVar"                                  2.72     1.51      0.050
+"make.names"                                   2.72     0.60      0.020
+"FUN"                                          2.42     0.91      0.030
+"getInlineInfo"                                2.42     0.91      0.030
+"%in%"                                         2.11     2.11      0.070
+"is.infinite"                                  2.11     2.11      0.070

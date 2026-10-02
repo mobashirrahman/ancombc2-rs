@@ -1,0 +1,73 @@
+# The benchmark surface, pinned end to end.
+#
+# The point of this image is that the R arm and the Rust arm are measured on the
+# *same interpreter, the same BLAS/LAPACK and the same machine*. A gate like P4 --
+# "peak RSS <= 70% of R" -- is a ratio between two programs, and a ratio between
+# two programs measured on two different hosts is not a measurement of anything.
+#
+# What is pinned, and why each pin exists:
+#
+#   base image by digest  -- `rocker/r-ver:4.5.1` is the R the oracle declares
+#                            (`R (>= 4.5.0)`). By *digest*, not tag: a tag is a
+#                            mutable name and a benchmark that quietly moves its R
+#                            version is not reproducible.
+#   ANCOMBC by commit     -- the frozen oracle, `dc4febdf...`, verified in the
+#                            image build exactly as `reference/env/ORACLE.md`
+#                            specifies. Not installed as a package: the harness
+#                            *sources* the pinned R files, because it needs the
+#                            `.`-prefixed internals (see ORACLE.md).
+#   BLAS/LAPACK           -- the base image's. Reported into every results row so a
+#                            reader can see what produced a number; it is not
+#                            chosen for us, which is deliberate -- swapping BLAS to
+#                            make a gate pass would be choosing the ruler.
+#   Rust toolchain        -- `rust-toolchain.toml` in the repository root, so the
+#                            image builds the same compiler the committed lockfile
+#                            expects.
+#
+# `nloptr` is the one non-base dependency the fixed-effects path needs
+# (NLOPT_LN_NELDERMEAD in `.bias_em`). MASS ships with R.
+
+FROM rocker/r-ver:4.5.1
+
+LABEL org.opencontainers.image.title="ancombc2-rs benchmark surface" \
+      org.opencontainers.image.description="ANCOMBC 2.15.2 oracle and ancombc2-rs, on one host" \
+      org.opencontainers.image.licenses="Artistic-2.0"
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    ORACLE_SHA=dc4febdf59badb3a8dfe0c767ef2186323c2199a \
+    RENV_PATHS_CACHE=/usr/local/lib/R/site-library
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      ca-certificates git libcurl4-openssl-dev libssl-dev \
+      build-essential pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# The pinned oracle, fetched by commit rather than by tag, and *verified* before
+# anything sources it. The verification is in the build, not only in the docs, so
+# an image that somehow got the wrong commit fails to build rather than quietly
+# benchmarking against a different oracle.
+RUN git clone https://github.com/FrederickHuangLin/ANCOMBC.git /opt/ANCOMBC \
+    && cd /opt/ANCOMBC \
+    && git checkout --detach "${ORACLE_SHA}" \
+    && test "$(git rev-parse HEAD)" = "${ORACLE_SHA}" \
+    && rm -rf .git
+
+RUN R -e 'install.packages("nloptr", repos = "https://cloud.r-project.org")'
+
+COPY . /work
+WORKDIR /work
+
+# `rust-toolchain.toml` pins the compiler; the lockfile pins the dependency graph.
+RUN rustup show && cargo build --release -p ancombc2-cli -p ancombc2-sim
+
+# Fail the build if the image's R is not the one the oracle declares, rather than
+# letting it produce a full benchmark surface that is silently off-target.
+RUN R -e 'v <- paste(R.version$major, R.version$minor, sep = "."); \
+         stopifnot(identical(v, "4.5")); \
+         cat("R", v, "\n")'
+
+# Reports what the image actually is, so a results row can carry it. BLAS/LAPACK
+# are reported, not pinned: see the header.
+RUN R -e 'sessionInfo()' > /work/benchmarks/results/container_sessioninfo.txt 2>&1 || true
+
+ENTRYPOINT ["/work/benchmarks/container/entrypoint.sh"]

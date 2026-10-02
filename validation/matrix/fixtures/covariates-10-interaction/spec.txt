@@ -1,0 +1,13 @@
+cell=covariates-10-interaction
+n_tax=100
+n_samp=30
+n_group=2
+zero_rate=0
+struc_zero=FALSE
+n_cont=10
+predictor=continuous
+interact=TRUE
+balanced=TRUE
+seed=19458765
+zero_fraction=0.001667
+group_sizes=15,15

@@ -1,0 +1,20 @@
+# QMP: the Quantitative Microbiome Project counts shipped as
+# reference/ANCOMBC/data/QMP.rda in ANCOMBC 2.15.2 at
+# dc4febdf59badb3a8dfe0c767ef2186323c2199a. Real measured data.
+# 91 taxa x 106 samples, 27.1% structural zeros.
+# 
+# ORIENTATION: `?QMP` documents 106 samples in rows and 91 OTUs in columns, so
+# the shipped matrix is samples x taxa and is transposed here to the
+# taxa x samples layout the toolchain takes. Asserted, not assumed.
+# 
+# THE GROUP: no sample metadata ships with the matrix. It is derived from the
+# sample names: `SC` (study cohort, 40 subjects) and `DC` (disease cohort, 66
+# subjects). `?QMP` describes the table as pruned to HEALTHY subjects from
+# those two cohorts, so this is the cohort contrast and NOT a healthy/diseased
+# one -- reading it as the latter would be an analysis of a variable that does
+# not exist in this table. The prefixes are checked with a regular expression
+# before use. This is a deliberate, recorded choice rather than a recovered
+# column: a reader who disagrees can edit meta.tsv and rerun.
+# 
+# Formula: ~ group. Structural zeros and negative lower bounds on, the global
+# and pairwise tests on, pseudo 0.5, prevalence and library filters off.

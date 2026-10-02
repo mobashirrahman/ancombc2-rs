@@ -1,0 +1,13 @@
+cell=int-5group-10cov-binary
+n_tax=100
+n_samp=30
+n_group=5
+zero_rate=0
+struc_zero=FALSE
+n_cont=10
+predictor=binary
+interact=FALSE
+balanced=TRUE
+seed=17098903
+zero_fraction=0.000333
+group_sizes=6,6,6,6,6

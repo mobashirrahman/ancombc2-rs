@@ -1,0 +1,15 @@
+key	value
+formula	sex
+group	sex
+group_levels	female,male
+p_adj_method	BH
+pseudo	0.5
+prv_cut	0
+lib_cut	0
+struc_zero	true
+neg_lb	true
+alpha	0.05
+global	true
+pairwise	true
+pseudo_sens	true
+conservative	true

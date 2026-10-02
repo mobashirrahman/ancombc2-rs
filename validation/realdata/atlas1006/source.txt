@@ -1,0 +1,16 @@
+# atlas1006: a 1,006-taxon atlas of the human gut microbiome, from
+# Bioconductor's `microbiome` package. Real measured data, unmodified.
+# 
+# 130 taxa x 1151 samples, 20.9% structural zeros.
+# 
+# Provenance: the same microbiome_1.24.0.tar.gz as dietswap,
+# data/atlas1006.rda.
+# 
+# THIS IS THE LARGE DATASET: 1,006 taxa against 91 for QMP, and it is the
+# one that exercises the bitset missingness-pattern grouping and the cached
+# per-pattern QR at a realistic taxon count.
+# 
+# It is also the only dataset that runs the pseudo-count SENSITIVITY
+# analysis, because `passed_ss` and `diff_robust` exist only there and the
+# comparison is required to cover them. That is 4 pseudo-count levels on a
+# 1,006-taxon table, so it is the slowest of the four.

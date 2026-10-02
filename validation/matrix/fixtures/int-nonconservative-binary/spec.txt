@@ -1,0 +1,13 @@
+cell=int-nonconservative-binary
+n_tax=100
+n_samp=30
+n_group=2
+zero_rate=0
+struc_zero=FALSE
+n_cont=1
+predictor=binary
+interact=FALSE
+balanced=TRUE
+seed=21501867
+zero_fraction=0.000333
+group_sizes=15,15

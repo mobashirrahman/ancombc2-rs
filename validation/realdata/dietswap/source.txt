@@ -1,0 +1,26 @@
+# dietswap: the two-week diet-swap study between western (USA) and
+# traditional (rural Africa) diets, from Bioconductor's `microbiome`
+# package. This is the dataset the ANCOM-BC2 vignette analyses
+# (ANCOMBC2.Rmd, around line 716). Real measured data, unmodified.
+# 
+# 130 taxa x 222 samples, 38 subjects, 3 diet groups.
+# 
+# Provenance: microbiome_1.24.0.tar.gz from
+#   https://bioconductor.org/packages/3.18/bioc/src/contrib/microbiome_1.24.0.tar.gz
+#   tar xzf microbiome.tar.gz
+# 
+# THE ANALYSIS IS THE VIGNETTE'S, MINUS THE RANDOM EFFECT. The vignette
+# calls
+#   ancombc2(data = dietswap, tax_level = "Family",
+#             fix_formula = "nationality + timepoint + group",
+#             rand_formula = "(timepoint | subject)",
+#             group = "group", struc_zero = TRUE, neg_lb = TRUE, ...)
+# `rand_formula` is the random-effects path, which this port does not
+# implement and which is out of scope; this is the fixed-effects part of
+# the same analysis and nothing else. The group levels are DI (reference),
+# ED, HE, stated explicitly rather than left to factor()'s alphabetical
+# sort -- see scripts/realdata_r.R. `nationality` is a factor with two
+# levels (AAM, AFR), so it contributes one column.
+# 
+# This is the only dataset here with THREE groups, so it is the one that
+# exercises the global and pairwise tests.

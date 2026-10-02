@@ -1,0 +1,13 @@
+cell=covariates-5
+n_tax=100
+n_samp=30
+n_group=2
+zero_rate=0
+struc_zero=FALSE
+n_cont=5
+predictor=continuous
+interact=FALSE
+balanced=TRUE
+seed=9377878
+zero_fraction=0.000667
+group_sizes=15,15

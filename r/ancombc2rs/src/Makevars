@@ -1,0 +1,43 @@
+# Build the bundled Rust core and link it into the package.
+#
+# R's `Makevars` has no notion of Cargo, so the Rust library is built first, into
+# `src/`, and then linked. Two consequences worth knowing:
+#
+#   * `cargo build` is invoked on every `R CMD INSTALL`, which is slow. The
+#     fingerprint file below makes it incremental: if the Rust sources have not
+#     changed, cargo is not re-run at all.
+#   * the resulting `.so` lives in `src/`, so it must be cleaned with the rest of
+#     the package. `R CMD INSTALL --preclean` handles that.
+#
+# The R version selects the Cargo profile: a release R package must not ship a
+# debug core, and the debug build exists only so that a developer chasing a panic
+# backtrace can get one.
+
+# The workspace root, three levels up from `src/`: the package lives at
+# `<root>/r/ancombc2rs`, and Cargo is always run from the workspace root so that
+# the `[workspace]` dependency table -- not this package's -- resolves the paths.
+RUST_ROOT = ../../..
+RUST_SRC_DIR = $(RUST_ROOT)/crates
+LIB_SOURCES = $(shell find $(RUST_SRC_DIR) -name '*.rs' 2>/dev/null) \
+             $(RUST_ROOT)/Cargo.toml
+LIB_TARGET = libancombc2_ffi.so
+FINGERPRINT = .ancombc2_rs_built
+
+PKG_CPPFLAGS = -I.
+PKG_LIBS = -L. -lancombc2_ffi -Wl,-rpath,'$$ORIGIN'
+
+all: $(FINGERPRINT)
+
+$(FINGERPRINT): $(LIB_SOURCES)
+	@if ! command -v cargo >/dev/null 2>&1; then \
+	  echo "*** cargo not found: the Rust core cannot be built."; \
+	  echo "*** Install Rust (https://rustup.rs) and re-install, or set"; \
+	  echo "*** ANCOMBC2RS_SKIP_BUILD=1 to link a prebuilt library."; \
+	  exit 1; \
+	fi
+	cd $(RUST_ROOT) && cargo build --release -p ancombc2-ffi
+	cp $(RUST_ROOT)/target/release/$(LIB_TARGET) .
+	@touch $(FINGERPRINT)
+
+clean:
+	rm -f $(LIB_TARGET) $(FINGERPRINT) ancombc2rs.so *.o symbols.rds
