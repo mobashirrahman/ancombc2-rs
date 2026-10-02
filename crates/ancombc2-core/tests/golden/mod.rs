@@ -561,7 +561,17 @@ fn load_inputs(dir: &Path) -> (CountMatrix, Matrix, Vec<usize>, Vec<String>, Vec
     // `data_sanity_check` coerces the group variable to a factor before the
     // model matrix is built, so the formula sees a factor even though the file
     // holds numbers.
-    let design = build_design(&formula, &meta, &[GROUP_VAR]);
+    // The **shipping** design builder, not a test-local reimplementation of it.
+    //
+    // The golden contract is only worth anything if it exercises the code that
+    // runs. For a long time it did not: this used a second `build_design` living in
+    // the test harness, and the two agreed until they did not. The real
+    // `ancombc2_io::build_design` left `Matrix::colnames` empty, which made the
+    // pipeline's `group_columns` return nothing and silently disabled the
+    // rank-deficient fitting path's group-contrast lookup -- on every CLI run, and
+    // on none of the 38 fixture-matrix cells. That bug was invisible to 38 golden
+    // comparisons precisely because the tests were not calling the shipping code.
+    let design = build_design(&formula, &meta, GROUP_VAR);
     let gcol = meta
         .numeric(GROUP_VAR)
         .expect("the fixtures always carry a `group` column");
@@ -662,248 +672,47 @@ pub fn golden_dir(id: usize) -> PathBuf {
         .join("validation/golden")
         .join(format!("fx{id:02}"))
 }
-
-/// Build a design matrix from the formula and the metadata, the way R's
-/// `model.matrix` would, so the Rust side never has to parse a formula.
+/// The design, built by `ancombc2_io::build_design` -- the same function the CLI
+/// calls.
 ///
-/// The grammar supported is the subset the fixtures and the CLI need:
-/// `a + b + a:b` with `a`/`b` either numeric (a single column named after the
-/// variable) or a factor (treatment contrasts against the first level, named
-/// `var<level>`, e.g. `group2` for the second level of `group`). That is exactly
-/// what R produces under the default `contr.treatment`, and getting the *names*
-/// right matters because the multi-group tests locate the group columns by
-/// substring.
-///
-/// `factor_vars` names the variables to treat as factors. R's `data_sanity_check`
-/// coerces the `group` variable with `as.factor()` **before** the model matrix is
-/// built, so a variable that is numeric on disk can still enter the formula as a
-/// factor. Reproducing that coercion is why this is an explicit list rather than
-/// a guess from the number of distinct values.
-/// Expand a formula the way R's `terms()` does, into `+`-separated terms.
-///
-/// Only the operators the fixtures and the CLI use are handled: `+`, `:`, `*`
-/// and `/`. `a * b` becomes `a + b + a:b` and `a / b` becomes `a + a:b`, which is
-/// exactly R's expansion and therefore produces the same columns in the same
-/// order -- and the order matters, because `fix_eff` names are part of the
-/// Level A contract. `(`/`)` are stripped rather than nested: no fixture uses a
-/// parenthesised formula, and pretending to parse one would be worse than not
-/// parsing it.
-fn expand_formula(formula: &str) -> Vec<String> {
-    let f = formula.replace(['(', ')'], " ");
-    let mut out: Vec<String> = Vec::new();
-    for raw in f.split('+') {
-        let term = raw.trim();
-        if term.is_empty() {
-            continue;
-        }
-        // `*` is left-associative in R and expands pairwise, so `a * b * c`
-        // becomes `a + b + a:b + c + a:c + b:c + a:b:c`.
-        if term.contains('*') {
-            let factors: Vec<&str> = term
-                .split('*')
-                .map(str::trim)
-                .filter(|s| !s.is_empty())
-                .collect();
-            let mut acc: Vec<String> = factors.iter().map(|s| s.to_string()).collect();
-            for i in 0..factors.len() {
-                for j in (i + 1)..factors.len() {
-                    // `terms()` writes an interaction label with its variables
-                    // in sorted order, so `x10 * x1` is `x1:x10`. The column
-                    // name is part of the Level A contract, so writing it the
-                    // other way round would be a parity failure.
-                    let mut pair = [factors[i], factors[j]];
-                    pair.sort_unstable();
-                    acc.push(format!("{}:{}", pair[0], pair[1]));
-                }
-            }
-            out.extend(acc);
-            continue;
-        }
-        if term.contains('/') {
-            let factors: Vec<&str> = term
-                .split('/')
-                .map(str::trim)
-                .filter(|s| !s.is_empty())
-                .collect();
-            let mut acc: Vec<String> = vec![factors[0].to_string()];
-            for f in &factors[1..] {
-                let mut pair = [factors[0], *f];
-                pair.sort_unstable();
-                acc.push(format!("{}:{}", pair[0], pair[1]));
-            }
-            out.extend(acc);
-            continue;
-        }
-        out.push(term.to_string());
-    }
-    // R's `terms()` keeps each term once, at its first occurrence, and
-    // deduplicates across the whole formula. Without this, `group + x1 + x10 * x1`
-    // yields `x1` and `x10` twice -- once from the `+` terms and once from the
-    // `*` expansion -- and the design gains two exactly duplicated columns, which
-    // makes it rank deficient and every taxon unfittable.
-    let mut seen: Vec<String> = Vec::new();
-    out.retain(|t| {
-        if seen.iter().any(|s| s == t) {
-            false
-        } else {
-            seen.push(t.clone());
-            true
-        }
-    });
-    out
-}
-
-/// A numeric column for `name`, or `None` when it is a factor.
-///
-/// A name listed in `factor_vars` is a factor even if its values parse as
-/// numbers, because that is exactly the `group` case: the file holds `1` and `2`
-/// and R is told to treat them as levels.
-fn numeric_operand(meta: &MetaTable, name: &str, factor_vars: &[&str]) -> Option<Vec<f64>> {
-    if factor_vars.contains(&name) {
-        return None;
-    }
-    meta.numeric(name)
-}
-
-pub fn build_design(formula: &str, meta: &MetaTable, factor_vars: &[&str]) -> Matrix {
-    let mut cols: Vec<Vec<f64>> = Vec::new();
-    let mut names: Vec<String> = Vec::new();
-    let push_intercept = true;
-    for term in expand_formula(formula) {
-        let term = term.as_str();
-        if let Some((a, b)) = term.split_once(':') {
-            let a = a.trim();
-            let b = b.trim();
-            // An operand can be numeric or a factor, and the two kinds give
-            // different columns. A numeric operand contributes itself; a factor
-            // contributes treatment-contrast dummies and the interaction is their
-            // cross-product. Treating a numeric covariate as a factor -- which is
-            // what this did -- enumerates its 10,000 distinct *values* as
-            // "levels" and builds a 100-million-column design.
-            let a_num = numeric_operand(meta, a, factor_vars);
-            let b_num = numeric_operand(meta, b, factor_vars);
-            match (a_num, b_num) {
-                (Some(va), Some(vb)) => {
-                    cols.push((0..meta.n).map(|r| va[r] * vb[r]).collect());
-                    names.push(format!("{a}:{b}"));
-                }
-                (Some(va), None) => {
-                    let fb = factor_levels(meta, b);
-                    for (j, _) in fb.levels.iter().enumerate().skip(1) {
-                        let col: Vec<f64> = (0..meta.n)
-                            .map(|r| va[r] * if fb.code[r] == Some(j) { 1.0 } else { 0.0 })
-                            .collect();
-                        cols.push(col);
-                        names.push(format!("{a}:{b}{}", suffix_for(j, &fb.levels[j])));
-                    }
-                }
-                (None, Some(vb)) => {
-                    let fa = factor_levels(meta, a);
-                    for (i, _) in fa.levels.iter().enumerate().skip(1) {
-                        let col: Vec<f64> = (0..meta.n)
-                            .map(|r| vb[r] * if fa.code[r] == Some(i) { 1.0 } else { 0.0 })
-                            .collect();
-                        cols.push(col);
-                        names.push(format!("{a}:{b}{}", suffix_for(i, &fa.levels[i])));
-                    }
-                }
-                (None, None) => {
-                    let fa = factor_levels(meta, a);
-                    let fb = factor_levels(meta, b);
-                    for (i, _) in fa.levels.iter().enumerate().skip(1) {
-                        for (j, _) in fb.levels.iter().enumerate().skip(1) {
-                            let col: Vec<f64> = (0..meta.n)
-                                .map(|r| {
-                                    if fa.code[r] == Some(i) && fb.code[r] == Some(j) {
-                                        1.0
-                                    } else {
-                                        0.0
-                                    }
-                                })
-                                .collect();
-                            cols.push(col);
-                            names.push(format!(
-                                "{a}:{b}{}{}",
-                                if j == 1 { "" } else { &fb.levels[j] },
-                                suffix_for(i, &fa.levels[i])
-                            ));
-                        }
-                    }
-                }
-            }
-            continue;
-        }
-        if !factor_vars.contains(&term) {
-            if let Some(v) = meta.numeric(term) {
-                cols.push(v);
-                names.push(term.to_string());
-                continue;
-            }
-        }
-        let f = factor_levels(meta, term);
-        for i in 1..f.levels.len() {
-            let col: Vec<f64> = (0..meta.n)
-                .map(|r| if f.code[r] == Some(i) { 1.0 } else { 0.0 })
-                .collect();
-            cols.push(col);
-            names.push(format!("{term}{}", f.levels[i]));
-        }
-    }
-    if push_intercept {
-        let mut all = vec![vec![1.0; meta.n]];
-        let mut all_names = vec!["(Intercept)".to_string()];
-        all.extend(cols);
-        all_names.extend(names);
-        return Matrix::from_cols(&all)
-            .with_rownames(meta.row_names.clone())
-            .with_colnames(all_names);
-    }
-    Matrix::from_cols(&cols)
-        .with_rownames(meta.row_names.clone())
-        .with_colnames(names)
-}
-
-fn suffix_for(i: usize, level: &str) -> String {
-    format!("{level}{i}")
-}
-
-struct FactorInfo {
-    levels: Vec<String>,
-    code: Vec<Option<usize>>,
-}
-
-fn factor_levels(meta: &MetaTable, name: &str) -> FactorInfo {
-    let raw = meta
-        .cols
+/// `MetaTable` holds the metadata already parsed as `f64`, and `Metadata` holds it
+/// as text, because the *design builder* has to see the text: R's rule is that a
+/// column which is numeric in the data frame is used numerically, and a covariate
+/// read as text is numeric too. So the round trip back to text has to be lossless,
+/// and `{:.17e}` is: it is the shortest of the fixed-exponent forms that
+/// `f64::from_str` reads back to the identical bit pattern.
+pub fn build_design(formula: &str, meta: &MetaTable, group_var: &str) -> Matrix {
+    let values: Vec<Vec<String>> = meta
+        .data
         .iter()
-        .position(|c| c == name)
-        .unwrap_or_else(|| panic!("variable {name} not in metadata"));
-    let values = &meta.data[raw];
-    let mut levels: Vec<String> = Vec::new();
-    for v in values {
-        let s = format!("{v}");
-        if !levels.contains(&s) {
-            levels.push(s);
-        }
-    }
-    // R sorts character levels; the fixtures use 1..k so this matches
-    if levels.iter().all(|l| l.parse::<f64>().is_ok()) {
-        levels.sort_by(|a, b| {
-            a.parse::<f64>()
-                .unwrap()
-                .partial_cmp(&b.parse::<f64>().unwrap())
-                .unwrap()
-        });
-    } else {
-        levels.sort();
-    }
-    let code = values
-        .iter()
-        .map(|v| levels.iter().position(|l| l == &format!("{v}")))
+        .map(|col| {
+            col.iter()
+                .map(|v| {
+                    // An integral value is written as an integer, because a factor's
+                    // *level labels* come from the text: the group's column is named
+                    // `group<level>`, so formatting `2` as `2.00000000000000000e+00`
+                    // produces `group2.00000000000000000e+00` and the Level A
+                    // column-name comparison fails on every fixture at once. Every
+                    // value still round-trips exactly -- `i64` is exact below 2^53,
+                    // and `{:.17e}` is exact always.
+                    if v.is_finite() && v.fract() == 0.0 && v.abs() < 9.007_199_254_740_992e15 {
+                        format!("{}", *v as i64)
+                    } else {
+                        format!("{v:.17e}")
+                    }
+                })
+                .collect()
+        })
         .collect();
-    FactorInfo { levels, code }
+    let md = ancombc2_io::Metadata {
+        sample_names: meta.row_names.clone(),
+        columns: meta.cols.clone(),
+        values,
+    };
+    let f = ancombc2_io::formula::parse(formula).expect("the fixture's formula parses");
+    let d = ancombc2_io::build_design(&md, &f, Some(group_var)).expect("design builds");
+    d.matrix
 }
-
 /// A metadata table: numeric columns only, plus the group column.
 #[derive(Debug, Clone, Default)]
 pub struct MetaTable {

@@ -15,6 +15,7 @@ dependencies = [
 name = "ancombc2-core"
 version = "0.1.0"
 dependencies = [
+ "ancombc2-io",
  "ancombc2-stats",
  "proptest",
  "rayon",

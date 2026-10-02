@@ -16,6 +16,15 @@ thiserror.workspace = true
 [dev-dependencies]
 proptest.workspace = true
 rayon.workspace = true
+# A dev-dependency cycle is legal in Cargo and is the point here: the golden
+# parity suite must build its design with the *shipping* `ancombc2-io::build_design`
+# rather than with a second implementation that happens to agree with it today.
+#
+# It used a test-local one, and the two diverged in ways no test noticed --
+# `Matrix::colnames` was left empty by the real one, which silently disabled the
+# rank-deficient fitting path's group-contrast lookup on every CLI run. Cargo
+# permits `core`'s tests to depend on `io` even though `io` depends on `core`.
+ancombc2-io = { path = "../ancombc2-io" }
 
 [lib]
 name = "ancombc2_core"

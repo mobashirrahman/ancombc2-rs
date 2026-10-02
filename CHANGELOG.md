@@ -101,6 +101,22 @@ version bump — plus a re-run of the golden parity suite.
   `~ x10 * x1` labels it `x10:x1`. "Sort the factors" gets the first right by luck
   and the second wrong.
 
+**The golden contract was not testing the shipping design builder.** The fixture
+harness carried its own `build_design` -- a second implementation of the same rule,
+living in the test crate -- and that is what all 38 matrix cells and all four
+fixtures were fitted through. The real `ancombc2_io::build_design`, the one the CLI
+calls, was covered by no golden at all. That is why `Matrix::colnames` being left
+empty survived: it disabled the rank-deficient path's group-contrast lookup on
+every CLI run and on none of the 38 cells. The harness now calls the shipping
+builder, through a dev-dependency cycle (`core`'s tests depend on `io`, which
+depends on `core` -- Cargo permits this and it is the point), and the test-local
+implementation and its helpers are deleted rather than left to rot.
+
+Switching it on immediately caught a second defect that only the real builder has:
+converting the harness's already-parsed `MetaTable` back to the text `Metadata`
+takes must be lossless *and* must preserve a factor's level labels, or the group
+column comes out named `group2.00000000000000000e+00`.
+
 Designs were compared against `model.matrix` on the oracle's R across sixteen
 formulas; fifteen match exactly. The sixteenth, `~ x1 * x2 * x3 * group`, produces
 the same fifteen columns in a different order within one interaction order; the
