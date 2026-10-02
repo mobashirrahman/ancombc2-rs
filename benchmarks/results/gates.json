@@ -4,9 +4,9 @@
    "gate": "P1",
    "desc": "kernel speed-up, rust-1 vs r-1core",
    "target": ">= 3.0",
-   "measured": 1.060602384394536,
+   "measured": 1.1408880675947681,
    "verdict": "fail",
-   "detail": "most substantial dataset bm5 (least overhead-dominated): rust 301.620s vs R 319.899s",
+   "detail": "most substantial dataset bm5 (least overhead-dominated): rust 321.525s vs R 366.824s",
    "evidence": [
     "bm5/rust-1",
     "bm5/r-1core"
@@ -14,51 +14,51 @@
    "surface": [
     {
      "dataset": "bm1",
-     "rust_1_wall_s": 0.014,
-     "r_1core_wall_s": 0.907,
-     "speedup_vs_r": 63.655,
-     "peak_rss_ratio_vs_r": 0.524,
-     "best_thread_scaling": 1.443
+     "rust_1_wall_s": 0.015,
+     "r_1core_wall_s": 0.988,
+     "speedup_vs_r": 67.679,
+     "peak_rss_ratio_vs_r": 0.472,
+     "best_thread_scaling": 1.458
     },
     {
      "dataset": "bm2",
      "rust_1_wall_s": 0.083,
-     "r_1core_wall_s": 1.189,
-     "speedup_vs_r": 14.338,
-     "peak_rss_ratio_vs_r": 0.723,
-     "best_thread_scaling": 2.101
+     "r_1core_wall_s": 1.279,
+     "speedup_vs_r": 15.408,
+     "peak_rss_ratio_vs_r": 0.689,
+     "best_thread_scaling": 2.028
     },
     {
      "dataset": "bm3",
-     "rust_1_wall_s": 1.438,
-     "r_1core_wall_s": 5.135,
-     "speedup_vs_r": 3.571,
-     "peak_rss_ratio_vs_r": 1.042,
-     "best_thread_scaling": 1.863
+     "rust_1_wall_s": 1.398,
+     "r_1core_wall_s": 5.473,
+     "speedup_vs_r": 3.915,
+     "peak_rss_ratio_vs_r": 0.933,
+     "best_thread_scaling": 1.872
     },
     {
      "dataset": "bm4",
-     "rust_1_wall_s": 15.443,
-     "r_1core_wall_s": 31.709,
-     "speedup_vs_r": 2.053,
-     "peak_rss_ratio_vs_r": 1.054,
-     "best_thread_scaling": 3.869
+     "rust_1_wall_s": 15.493,
+     "r_1core_wall_s": 31.007,
+     "speedup_vs_r": 2.001,
+     "peak_rss_ratio_vs_r": 0.895,
+     "best_thread_scaling": 3.856
     },
     {
      "dataset": "bm5",
-     "rust_1_wall_s": 301.62,
-     "r_1core_wall_s": 319.899,
-     "speedup_vs_r": 1.061,
-     "peak_rss_ratio_vs_r": 1.524,
-     "best_thread_scaling": 2.869
+     "rust_1_wall_s": 321.525,
+     "r_1core_wall_s": 366.824,
+     "speedup_vs_r": 1.141,
+     "peak_rss_ratio_vs_r": 1.751,
+     "best_thread_scaling": 2.774
     },
     {
      "dataset": "bm6",
-     "rust_1_wall_s": 41.24,
-     "r_1core_wall_s": 30.365,
-     "speedup_vs_r": 0.736,
-     "peak_rss_ratio_vs_r": 1.076,
-     "best_thread_scaling": 5.408
+     "rust_1_wall_s": 41.742,
+     "r_1core_wall_s": 31.498,
+     "speedup_vs_r": 0.755,
+     "peak_rss_ratio_vs_r": 0.951,
+     "best_thread_scaling": 5.499
     }
    ],
    "absent_datasets": [],
@@ -69,9 +69,9 @@
    "gate": "P2",
    "desc": "end-to-end speed-up, rust-1 vs r-1core",
    "target": ">= 2.0",
-   "measured": 1.060602384394536,
+   "measured": 1.1408880675947681,
    "verdict": "fail",
-   "detail": "most substantial dataset bm5 (least overhead-dominated): rust 301.620s vs R 319.899s",
+   "detail": "most substantial dataset bm5 (least overhead-dominated): rust 321.525s vs R 366.824s",
    "evidence": [
     "bm5/rust-1",
     "bm5/r-1core"
@@ -79,51 +79,51 @@
    "surface": [
     {
      "dataset": "bm1",
-     "rust_1_wall_s": 0.014,
-     "r_1core_wall_s": 0.907,
-     "speedup_vs_r": 63.655,
-     "peak_rss_ratio_vs_r": 0.524,
-     "best_thread_scaling": 1.443
+     "rust_1_wall_s": 0.015,
+     "r_1core_wall_s": 0.988,
+     "speedup_vs_r": 67.679,
+     "peak_rss_ratio_vs_r": 0.472,
+     "best_thread_scaling": 1.458
     },
     {
      "dataset": "bm2",
      "rust_1_wall_s": 0.083,
-     "r_1core_wall_s": 1.189,
-     "speedup_vs_r": 14.338,
-     "peak_rss_ratio_vs_r": 0.723,
-     "best_thread_scaling": 2.101
+     "r_1core_wall_s": 1.279,
+     "speedup_vs_r": 15.408,
+     "peak_rss_ratio_vs_r": 0.689,
+     "best_thread_scaling": 2.028
     },
     {
      "dataset": "bm3",
-     "rust_1_wall_s": 1.438,
-     "r_1core_wall_s": 5.135,
-     "speedup_vs_r": 3.571,
-     "peak_rss_ratio_vs_r": 1.042,
-     "best_thread_scaling": 1.863
+     "rust_1_wall_s": 1.398,
+     "r_1core_wall_s": 5.473,
+     "speedup_vs_r": 3.915,
+     "peak_rss_ratio_vs_r": 0.933,
+     "best_thread_scaling": 1.872
     },
     {
      "dataset": "bm4",
-     "rust_1_wall_s": 15.443,
-     "r_1core_wall_s": 31.709,
-     "speedup_vs_r": 2.053,
-     "peak_rss_ratio_vs_r": 1.054,
-     "best_thread_scaling": 3.869
+     "rust_1_wall_s": 15.493,
+     "r_1core_wall_s": 31.007,
+     "speedup_vs_r": 2.001,
+     "peak_rss_ratio_vs_r": 0.895,
+     "best_thread_scaling": 3.856
     },
     {
      "dataset": "bm5",
-     "rust_1_wall_s": 301.62,
-     "r_1core_wall_s": 319.899,
-     "speedup_vs_r": 1.061,
-     "peak_rss_ratio_vs_r": 1.524,
-     "best_thread_scaling": 2.869
+     "rust_1_wall_s": 321.525,
+     "r_1core_wall_s": 366.824,
+     "speedup_vs_r": 1.141,
+     "peak_rss_ratio_vs_r": 1.751,
+     "best_thread_scaling": 2.774
     },
     {
      "dataset": "bm6",
-     "rust_1_wall_s": 41.24,
-     "r_1core_wall_s": 30.365,
-     "speedup_vs_r": 0.736,
-     "peak_rss_ratio_vs_r": 1.076,
-     "best_thread_scaling": 5.408
+     "rust_1_wall_s": 41.742,
+     "r_1core_wall_s": 31.498,
+     "speedup_vs_r": 0.755,
+     "peak_rss_ratio_vs_r": 0.951,
+     "best_thread_scaling": 5.499
     }
    ],
    "absent_datasets": [],
@@ -134,31 +134,31 @@
    "gate": "P3",
    "desc": "sensitivity speed-up, 8-16 threads",
    "target": ">= 5.0",
-   "measured": 3.042687181881818,
+   "measured": 3.165361079980845,
    "verdict": "fail",
-   "detail": "most substantial sensitivity dataset bm5 on rust-8: 3.04x",
+   "detail": "most substantial sensitivity dataset bm5 on rust-8: 3.17x",
    "evidence": [
     "bm5/rust-8",
     "bm5/r-1core"
    ],
    "surface": [],
    "measured_ceiling": 3,
-   "ceiling_note": "bm5 is a conservative sensitivity run: the pseudo-count grid {0, 0.1, 0.5, 1} is 3 refits after the main run, so 3x is the most the outer level can give. Measured 3.04x is 101% of that ceiling, against a target of 5x.",
+   "ceiling_note": "bm5 is a conservative sensitivity run: the pseudo-count grid {0, 0.1, 0.5, 1} is 3 refits after the main run, so 3x is the most the outer level can give. Measured 3.17x is 106% of that ceiling, against a target of 5x.",
    "sensitivity_stage_scaling": [
     {
      "dataset": "bm5",
      "conservative": true,
-     "sens_s_1thread": 140.031,
-     "sens_s_8or16": 58.37,
-     "stage_speedup": 2.399,
+     "sens_s_1thread": 143.797,
+     "sens_s_8or16": 63.55,
+     "stage_speedup": 2.263,
      "refits": 3
     },
     {
      "dataset": "bm6",
      "conservative": false,
-     "sens_s_1thread": 25.717,
-     "sens_s_8or16": 4.327,
-     "stage_speedup": 5.944,
+     "sens_s_1thread": 26.02,
+     "sens_s_8or16": 4.233,
+     "stage_speedup": 6.146,
      "refits": 50
     }
    ],
@@ -170,9 +170,9 @@
    "gate": "P4",
    "desc": "peak RSS, rust vs r-parallel",
    "target": "<= 0.7",
-   "measured": 1.5243671845877014,
+   "measured": 1.7508129681777729,
    "verdict": "fail",
-   "detail": "most substantial dataset bm5: rust 15221.3 MB vs R 9985.3 MB",
+   "detail": "most substantial dataset bm5: rust 14928.0 MB vs R 8526.3 MB",
    "evidence": [
     "bm5/rust-1",
     "bm5/r-parallel"
@@ -180,62 +180,62 @@
    "surface": [
     {
      "dataset": "bm1",
-     "rust_1_wall_s": 0.014,
-     "r_1core_wall_s": 0.907,
-     "speedup_vs_r": 63.655,
-     "peak_rss_ratio_vs_r": 0.524,
-     "best_thread_scaling": 1.443
+     "rust_1_wall_s": 0.015,
+     "r_1core_wall_s": 0.988,
+     "speedup_vs_r": 67.679,
+     "peak_rss_ratio_vs_r": 0.472,
+     "best_thread_scaling": 1.458
     },
     {
      "dataset": "bm2",
      "rust_1_wall_s": 0.083,
-     "r_1core_wall_s": 1.189,
-     "speedup_vs_r": 14.338,
-     "peak_rss_ratio_vs_r": 0.723,
-     "best_thread_scaling": 2.101
+     "r_1core_wall_s": 1.279,
+     "speedup_vs_r": 15.408,
+     "peak_rss_ratio_vs_r": 0.689,
+     "best_thread_scaling": 2.028
     },
     {
      "dataset": "bm3",
-     "rust_1_wall_s": 1.438,
-     "r_1core_wall_s": 5.135,
-     "speedup_vs_r": 3.571,
-     "peak_rss_ratio_vs_r": 1.042,
-     "best_thread_scaling": 1.863
+     "rust_1_wall_s": 1.398,
+     "r_1core_wall_s": 5.473,
+     "speedup_vs_r": 3.915,
+     "peak_rss_ratio_vs_r": 0.933,
+     "best_thread_scaling": 1.872
     },
     {
      "dataset": "bm4",
-     "rust_1_wall_s": 15.443,
-     "r_1core_wall_s": 31.709,
-     "speedup_vs_r": 2.053,
-     "peak_rss_ratio_vs_r": 1.054,
-     "best_thread_scaling": 3.869
+     "rust_1_wall_s": 15.493,
+     "r_1core_wall_s": 31.007,
+     "speedup_vs_r": 2.001,
+     "peak_rss_ratio_vs_r": 0.895,
+     "best_thread_scaling": 3.856
     },
     {
      "dataset": "bm5",
-     "rust_1_wall_s": 301.62,
-     "r_1core_wall_s": 319.899,
-     "speedup_vs_r": 1.061,
-     "peak_rss_ratio_vs_r": 1.524,
-     "best_thread_scaling": 2.869
+     "rust_1_wall_s": 321.525,
+     "r_1core_wall_s": 366.824,
+     "speedup_vs_r": 1.141,
+     "peak_rss_ratio_vs_r": 1.751,
+     "best_thread_scaling": 2.774
     },
     {
      "dataset": "bm6",
-     "rust_1_wall_s": 41.24,
-     "r_1core_wall_s": 30.365,
-     "speedup_vs_r": 0.736,
-     "peak_rss_ratio_vs_r": 1.076,
-     "best_thread_scaling": 5.408
+     "rust_1_wall_s": 41.742,
+     "r_1core_wall_s": 31.498,
+     "speedup_vs_r": 0.755,
+     "peak_rss_ratio_vs_r": 0.951,
+     "best_thread_scaling": 5.499
     }
    ],
    "best_case_dataset": "bm1",
-   "best_case_fraction": 0.5236692360466524,
+   "best_case_fraction": 0.47238855622089154,
    "all_fractions": {
-    "bm1": 0.5237,
-    "bm2": 0.7228,
-    "bm3": 1.0422,
-    "bm4": 1.054,
-    "bm5": 1.5244,
-    "bm6": 1.0756
+    "bm1": 0.4724,
+    "bm2": 0.6894,
+    "bm3": 0.9333,
+    "bm4": 0.8951,
+    "bm5": 1.7508,
+    "bm6": 0.9511
    },
    "absent_datasets": [],
    "n_datasets_declared": 6,
@@ -245,9 +245,9 @@
    "gate": "P5",
    "desc": "strong scaling efficiency, 1 -> 16 threads",
    "target": ">= 0.7",
-   "measured": 0.16364191780103346,
+   "measured": 0.17232290398548966,
    "verdict": "fail",
-   "detail": "most substantial dataset bm5: 2.618x on 16 threads -> efficiency 0.164",
+   "detail": "most substantial dataset bm5: 2.757x on 16 threads -> efficiency 0.172",
    "evidence": [
     "bm5/rust-1",
     "bm5/rust-16"
@@ -255,51 +255,51 @@
    "surface": [
     {
      "dataset": "bm1",
-     "rust_1_wall_s": 0.014,
-     "r_1core_wall_s": 0.907,
-     "speedup_vs_r": 63.655,
-     "peak_rss_ratio_vs_r": 0.524,
-     "best_thread_scaling": 1.443
+     "rust_1_wall_s": 0.015,
+     "r_1core_wall_s": 0.988,
+     "speedup_vs_r": 67.679,
+     "peak_rss_ratio_vs_r": 0.472,
+     "best_thread_scaling": 1.458
     },
     {
      "dataset": "bm2",
      "rust_1_wall_s": 0.083,
-     "r_1core_wall_s": 1.189,
-     "speedup_vs_r": 14.338,
-     "peak_rss_ratio_vs_r": 0.723,
-     "best_thread_scaling": 2.101
+     "r_1core_wall_s": 1.279,
+     "speedup_vs_r": 15.408,
+     "peak_rss_ratio_vs_r": 0.689,
+     "best_thread_scaling": 2.028
     },
     {
      "dataset": "bm3",
-     "rust_1_wall_s": 1.438,
-     "r_1core_wall_s": 5.135,
-     "speedup_vs_r": 3.571,
-     "peak_rss_ratio_vs_r": 1.042,
-     "best_thread_scaling": 1.863
+     "rust_1_wall_s": 1.398,
+     "r_1core_wall_s": 5.473,
+     "speedup_vs_r": 3.915,
+     "peak_rss_ratio_vs_r": 0.933,
+     "best_thread_scaling": 1.872
     },
     {
      "dataset": "bm4",
-     "rust_1_wall_s": 15.443,
-     "r_1core_wall_s": 31.709,
-     "speedup_vs_r": 2.053,
-     "peak_rss_ratio_vs_r": 1.054,
-     "best_thread_scaling": 3.869
+     "rust_1_wall_s": 15.493,
+     "r_1core_wall_s": 31.007,
+     "speedup_vs_r": 2.001,
+     "peak_rss_ratio_vs_r": 0.895,
+     "best_thread_scaling": 3.856
     },
     {
      "dataset": "bm5",
-     "rust_1_wall_s": 301.62,
-     "r_1core_wall_s": 319.899,
-     "speedup_vs_r": 1.061,
-     "peak_rss_ratio_vs_r": 1.524,
-     "best_thread_scaling": 2.869
+     "rust_1_wall_s": 321.525,
+     "r_1core_wall_s": 366.824,
+     "speedup_vs_r": 1.141,
+     "peak_rss_ratio_vs_r": 1.751,
+     "best_thread_scaling": 2.774
     },
     {
      "dataset": "bm6",
-     "rust_1_wall_s": 41.24,
-     "r_1core_wall_s": 30.365,
-     "speedup_vs_r": 0.736,
-     "peak_rss_ratio_vs_r": 1.076,
-     "best_thread_scaling": 5.408
+     "rust_1_wall_s": 41.742,
+     "r_1core_wall_s": 31.498,
+     "speedup_vs_r": 0.755,
+     "peak_rss_ratio_vs_r": 0.951,
+     "best_thread_scaling": 5.499
     }
    ],
    "absent_datasets": [],

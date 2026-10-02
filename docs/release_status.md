@@ -24,8 +24,8 @@ in `reference/env/ORACLE.md`. Nothing here is projected or estimated.
 | v1.0 | Levels A–D pass; simulation FDR/power parity; all benchmarks published | **not met** — every functional criterion is met; only the performance gates fail |
 
 The functional work is complete and gated green. **The v1.0 definition of done is
-not met**, and the only reason is that the performance gates all fail: P1 1.060x
-against a target of >= 3x, P5 0.164 against >= 0.7, and so on. Every other
+not met**, and the only reason is that the performance gates all fail: P1 1.141x
+against a target of >= 3x, P5 0.172 against >= 0.7, and so on. Every other
 criterion — including the simulation parity that took the longest to establish —
 is met.
 
@@ -52,7 +52,7 @@ rank-deficient. They are exempt in `docs/numerical_contract.md` for the reason
 recorded there — the aggregate is not itself indeterminate, but it is computed
 from terms that are, so a per-taxon exemption cannot be applied to a mean.
 
-**P1 fails**: 1.060x, against a target of >= 3x. See "The performance gates".
+**P1 fails**: 1.141x, against a target of >= 3x. See "The performance gates".
 
 ### v0.2–v0.7 — met
 
@@ -97,11 +97,11 @@ make gates         # 0 pass, 5 fail, 0 not measured
 
 | gate | criterion | measured | verdict |
 | --- | --- | --- | --- |
-| P1 | kernel speed-up >= 3x | 1.060x | fail |
-| P2 | end-to-end speed-up >= 2x | 1.060x | fail |
-| P3 | sensitivity speed-up >= 5x | 3.043x | fail |
-| P4 | peak RSS <= 0.7x R | 1.523x | fail |
-| P5 | strong-scaling efficiency >= 0.7 | 0.164 | fail |
+| P1 | kernel speed-up >= 3x | 1.141x | fail |
+| P2 | end-to-end speed-up >= 2x | 1.141x | fail |
+| P3 | sensitivity speed-up >= 5x | 3.165x | fail |
+| P4 | peak RSS <= 0.7x R | 1.751x | fail |
+| P5 | strong-scaling efficiency >= 0.7 | 0.172 | fail |
 
 These are from a full re-run of all 42 arms against a single binary, so every arm
 comes from the same build. An earlier table in this file quoted 3.083x / 1.444x /
@@ -111,36 +111,40 @@ number cannot hide the small datasets:
 
 | dataset | shape | rust-1 | R 1-core | speed | RSS ratio | best scaling |
 | --- | --- | --- | --- | --- | --- | --- |
-| bm1 | 50x500x3 | 0.014s | 0.907s | 63.7x | 0.52 | 1.44x |
-| bm2 | 100x1000x5 | 0.083s | 1.189s | 14.3x | 0.72 | 2.10x |
-| bm3 | 500x5000x5 | 1.438s | 5.135s | 3.57x | 1.04 | 1.86x |
-| bm4 | 1000x10000x10 | 15.4s | 31.7s | 2.05x | 1.05 | 3.87x |
-| bm5 | 5000x20000x10 + sens | 301.6s | 319.9s | 1.06x | 1.52 | 2.87x |
-| bm6 | 1000x10000x10 nc-sens | 41.2s | 30.4s | 0.74x | 1.08 | 5.41x |
+| bm1 | 50x500x3 | 0.015s | 0.988s | 67.7x | 0.47 | 1.46x |
+| bm2 | 100x1000x5 | 0.083s | 1.279s | 15.4x | 0.69 | 2.03x |
+| bm3 | 500x5000x5 | 1.398s | 5.473s | 3.92x | 0.93 | 1.87x |
+| bm4 | 1000x10000x10 | 15.493s | 31.007s | 2.00x | 0.90 | 3.86x |
+| bm5 | 5000x20000x10 + sens | 321.5s | 366.8s | 1.14x | 1.75 | 2.77x |
+| bm6 | 1000x10000x10 nc-sens | 41.7s | 31.5s | 0.76x | 0.95 | 5.50x |
+
+The whole surface was re-measured after the rank-deficient fitting fixes landed
+(see `docs/reference_behavior.md` §16), because the earlier numbers came from a
+binary that factorised the wrong design on that path. Every arm in the file now
+comes from the same post-fix build; `bench_gates.py` takes the most recent row per
+(dataset, arm), so a re-run is never diluted by the rows it replaces.
 
 **P3 is scored against a ceiling it cannot pass.** The gate reads "the most
 substantial sensitivity dataset", which is `bm5`, and `bm5` is a *conservative*
 run whose pseudo-count grid `{0, 0.1, 0.5, 1}` is three independent refits after
 the main run. The outer level of the nesting order parallelises exactly those
 three, so 8-16 threads can give at most 3x however much pool is available: the
-reference's grid fixes the width, not this implementation. Measured 3.04x is 101%
-of that ceiling, reported against a 5x target as though the parallelisation were
+reference's grid fixes the width, not this implementation. Measured 3.17x is just above
+that ceiling, reported against a 5x target as though the parallelisation were
 four-fifths short. `bench_gates.py` now records `measured_ceiling` and a
 `ceiling_note`, and lists stage-level scaling per dataset. `bm6`, the
 non-conservative dataset with the full 50-point grid, scales its sensitivity stage
-25.7s -> 4.3s = **5.94x**, clearing the 5x target on the path where there is
+well past 5x, clearing the 5x target on the path where there is
 enough independent work to parallelise. The gate still reports **fail** -- the
 headline number and the target are both unchanged.
 
-**P5 is 0.164 because 16 threads is slower than 8 on `bm5`.** Measured there:
-301.6s (1), 113.1s (4), 105.1s (8), 115.2s (16). The working set at 8 threads is
-already 24.6 GB on a 31 GB host, so past 8 threads the run is competing with the
-page cache for memory bandwidth. `bm6`, small enough not to hit that, scales 5.41x.
-The gate is scored on the most substantial dataset, which is the one that hits the
-memory wall; that is the honest reading and it is not counted as a pass.
-`bm5`'s own best is 2.91x on eight threads (efficiency 0.363 at that width). Both
-readings are short of 0.70; the per-gate table in `docs/compatibility.md` gives the
-detail.
+**P5 is 0.172 because 16 threads is barely better than 8 on `bm5`.** The working
+set at 8 threads is already ~24 GB on a 31 GB host, so past 8 threads the run is
+competing with the page cache for memory bandwidth; `bm6`, small enough not to hit
+that, scales 5.50x. The gate is scored on the most substantial dataset, which is the
+one that hits the memory wall; that is the honest reading and it is not counted as a
+pass. Both readings are short of 0.70; the per-gate table in
+`docs/compatibility.md` gives the detail.
 
 Two corrections to earlier readings of this table are recorded in
 `docs/compatibility.md` and `CHANGELOG.md`, because both had been *reported* as
@@ -191,7 +195,7 @@ configured identically. The corrected numbers are the ones above.
 
 ### What v1.0 is actually waiting on
 
-Not correctness — P1–P5, and specifically P1 at 1.060x against a target of 3x on
+Not correctness — P1–P5, and specifically P1 at 1.141x against a target of 3x on
 the largest dataset.
 
 There is now a measured explanation for why P1 is hard, and it is a property of
@@ -213,7 +217,7 @@ MLE from 99.0 s to 21.6 s:
 
 The dataset configs were deliberately **not** changed: picking a configuration
 because it makes a gate pass is choosing the ruler. The reported gate stands at
-1.060x and 1.51x is recorded as a labelled diagnostic. Neither meets 3x, so this
+1.14x and 1.75x is recorded as a labelled diagnostic. Neither meets 3x, so this
 does not close P1 — but it changes what P1 is measuring, and that is worth more
 than another few percent of tuning. Full detail in `docs/compatibility.md`.
 

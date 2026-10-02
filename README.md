@@ -176,33 +176,35 @@ dominates a 12 MB resident set.
 
 | gate | criterion | measured | on |
 | --- | --- | --- | --- |
-| P1 | kernel speed-up ≥ 3x vs R on one core | **fail** — 1.06x | `bm5` |
-| P2 | end-to-end speed-up ≥ 2x | **fail** — 1.06x | `bm5` |
-| P3 | sensitivity-analysis speed-up ≥ 5x on 8–16 cores | **fail** — 3.04x | `bm5`, 8 threads |
-| P4 | peak RSS ≤ 60–70% of R | **fail** — 1.52x | `bm5` |
-| P5 | strong-scaling efficiency ≥ 0.70 from 1 to 16 threads | **fail** — 0.164 | `bm5` |
+| P1 | kernel speed-up ≥ 3x vs R on one core | **fail** — 1.14x | `bm5` |
+| P2 | end-to-end speed-up ≥ 2x | **fail** — 1.14x | `bm5` |
+| P3 | sensitivity-analysis speed-up ≥ 5x on 8–16 cores | **fail** — 3.17x | `bm5`, 8 threads |
+| P4 | peak RSS ≤ 60–70% of R | **fail** — 1.75x | `bm5` |
+| P5 | strong-scaling efficiency ≥ 0.70 from 1 to 16 threads | **fail** — 0.172 | `bm5` |
 
-These are from a full re-run of all 42 arms against a single binary. `bm5` at 16
-threads **completes** on this host now (115.2 s at 24.8 GB), so P5 is no longer
-scored on `bm6` as a fallback.
+These are from a full re-run of all 42 arms against a single binary, re-measured
+after the rank-deficient fitting fixes landed (`docs/reference_behavior.md` §16) —
+the earlier surface came from a binary that factorised the wrong design on that
+path, so quoting it would have been quoting a different program. `bm5` at 16
+threads **completes** on this host, so P5 is scored on `bm5` rather than falling
+back to `bm6`.
 
 **P3 is capped by its own grid, not by the implementation.** `bm5` is a
 *conservative* sensitivity run, and the conservative pseudo-count grid
 `{0, 0.1, 0.5, 1}` is three independent refits after the main run. The outer level
 of the nesting order parallelises exactly those three, so 8–16 threads can give at
 most 3× however much pool is available — the reference's grid fixes the width.
-Measured 3.04× is 101% of that ceiling. `bm6`, the non-conservative dataset with
-the full 50-point grid, scales its sensitivity stage 25.7 s → 4.3 s = **5.94×**,
-clearing the target on the path where there is enough independent work. The gate
+Measured 3.17× is just above that ceiling. `bm6`, the non-conservative dataset with
+the full 50-point grid, scales well past 5× on its sensitivity stage — clearing the
+target on the path where there is enough independent work. The gate
 still reports **fail**; `bench_gates.py` now records `measured_ceiling` and a
 `ceiling_note` so the report cannot be misread as a parallelisation defect.
 
-**P5 is 0.164 because 16 threads is slower than 8 on `bm5`**: 301.6 s (1), 113.1 s
-(4), 105.1 s (8), 115.2 s (16). At 8 threads the working set is already 24.6 GB on
-a 31 GB host, so past 8 threads the run competes with the page cache for memory
-bandwidth. `bm6`, small enough not to hit that, scales 5.41×. The gate is scored
-on the most substantial dataset — the one that hits the memory wall — and that is
-not counted as a pass.
+**P5 is 0.172 because 16 threads buys almost nothing over 8 on `bm5`.** At 8
+threads the working set is already ~24 GB on a 31 GB host, so past 8 threads the
+run competes with the page cache for memory bandwidth. `bm6`, small enough not to
+hit that, scales 5.50×. The gate is scored on the most substantial dataset — the
+one that hits the memory wall — and that is not counted as a pass.
 
 The resident set grows with the thread count because each concurrent pipeline
 holds its own `n_taxa × n_samp` buffers: on `bm4`, adding the three conservative

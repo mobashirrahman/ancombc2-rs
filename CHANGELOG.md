@@ -100,6 +100,15 @@ version bump — plus a re-run of the golden parity suite.
   `fitted_is_the_projection_and_interpolates_when_n_equals_rank` (`mle`), and
   `the_design_matrix_carries_its_own_colnames` (`ancombc2-io`).
 
+### Re-measured
+
+- **The whole 42-arm benchmark surface**, because the numbers in
+  `benchmarks/results/results.jsonl` came from a binary that factorised the wrong
+  design on the rank-deficient path and so described a different program. All five
+  gates still fail, now at P1 1.141x, P2 1.141x, P3 3.165x, P4 1.751x, P5 0.172.
+  Layer 3 (`make sim`, quick grid) is 0 divergent cells and Layer 4 is 4/4 at
+  `diff_abn` agreement 1.00000 on the fixed build.
+
 ## [0.1.0]
 
 The initial fixed-effects implementation. Compatibility target

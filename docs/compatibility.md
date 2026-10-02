@@ -252,11 +252,16 @@ magnitude.
 
 | gate | criterion | status |
 | --- | --- | --- |
-| P1 | kernel speed-up >= 3x vs R, one core | **FAIL** — 1.060x on `bm5` |
-| P2 | end-to-end speed-up >= 2x | **FAIL** — 1.060x on `bm5` |
-| P3 | sensitivity speed-up >= 5x on 8–16 cores | **FAIL** — 3.04x on `bm5` at 8 threads |
-| P4 | peak RSS <= 70% of R | **FAIL** — 1.52x on `bm5` |
-| P5 | strong-scaling efficiency >= 0.70, 1 → 16 threads | **FAIL** — 0.164, on `bm5` |
+| P1 | kernel speed-up >= 3x vs R, one core | **FAIL** — 1.141x on `bm5` |
+| P2 | end-to-end speed-up >= 2x | **FAIL** — 1.141x on `bm5` |
+| P3 | sensitivity speed-up >= 5x on 8–16 cores | **FAIL** — 3.165x on `bm5` at 8 threads |
+| P4 | peak RSS <= 70% of R | **FAIL** — 1.751x on `bm5` |
+| P5 | strong-scaling efficiency >= 0.70, 1 → 16 threads | **FAIL** — 0.172, on `bm5` |
+
+The whole surface was re-measured after the rank-deficient fitting fixes landed
+(`docs/reference_behavior.md` §16). The previous numbers came from a binary that
+factorised the group's design rather than `lm`'s on that path, so they described a
+different program and are not comparable.
 
 ### P3 is measured against the width of the reference's own grid
 
@@ -266,23 +271,23 @@ the outer level of the nesting order parallelises exactly those three. Eight or
 sixteen threads therefore cannot give more than 3x on that path however much pool
 is available — the width comes from the reference, not from this implementation.
 
-Measured is 3.04x, i.e. 101% of that ceiling. `bench_gates.py` now records
+Measured is 3.17x, just above that ceiling. `bench_gates.py` now records
 `measured_ceiling` and a `ceiling_note` on the P3 record, and lists stage-level
 scaling for every sensitivity dataset so the cap is visible rather than inferred.
 
 The comparison that shows the cap is not the implementation's limit is `bm6`, the
 non-conservative dataset with the full 50-point grid: its sensitivity stage scales
-25.7s → 4.3s = **5.94x** on eight threads, which clears the 5x target. The gate
+well past **5x** on eight threads, which clears the 5x target. The gate
 still reports **fail** on its headline number, because that number and the target
 are both unchanged; what changed is that the report no longer reads as a
 parallelisation defect.
 
-### P5 is 0.164 because sixteen threads is slower than eight on `bm5`
+### P5 is 0.172 because sixteen threads buys nothing over eight on `bm5`
 
-`bm5`, measured: 301.6s (1 thread), 113.1s (4), 105.1s (8), 115.2s (16). At eight
+`bm5`, measured: 321.5s (1 thread), 116.6s (4), 115.9s (8), 116.6s (16). At eight
 threads the resident set is already 24.6 GB against this host's 31 GB, so past
 eight threads the run is competing with the page cache for memory bandwidth and
-loses. `bm6`, small enough not to reach that, scales 5.41x from 1 to 16 threads.
+loses. `bm6`, small enough not to reach that, scales 5.50x from 1 to 16 threads.
 
 An earlier revision of this section reported P5 as 0.320 on `bm6` because `bm5` at
 sixteen threads was OOM-killed. It completes now, and the gate is scored on the
