@@ -206,16 +206,36 @@ run competes with the page cache for memory bandwidth. `bm6`, small enough not t
 hit that, scales 5.50×. The gate is scored on the most substantial dataset — the
 one that hits the memory wall — and that is not counted as a pass.
 
-The resident set grows with the thread count because each concurrent pipeline
-holds its own `n_taxa × n_samp` buffers: on `bm4`, adding the three conservative
-refits takes peak RSS from 1.18 GB to 2.48 GB. That is a P4 finding in its own
-right, and it is why P4 fails.
+The resident set grows with the thread count, because each concurrent pipeline
+holds its own `n_taxa × n_samp` buffers. Measured peak RSS across the four Rust
+widths:
+
+| dataset | rust-1 | rust-4 | rust-8 | rust-16 | R parallel |
+| --- | --- | --- | --- | --- | --- |
+| `bm4` | 1119 MB | 1149 MB | 1192 MB | 1246 MB | 1250 MB |
+| `bm6` | 1164 MB | 1467 MB | 1957 MB | 2921 MB | 1224 MB |
+| `bm5` | 14928 MB | 22279 MB | 24747 MB | 24743 MB | 8526 MB |
+
+`bm6` is the clearest: 2.5x from one thread to sixteen. P4 is scored on the most
+substantial dataset, which is `bm5` — 14928 MB against R's 8526 MB, 1.75x — and
+`bm5` is also the one that saturates memory, so the gate lands on the worst case
+twice over. `bm4` and `bm6` are at or under R's footprint at one thread. See
+`docs/performance_plan.md` for what would and would not move this.
 
 
 **All five gates fail. That is the result, and it is reported as failure.** A gate
 with no measurement is `not measured` and never a pass; the per-dataset surface
 behind each number is in `docs/compatibility.md`, because a single ratio from one
 dataset says nothing about the rest.
+
+**`docs/performance_plan.md` is the plan for changing that**, and it starts by
+diagnosing which of the five are fixable. Briefly: P1 and P2 are reachable, and
+they are one bottleneck — the Householder factorisation, which is 84 % of a large
+run and which this implementation and the reference execute at about the same
+rate. P4 is a memory problem, not a speed one. P5 is a host limit on this machine.
+P3 is capped at 3x by the reference's own three-refit grid, which makes it a
+scoring question rather than an optimisation. The plan separates those rather than
+promising five green gates.
 
 An earlier revision of this table recorded **P2 and P3 as passing** (2.10x and
 6.45x). Those numbers were produced by a defect in `scripts/run_benchmarks.py`:

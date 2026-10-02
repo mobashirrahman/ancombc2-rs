@@ -250,6 +250,9 @@ per-dataset surface is printed underneath it, because a single ratio from one
 dataset says nothing about the rest and the spread here is two orders of
 magnitude.
 
+`docs/performance_plan.md` has the plan for these, including which of the five
+are reachable and why.
+
 | gate | criterion | status |
 | --- | --- | --- |
 | P1 | kernel speed-up >= 3x vs R, one core | **FAIL** — 1.141x on `bm5` |
@@ -295,10 +298,22 @@ most substantial dataset as written, which is `bm5`. Both readings are well shor
 of 0.70.
 
 The growth of the resident set with thread count is itself the P4 finding: each
-concurrent pipeline holds its own `n_taxa × n_samp` buffers. On `bm4`, adding the
-three conservative refits takes peak RSS from 1.18 GB to 2.48 GB, which is why
-logging straight from indexed rows rather than materialising the sub-table first
-was worth doing — it removed a further 0.4 GB there.
+concurrent pipeline holds its own `n_taxa × n_samp` buffers. Measured, per width:
+
+| dataset | rust-1 | rust-4 | rust-8 | rust-16 | R parallel |
+| --- | --- | --- | --- | --- | --- |
+| `bm4` | 1119 MB | 1149 MB | 1192 MB | 1246 MB | 1250 MB |
+| `bm6` | 1164 MB | 1467 MB | 1957 MB | 2921 MB | 1224 MB |
+| `bm5` | 14928 MB | 22279 MB | 24747 MB | 24743 MB | 8526 MB |
+
+`bm6` grows 2.5x from one thread to sixteen; `bm5` is already 1.75x R at one
+thread. An earlier revision of this file claimed `bm4` went "from 1.18 GB to
+2.48 GB" as the three conservative refits were added; the committed results do
+not show that — `bm4` runs 1119 MB to 1246 MB across the four widths — so the
+claim is withdrawn and replaced with the table.
+
+Logging straight from indexed rows rather than materialising the sub-table first
+is still worth having: it was measured at 0.4 GB on `bm4` at the time.
 
 
 

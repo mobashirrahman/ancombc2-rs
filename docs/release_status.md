@@ -23,6 +23,14 @@ in `reference/env/ORACLE.md`. Nothing here is projected or estimated.
 | v0.9 | S1–S6 complete, P1–P5 reported | **met as reporting** — all six datasets and all five gates reported; **P1–P5 all fail** |
 | v1.0 | Levels A–D pass; simulation FDR/power parity; all benchmarks published | **not met** — every functional criterion is met; only the performance gates fail |
 
+`docs/performance_plan.md` sets out what would have to change for the performance
+gates, separates the two that are reachable from the three that are not, and says
+which measurements each claim rests on. In short: the large-data deficit is one
+bottleneck — the Householder factorisation, 84 % of a large run, which this
+implementation and the reference execute at about the same rate — and P1 and P2
+are within reach of it. P4 is memory rather than speed, P5 is this host, and P3 is
+capped by the reference's own grid width.
+
 The functional work is complete and gated green. **The v1.0 definition of done is
 not met**, and the only reason is that the performance gates all fail: P1 1.141x
 against a target of >= 3x, P5 0.172 against >= 0.7, and so on. Every other
