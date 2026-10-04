@@ -50,9 +50,13 @@ jobs:
           r-version: '4.6'
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      # Explicit, not `any::has`: the latter scans for `pkg::` usage and pulls
+      # Bioconductor Suggests (`mia`, `microbiome`, `phyloseq`) that this job never
+      # executes -- and that is what broke this job on R 4.6. `make r-test`
+      # needs `jsonlite` and `testthat` and nothing else.
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          packages: any::has
+          packages: jsonlite, testthat
           pak: true
       - name: the vendored oracle is the pinned commit
         run: make oracle-sha
@@ -165,10 +169,12 @@ jobs:
       # If this job ever starts reporting drift on files that were previously
       # clean, check which BLAS the runner linked before touching the goldens --
       # and do not widen the comparison to make it pass. See docs/reproduction.md.
+      # Explicit, not `any::has`, for the reason above: on a new R it tried to
+      # install Bioconductor Suggests and failed the job before any of our code
+      # ran. The harness needs MASS (ships with R) and nloptr (next step).
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          packages: |
-            any::has
+          packages: MASS
           pak: true
       - name: install nloptr from source
         run: |
