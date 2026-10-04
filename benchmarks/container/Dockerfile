@@ -7,7 +7,7 @@
 #
 # What is pinned, and why each pin exists:
 #
-#   base image by digest  -- `rocker/r-ver:4.5.1` is the R the oracle declares
+#   base image by digest  -- `rocker/r-ver:4.6` is the R the oracle declares
 #                            (`R (>= 4.5.0)`). By *digest*, not tag: a tag is a
 #                            mutable name and a benchmark that quietly moves its R
 #                            version is not reproducible.
@@ -27,7 +27,13 @@
 # `nloptr` is the one non-base dependency the fixed-effects path needs
 # (NLOPT_LN_NELDERMEAD in `.bias_em`). MASS ships with R.
 
-FROM rocker/r-ver:4.5.1
+# Bumped from 4.5.1 to 4.6 to match what CI runs. The R version is not what makes
+# a number reproducible -- 4.3.3, 4.5.3 and 4.6.1 agree bit for bit on one BLAS --
+# but an image pinned to a version nothing else tests is a second thing to keep in
+# step. The BLAS below is the part that does matter, and
+# `environment-linux-64.lock` names it explicitly for machines that cannot run
+# this image at all.
+FROM rocker/r-ver:4.6
 
 LABEL org.opencontainers.image.title="ancombc2-rs benchmark surface" \
       org.opencontainers.image.description="ANCOMBC 2.15.2 oracle and ancombc2-rs, on one host" \

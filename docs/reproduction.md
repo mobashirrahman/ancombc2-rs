@@ -426,19 +426,31 @@ thread count and the timing, which are supposed to differ.
 
 ## What is not reproducible here
 
-* **The containerised harness has not been executed.** It is committed and
-  runnable (`make bench-container`), but no container engine is available here, so
-  `run.sh` declines and says why. All committed results came from the host path.
+* **The containerised harness has not been executed, and cannot be on this
+  host.** `run.sh` declines and says why. The reason is not a missing binary:
+  rootless containers need user namespaces and this host denies them —
+  `unshare -Ur true` fails with `Operation not permitted` on
+  `/proc/self/uid_map`. A static podman 5.4.0 was fetched and its bundled
+  `conmon` and `crun` both run, but podman still cannot `reexec` into a user
+  namespace, so no engine would help. The image remains the right artefact for a
+  host that can run it (CI's `bench-container` job is one), and
+  `benchmarks/container/environment-linux-64.lock` reproduces the same pinned
+  environment — R, BLAS and all 15 oracle `Imports` — with no container at all.
+  All committed results still came from the host path.
 * **The `full` simulation grid has no R arm yet.** The Rust arm is complete —
   252 cells, 249,600 replicates, 0 failures, 3,998 s — and its results are written
   up in `docs/simulation_results.md`. The R arm is running and needs on the order
   of 39 hours. Until it exists there is no Rust-versus-R comparison for that grid,
   and nothing in `docs/simulation_results.md` should be read as one; the summary
   file records `"compared_against_r": false`.
-* Full oracle regeneration on R >= 4.5.0 has not run here; the declared minimum
-  is one series above the installed 4.3.3. `reference/env/ORACLE.md` lists the
-  reasons the fixed-effects path is expected to be unaffected, and the weekly CI
-  job covers it when such an interpreter exists.
-* Two of the four real datasets cannot be re-derived on a machine that cannot
-  install `phyloseq`; see the shim above. The datasets themselves are committed,
-  so the *comparison* reproduces anywhere — only the preparation needs the shim.
+* ~~Full oracle regeneration on R >= 4.5.0 has not run here.~~ **Done.** R 4.5.3
+  and R 4.6.1 were both installed, ANCOMBC 2.15.2 installs and runs on both, and
+  the fixture matrix is bit-identical across 4.3.3, 4.5.3 and 4.6.1 on one BLAS —
+  915 of 915 arrays. What actually moves the numbers is BLAS, not the R version;
+  see "The R version, and why the goldens are BLAS-pinned" above.
+* ~~Two of the four real datasets cannot be re-derived without `phyloseq`.~~
+  **Resolved, and the shim is vindicated.** Bioconductor packages `phyloseq` for
+  conda, so the real 1.54.2 installs under R 4.5.3 alongside
+  `bioconductor-microbiome` for the `.rda` sources — and it reproduces all four
+  Layer 4 datasets byte for byte against the shim. The datasets are committed, so
+  the *comparison* reproduces anywhere regardless.

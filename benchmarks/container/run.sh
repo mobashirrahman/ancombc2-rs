@@ -25,17 +25,39 @@ for e in docker podman; do
 done
 if [ -z "$engine" ]; then
   cat >&2 <<'MSG'
-Neither docker nor podman is on PATH.
+Neither docker nor podman is on PATH, so the containerised harness cannot run
+here.
 
-The containerised harness cannot be run here. Two honest options:
+On some hosts that is the whole story and the fix is to install an engine. On
+others -- including the host these results were produced on -- no engine helps,
+because rootless containers need user namespaces and the host denies them:
 
-  * run it elsewhere and copy `benchmarks/results/results.jsonl` back, or
-  * run the harness directly on this host:
+    $ unshare -Ur true
+    unshare: write failed /proc/self/uid_map: Operation not permitted
 
-        python3 scripts/run_benchmarks.py --data benchmarks/datasets
+`benchmarks/container/README.md` records that investigation. Either way, three
+honest ways forward:
+
+  * run the image elsewhere and copy `benchmarks/results/results.jsonl` back, or
+  * reproduce the same pinned environment with no container at all, via the
+    committed lock -- which also names the BLAS, the thing that actually has to
+    match:
+
+        micromamba create -p ./bench-env \
+          --file benchmarks/container/environment-linux-64.lock
+        export R_LIBS_USER="$PWD/bench-env" PATH="$PWD/bench-env/bin:$PATH"
+        R CMD INSTALL --no-docs -l "$R_LIBS_USER" reference/ANCOMBC
+        ANCOMBC_ORACLE_DIR=reference/ANCOMBC \
+          python3 scripts/run_benchmarks.py --data benchmarks/datasets
         make gates
 
-The second is what produced every number currently in `benchmarks/results/`, and
+  * or run the harness on this host as it stands:
+
+        ANCOMBC_ORACLE_DIR=reference/ANCOMBC \
+          python3 scripts/run_benchmarks.py --data benchmarks/datasets
+        make gates
+
+The last is what produced every number currently in `benchmarks/results/`, and
 `docs/compatibility.md` records that the container path has not been executed.
 MSG
   exit 2

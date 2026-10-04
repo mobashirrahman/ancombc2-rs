@@ -39,6 +39,19 @@ series `R 4.5.x` to `R >= 4.5.0`. The oracle's `DESCRIPTION` requires
 
 ### Fixed
 
+- **The container story is now accurate, and there is a way to run the pinned
+  environment without a container.** `run.sh` reported only that no engine was on
+  `PATH`, which is the wrong diagnosis and would send someone off to install one.
+  Rootless containers need user namespaces and this host denies them
+  (`unshare -Ur true` fails on `/proc/self/uid_map`); a static podman 5.4.0 with
+  working `conmon` and `crun` still cannot `reexec`. `benchmarks/container/` now
+  says so, and adds `environment-linux-64.lock`: an exact `micromamba --explicit`
+  pin of R 4.5.3, `libopenblas-0.3.34-pthreads` and all 15 of the oracle's
+  `Imports`, verified to recreate from scratch and to install and run the oracle.
+  A lock also *names* the BLAS, which a digest does not, and BLAS is the one
+  variable that moves numbers. The image is bumped `r-ver:4.5.1` -> `4.6` to
+  match CI; it was pinned to a version nothing else tested.
+
 - **The repository is pushable.** Two blobs exceeded GitHub's 100 MB hard limit —
   `validation/golden/fx04/golden.rds` at 148 MB and
   `validation/matrix/golden/shape-10000x500/golden.rds` at 133 MB — so adding a
