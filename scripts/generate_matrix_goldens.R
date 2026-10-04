@@ -191,13 +191,16 @@ for (nm in names(cells)) {
 
   out <- file.path(gold_root, nm)
   dir.create(out, recursive = TRUE, showWarnings = FALSE)
-  saveRDS(list(golden = g, config = cfg, session = capture_session()),
+  # `golden` here is the slim residual, not the whole contract: every quantity
+  # with a file of its own is already in `out/` and `golden.rds` used to store it
+  # a second time. See `slim_golden` in reference/R/serialize.R.
+  saveRDS(list(golden = slim_golden(g), config = cfg, session = capture_session()),
           file.path(out, "golden.rds"))
   m <- write_canonical(g, out)
   saveRDS(m, file.path(out, "manifest.rds"))
   cat(sprintf("%-30s %5d x %-5d %3d fix_eff sens=%-5s %d quantities %.1fs\n",
               nm, length(g$taxa_retained), length(g$samples_retained),
-              length(g$fix_eff), cfg$pseudo_sens, nrow(m),
+              length(g$fix_eff), cfg$pseudo_sens, length(m),
               proc.time()[["elapsed"]] - t0))
 }
 

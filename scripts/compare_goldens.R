@@ -74,6 +74,51 @@ strip_capture <- function(x) {
   x
 }
 
+# The compared quantities live in the golden's `.f64` files, not in
+# `golden.rds`.
+#
+# `golden.rds` used to hold a second copy of every one of them. For `fx04` and
+# the `shape-10000x500` cell those copies were 148 MB and 133 MB, and being the
+# only two blobs in the repository over GitHub's 100 MB hard limit they made it
+# unpushable. They are now written once, here, and `golden.rds` keeps only what
+# has no file of its own -- see `slim_golden` in `reference/R/serialize.R`.
+#
+# This is a relocation, not a change of contract. `max_rel` below only ever
+# considered numeric top-level fields, and every one of those is `.f64`-backed
+# except `dof`, which the slim `golden.rds` still carries. The set of compared
+# quantities, and the arithmetic, are identical to before -- the reported
+# deviation is unchanged, which is the invariant worth preserving here.
+#
+# `manifest.rds` supplies the shapes. It is this repository's substitute for a
+# JSON reader: `reference/R/serialize.R` writes JSON but has no reader on
+# purpose, so the generator records the same manifest as an R object.
+read_f64_payloads <- function(dir, manifest) {
+  out <- list()
+  for (nm in names(manifest)) {
+    e <- manifest[[nm]]
+    if (!is.list(e) || is.null(e$file) || !identical(e$kind, "f64")) next
+    nc <- if (is.null(e$nc) || is.na(e$nc)) NA_integer_ else as.integer(e$nc)
+    nr <- as.integer(e$nr)
+    v <- readBin(file.path(dir, e$file), what = "double",
+                 n = nr * (if (is.na(nc)) 1L else nc), size = 8, endian = "little")
+    out[[nm]] <- if (is.na(nc)) v else matrix(v, nrow = nr, ncol = nc)
+  }
+  out
+}
+
+# The `.f64` payloads plus the slim residual, which is how the whole numeric
+# contract is reassembled.
+golden_quantities <- function(dir) {
+  rds <- readRDS(file.path(dir, "golden.rds"))
+  mf_path <- file.path(dir, "manifest.rds")
+  if (!file.exists(mf_path)) {
+    stop(dir, ": no manifest.rds, so the .f64 shapes are unknown. ",
+         "Regenerate this golden; a manifest.rds holding the summary data.frame ",
+         "means it predates the slim golden.rds and must be rebuilt.")
+  }
+  c(read_f64_payloads(dir, readRDS(mf_path)), strip_capture(rds$golden))
+}
+
 # Largest relative deviation between two numerics, per top-level field.
 max_rel <- function(a, b) {
   worst <- 0
@@ -97,7 +142,7 @@ for (id in ids) {
     next
   }
   a <- readRDS(pa); b <- readRDS(pb)
-  ga <- strip_capture(a$golden); gb <- strip_capture(b$golden)
+  ga <- golden_quantities(dirname(pa)); gb <- golden_quantities(dirname(pb))
   d <- max_rel(ga, gb)
   c_ok <- identical(a$config, b$config)
   # A field present in one spec and not the other is a generator change, which the

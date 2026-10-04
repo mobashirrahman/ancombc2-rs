@@ -185,7 +185,10 @@ for (id in ids) {
 
   out <- file.path(gold_dir, sprintf("fx%02d", id))
   dir.create(out, recursive = TRUE, showWarnings = FALSE)
-  saveRDS(list(golden = g, config = cfg, spec = spec, session = capture_session()),
+  # Slim for the reason given in `slim_golden`: quantities with a file of their
+  # own are in `out/` and were being stored here a second time.
+  saveRDS(list(golden = slim_golden(g), config = cfg, spec = spec,
+               session = capture_session()),
           file.path(out, "golden.rds"))
   manifest <- write_canonical(g, out)
   saveRDS(manifest, file.path(out, "manifest.rds"))
@@ -194,7 +197,7 @@ for (id in ids) {
               id, length(g$taxa_retained), length(g$samples_retained),
               length(g$fix_eff), cfg$pseudo_sens,
               if (cfg$conservative) "conservative" else "nonconservative",
-              nrow(manifest), proc.time()[["elapsed"]] - t0))
+              length(manifest), proc.time()[["elapsed"]] - t0))
 }
 
 cat("\nwrote goldens to", gold_dir, "\n")

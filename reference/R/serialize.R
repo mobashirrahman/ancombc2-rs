@@ -270,13 +270,47 @@ write_canonical <- function(g, outdir) {
                                       nr = length(g$sens_pseudo), nc = NA_integer_)
   }
   write_json(file.path(outdir, "manifest.json"), manifest)
-  # A one-row-per-quantity summary, for humans and for the fixture-registry test
-  # that asserts every expected quantity was actually written.
-  data.frame(quantity = names(manifest),
-             kind = vapply(manifest, function(e) e$kind, character(1)),
-             file = vapply(manifest, function(e) if (is.null(e$file)) "" else e$file,
-                           character(1)),
-             stringsAsFactors = FALSE)
+  # The manifest itself, not a summary. It is the only place the `.f64` shapes
+  # (`nr`, `nc`) are recorded outside `manifest.json`, and this repository has a
+  # JSON writer but deliberately no JSON reader -- so `scripts/compare_goldens.R`
+  # reads `manifest.rds` to learn how to reshape the `.f64` payloads. It is a few
+  # hundred bytes per golden.
+  manifest
+}
+
+# Every quantity `write_canonical` puts a file in the golden's directory, and
+# which is therefore recoverable without consulting `golden.rds`.
+CANON_JSON_TABLES <- c("res", "res_global", "res_pair", "ss_tab", "diff_abn")
+FILE_BACKED <- c(CANON_F64, CANON_VCOV, CANON_BOOL, CANON_JSON_TABLES,
+                 "sens_pseudo", "stage_seconds",
+                 "taxa_retained", "samples_retained", "fix_eff")
+
+# `golden.rds` is a comparison artifact, not the payload store.
+#
+# It used to hold every quantity, which duplicated the `.f64`/`.json` files
+# sitting beside it in the same directory. For `fx04` and the `shape-10000x500`
+# cell that duplication was 148 MB and 133 MB -- and those two blobs are the
+# only ones in the repository over GitHub's 100 MB hard limit, so it could not
+# be pushed at all. Deleting the files would have broken the parity suite, which
+# reads them; duplicating them in LFS would have hidden the duplication behind a
+# 310 MB dependency. So they are written once.
+#
+# What stays is what the directory cannot supply: the numeric quantities with no
+# file of their own. In practice that is `dof` and nothing else, since every
+# other numeric quantity is in `CANON_F64`.
+#
+# No compared quantity is lost. `scripts/compare_goldens.R` only ever compared
+# numeric top-level fields -- 24 of 41 for `fx04` -- and 23 of those 24 are
+# `.f64`-backed; the 24th, `dof`, is what this function keeps. The non-numeric
+# remainder was already skipped by that comparison, and the tables remain on
+# disk as `.json`.
+#
+# `sens_ss_list` is the one quantity that leaves the repository entirely: it is
+# assigned in `reference/R/harness.R`, read by nothing here, was never part of
+# the compared contract, and retaining it cost 90 MB of `fx04`.
+slim_golden <- function(g) {
+  keep <- g[setdiff(names(g), FILE_BACKED)]
+  Filter(is.numeric, keep)
 }
 
 write_session <- function(path) {
