@@ -216,7 +216,7 @@ RNG             : set.seed(42), RNGkind("Mersenne-Twister","Inversion","Rejectio
 Compatibility target string used everywhere (CI, README, crate version):
 
 ```
-ancombc2-rs v0.1 ≡ ANCOMBC 2.15.2 @ <SHA>, R 4.5.x, seed 42
+ancombc2-rs v0.1 ≡ ANCOMBC 2.15.2 @ <SHA>, R >= 4.5.0, seed 42
 ```
 
 > **Why this matters.** ANCOM-BC2 behaviour is *not* stable across releases. For

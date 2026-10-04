@@ -131,7 +131,7 @@ fn main() -> ExitCode {
 /// metadata so a result table can be traced back to what produced it.
 const TARGET: &str = concat!(
     "ancombc2-rs v0.1 equivalent to ANCOMBC 2.15.2 at ",
-    "dc4febdf59badb3a8dfe0c767ef2186323c2199a, R 4.5.x, seed 42"
+    "dc4febdf59badb3a8dfe0c767ef2186323c2199a, R >= 4.5.0, seed 42"
 );
 
 fn real_main() -> Result<(), Box<dyn std::error::Error>> {

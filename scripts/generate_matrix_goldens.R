@@ -99,7 +99,7 @@ for (k in seq_along(all_groups)) {
   for (nm in all_groups[[k]]) all_inputs[[nm]] <- first
 }
 manifest <- list(
-  target = "ancombc2-rs v0.1 equivalent to ANCOMBC 2.15.2 at dc4febdf59badb3a8dfe0c767ef2186323c2199a, R 4.5.x, seed 42",
+  target = "ancombc2-rs v0.1 equivalent to ANCOMBC 2.15.2 at dc4febdf59badb3a8dfe0c767ef2186323c2199a, R >= 4.5.0, seed 42",
   generator = "scripts/generate_matrix_goldens.R",
   n_cells = length(all_cells),
   # Which cells this invocation actually wrote. The Rust test reports a missing

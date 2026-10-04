@@ -339,7 +339,7 @@ pub unsafe extern "C" fn ancombc2_rs_run(request: *const c_char) -> *mut c_char 
 pub unsafe extern "C" fn ancombc2_rs_version() -> *mut c_char {
     to_c_string(concat!(
         "ancombc2-rs v0.1 equivalent to ANCOMBC 2.15.2 at ",
-        "dc4febdf59badb3a8dfe0c767ef2186323c2199a, R 4.5.x, seed 42"
+        "dc4febdf59badb3a8dfe0c767ef2186323c2199a, R >= 4.5.0, seed 42"
     ))
 }
 

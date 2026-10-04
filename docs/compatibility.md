@@ -3,7 +3,7 @@
 ## The statement
 
 **`ancombc2-rs v0.1` is equivalent to ANCOMBC 2.15.2 at commit
-`dc4febdf59badb3a8dfe0c767ef2186323c2199a`, under R 4.5.x, seed 42.**
+`dc4febdf59badb3a8dfe0c767ef2186323c2199a`, under R >= 4.5.0, seed 42.**
 
 "Equivalent" means: for the fixed-effects path, on a given input, the two produce
 the same reported quantities to the tolerances in `docs/numerical_contract.md`,
@@ -138,10 +138,12 @@ Stated plainly, because a compatibility claim is only as good as its coverage.
   sequential `foreach` stub. **Executed on R 4.5.3**, where ANCOMBC 2.15.2 does
   install and run as a real package, with two results:
 
-  * **The R version does not matter.** The same matrix generated under R 4.3.3 and
-    under R 4.5.3, on the *same* BLAS, is **bit-identical — 915 of 915 arrays**.
-    The declared target's `R 4.5.x` therefore describes the numbers the port
-    produces, not merely the interpreter the goldens happened to be drawn on.
+  * **The R version does not matter.** The same matrix generated under R 4.3.3,
+    R 4.5.3 and R 4.6.1, on the *same* BLAS, is **bit-identical — 915 of 915
+    arrays each time**. The declared target was therefore widened from the
+    arbitrary series `R 4.5.x` to `R >= 4.5.0`, which is the oracle's own floor
+    and the only part of it that is load-bearing. All five of CI's R jobs run the
+    current release.
   * **The stub was faithful.** `scripts/verify_real_package.R` runs all 38 cells
     through the installed package and compares against the harness's own output on
     the same interpreter: **38 of 38 bit-identical, deviation exactly 0**. The

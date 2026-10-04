@@ -33,12 +33,15 @@ rather than installing the package.
 **That workaround turns out not to cost anything, and this has been measured
 rather than assumed** — see `docs/compatibility.md` for the results:
 
-* R 4.3.3 and R 4.5.3, on the same BLAS, produce **bit-identical** goldens
-  (915 of 915 arrays).
+* R 4.3.3, R 4.5.3 and R 4.6.1, on the same BLAS, produce **bit-identical**
+  goldens (915 of 915 arrays each time). The R version is not a variable; only the
+  oracle's floor matters, which is why the target string says `R >= 4.5.0`.
 * The oracle's own `foreach` stub reproduces the installed package exactly:
   **38 of 38 cells, deviation 0**.
 
-So the declared `R 4.5.x` target holds. What *does* move the numbers is **BLAS**:
+So the declared `R >= 4.5.0` target holds — and it now holds a fortiori, because the
+matrix is also bit-identical under **R 4.6.1**, the current release, which is what
+all five of CI's R jobs run. What *does* move the numbers is **BLAS**:
 the committed goldens record Ubuntu's reference BLAS, and an OpenBLAS R shifts
 `beta` by up to 2.5e-06 relative, which is above the contract's `rtol 1e-8`.
 `make goldens-drift` byte-compares the `.f64` payloads for that reason, so:
@@ -54,7 +57,7 @@ not fixed by R and differ between LAPACK implementations. Its `counts.tsv` moves
 by a relative ~6.5e-08 between reference LAPACK and OpenBLAS. The other three
 real-data tables do not go through `eigen()` and are portable.
 
-#### Installing an R 4.5.x interpreter, to check any of this yourself
+#### Installing a current R interpreter, to check any of this yourself
 
 The oracle installs and runs under 4.5.x. An isolated one, without disturbing the
 system R:

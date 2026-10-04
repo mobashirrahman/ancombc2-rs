@@ -4,7 +4,7 @@ A Rust reimplementation of ANCOM-BC2, the bias-corrected differential abundance
 analysis for microbiome count data.
 
 **Compatibility target: `ancombc2-rs v0.1` is equivalent to ANCOMBC 2.15.2 at
-commit `dc4febdf59badb3a8dfe0c767ef2186323c2199a`, under R 4.5.x, seed 42.**
+commit `dc4febdf59badb3a8dfe0c767ef2186323c2199a`, under R >= 4.5.0, seed 42.**
 
 That string is a claim with a test behind it, not a slogan: the golden parity
 suite compares 29 quantities against the pinned R implementation on four

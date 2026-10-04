@@ -16,7 +16,26 @@ ancombc2-rs v0.1  ==  ANCOMBC 2.15.2 @ dc4febdf59badb3a8dfe0c767ef2186323c2199a
 refactor, and requires an entry below that says so explicitly — including a
 version bump — plus a re-run of the golden parity suite.
 
+The R clause of the target was widened once, under [Unreleased] below, from the
+series `R 4.5.x` to `R >= 4.5.0`. The oracle's `DESCRIPTION` requires
+`R >= 4.5.0`, and the fixture matrix is bit-identical across 4.3.3, 4.5.3 and
+4.6.1, so the series restriction was narrowing a claim that is actually wider.
+
 ## [Unreleased]
+
+### Changed
+
+- **COMPATIBILITY CLAIM: the target string's R clause is widened from `R 4.5.x`
+  to `R >= 4.5.0`.** Per the rule at the top of this file, this is recorded
+  explicitly. The old clause named one series, which was arbitrary on two counts:
+  `R 4.5.x` excluded R 4.3.3 and R 4.6.1, neither of which behaves differently,
+  and `R 4.5.0` is the version the oracle's own `DESCRIPTION` actually requires.
+  The evidence, on one BLAS: the fixture matrix under **R 4.3.3, R 4.5.3 and
+  R 4.6.1 is bit-identical, 915 of 915 arrays each**. The installed oracle was
+  run against the harness under 4.5.3 and under 4.6.1, 38 of 38 cells exact in
+  both, and the R testthat suite passes 90/90 on 4.6.1. The golden parity suite
+  was re-run after the change and is unchanged at 332/332. The string is carried
+  in the FFI, the CLI, the matrix generator and `cells.json`; all four now agree.
 
 ### Added
 

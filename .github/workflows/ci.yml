@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: r-lib/actions/setup-r@v2
         with:
-          r-version: '4.3.3'
+          r-version: '4.6'
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - uses: r-lib/actions/setup-r-dependencies@v2
@@ -151,7 +151,20 @@ jobs:
           fetch-depth: 0
       - uses: r-lib/actions/setup-r@v2
         with:
-          r-version: '4.3.3'
+          r-version: '4.6'
+      # `goldens-drift` below byte-compares the .f64 payloads, so two things
+      # matter to this pin and only one of them is the R version.
+      #
+      # The R version is safe to move: the fixture matrix generated under 4.3.3,
+      # 4.5.3 and 4.6.1, on one BLAS, is bit-identical -- 915 of 915 arrays each
+      # time. So this tracks the current release without endangering the gate.
+      #
+      # What would endanger it is a *BLAS* change, not an R change. The committed
+      # goldens record Ubuntu's reference BLAS, and an OpenBLAS R shifts `beta`
+      # by up to 2.5e-06 relative, which is above the golden contract's rtol.
+      # If this job ever starts reporting drift on files that were previously
+      # clean, check which BLAS the runner linked before touching the goldens --
+      # and do not widen the comparison to make it pass. See docs/reproduction.md.
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
           packages: |
@@ -221,6 +234,12 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: r-lib/actions/setup-r@v2
         with:
+          # Pinned explicitly rather than left to setup-r's default, which is
+          # `release` -- whatever R is newest that week. Two of the five R jobs
+          # were relying on that while the other three named a version, so the
+          # workflow was silently split across R versions. One version, written
+          # down, and moved deliberately when it should move.
+          r-version: '4.6'
           use-public-rspm: true
       - run: cargo build --release
       - name: generate the replicates
@@ -350,6 +369,12 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - uses: r-lib/actions/setup-r@v2
         with:
+          # Pinned explicitly rather than left to setup-r's default, which is
+          # `release` -- whatever R is newest that week. Two of the five R jobs
+          # were relying on that while the other three named a version, so the
+          # workflow was silently split across R versions. One version, written
+          # down, and moved deliberately when it should move.
+          r-version: '4.6'
           use-public-rspm: true
       # `nloptr` is the oracle harness's only non-base dependency, and the
       # reference declares R >= 4.5.0 so it cannot be installed as a package
@@ -432,7 +457,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - uses: r-lib/actions/setup-r@v2
         with:
-          r-version: '4.3.3'
+          r-version: '4.6'
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --release
       - name: install nloptr and fetch the oracle
