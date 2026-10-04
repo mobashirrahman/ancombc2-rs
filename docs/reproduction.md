@@ -48,6 +48,12 @@ the committed goldens record Ubuntu's reference BLAS, and an OpenBLAS R shifts
 > report drift that is real but not a regression, and the right response is to
 > check the BLAS, not to widen the comparison.
 
+The same applies to one of the Layer 4 tables: `validation/realdata/qmp-vignette/`
+is *synthetic*, generated through a call to `eigen()`, whose eigenvector signs are
+not fixed by R and differ between LAPACK implementations. Its `counts.tsv` moves
+by a relative ~6.5e-08 between reference LAPACK and OpenBLAS. The other three
+real-data tables do not go through `eigen()` and are portable.
+
 #### Installing an R 4.5.x interpreter, to check any of this yourself
 
 The oracle installs and runs under 4.5.x. An isolated one, without disturbing the
@@ -353,8 +359,16 @@ make realdata-prep REALDATA_MB=microbiome/data
 
 Reading those two `.rda` files needs the S4 *class definitions*, because every
 base generic on the object dispatches on its class and looks for the defining
-package. `phyloseq` itself cannot be installed here: it depends on `RCurl`,
+package. `phyloseq` itself cannot be installed *from source* here: it depends on `RCurl`,
 which needs libcurl development headers, and this environment has no root.
+
+It can, however, be installed as a binary — Bioconductor's `phyloseq` is packaged
+for conda, so a conda-forge/bioconda environment with `r-base=4.5.3` and
+`bioconductor-phyloseq` provides the real thing alongside
+`bioconductor-microbiome` for the `.rda` sources. **This has been done, and the
+real package reproduces all four Layer 4 datasets byte for byte against the shim**
+(see `docs/compatibility.md`). The shim is therefore verified rather than merely
+argued, and remains the right default for a machine without root.
 
 `scripts/install_phyloseq_shim.R` writes a minimal package containing only the
 class definitions — no code from `phyloseq` — so that the objects can be read.
