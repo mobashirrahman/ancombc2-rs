@@ -179,40 +179,56 @@ it is a nightly/weekly check, not a per-commit one.
 
 This is what the CI `oracle` job runs.
 
-## Two committed files are over GitHub's 100 MB limit
+## The 100 MB blobs are gone
+
+This section used to read "two committed files are over GitHub's 100 MB limit"
+and list three ways to live with it. There is nothing to live with any more.
+
+The cause was duplication, not size. `golden.rds` held *every* quantity of a
+golden while the same numbers sat beside it as `.f64`/`.json` files, and for the
+two largest sets that meant storing them twice:
 
 ```
-148M  validation/golden/fx04/golden.rds
-133M  validation/matrix/golden/shape-10000x500/golden.rds
+148M  validation/golden/fx04/golden.rds                 (now 115 KB)
+133M  validation/matrix/golden/shape-10000x500/golden.rds   (now  31 KB)
 ```
 
-Both are the R serialisations of the two largest golden sets, and both are
-committed. **GitHub rejects a push containing a blob over 100 MB**, so adding a
-remote to this repository as it stands will fail. This is recorded here rather
-than left for whoever clones it to discover.
+`golden.rds` is now a comparison artefact rather than a second copy of the
+payload store. It keeps only what the directory cannot supply — the numeric
+quantities with no file of their own, which is `dof` and nothing else — and the
+`.f64` shapes live in `manifest.rds`. `scripts/compare_goldens.R` reassembles the
+numeric contract from the `.f64` payloads plus that residual; see `slim_golden` in
+`reference/R/serialize.R`.
 
-The files are kept because the golden contract is specified to be stored "in both
-.rds and a canonical little-endian f64 format plus JSON metadata", and because
-`make goldens-drift` regenerates and writes them. What the *tests* read is the
-canonical side: `crates/ancombc2-core/tests/golden/mod.rs` loads the `.f64` and
-`.json`, so dropping the `.rds` files would not weaken a single assertion --
-`make goldens-drift` would report it, since it regenerates rather than skips.
+The obvious worry is that this quietly weakens the drift check, because the
+comparator used to read the `.rds`. It does not, and that was checked rather than
+assumed:
 
-Options if a remote is wanted, in the order I would pick them:
+* across all 42 goldens, the numeric quantities the comparator actually compared
+  (24 of 41 for `fx04`; `max_rel` skips non-numeric fields) are 23 of 24
+  `.f64`-backed, the 24th being `dof`, which is kept — zero compared quantities
+  lost;
+* perturbing the same quantity by `+1e-7` relative, in `golden.rds` under the old
+  format and in `beta.f64` under the new one, makes both comparators report
+  `1.00e-07` and `DRIFT`;
+* regenerating all 38 matrix cells and all four fixtures changed **zero** `.f64`
+  payloads and zero contract `.json` files.
 
-1. **Git LFS** for `*.rds`. Keeps the contract intact and the working tree
-   unchanged; needs a remote with LFS, and `git lfs install` before the first
-   clone.
-2. **Drop the `.rds` from the tree** and have `make goldens-drift` write them to a
-   gitignored directory. Cheap, keeps every assertion, at the cost of the `.rds`
-   half of the stated format being generated rather than committed.
-3. Ship them as release artefacts. Works, but a clone no longer has the full
-   contract.
+The two oversized blobs then had to leave the history, since GitHub rejects a
+push containing one anywhere. They existed in a single commit, so
+`git filter-repo --invert-paths` removed them cleanly. Note that this strips the
+path from `HEAD` too, so the slim files were restored and re-tracked afterwards.
 
-Option 1 is the one that changes the least and loses nothing.
+```
+.git                     1.7G  ->  234M
+largest tracked blob     147M  ->   38M
+blobs over 100 MB           2  ->    0
+tracked validation/      841M  ->  532M
+```
 
-The repository has no remote and is not published; this is a note for whoever
-does that next, not a current failure.
+A backup mirror of the pre-rewrite repository was kept at
+`/scratch/mdra00001/tmp/opencode/ancom-backup/ancom-bc2-rust.git`; delete it once
+the rewritten history has been pushed and cloned back successfully.
 
 ## The golden format
 

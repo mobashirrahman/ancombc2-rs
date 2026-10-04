@@ -37,6 +37,19 @@ series `R 4.5.x` to `R >= 4.5.0`. The oracle's `DESCRIPTION` requires
   was re-run after the change and is unchanged at 332/332. The string is carried
   in the FFI, the CLI, the matrix generator and `cells.json`; all four now agree.
 
+### Fixed
+
+- **The repository is pushable.** Two blobs exceeded GitHub's 100 MB hard limit —
+  `validation/golden/fx04/golden.rds` at 148 MB and
+  `validation/matrix/golden/shape-10000x500/golden.rds` at 133 MB — so adding a
+  remote failed outright. The cause was duplication: `golden.rds` stored every
+  quantity of a golden while the same numbers sat beside it as `.f64`/`.json`.
+  Each quantity is now written once. `golden.rds` keeps only what the directory
+  cannot supply, the `.f64` shapes moved to `manifest.rds`, and
+  `scripts/compare_goldens.R` reassembles the contract from the payloads.
+  148 MB -> 115 KB and 133 MB -> 31 KB; `.git` 1.7G -> 234M; no blob over 38 MB.
+  `docs/reproduction.md` records the no-coverage-change evidence.
+
 ### Added
 
 - **`make verify-real-package`, which closes the last open item on the R 4.5
