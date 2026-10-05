@@ -43,9 +43,14 @@ ENV DEBIAN_FRONTEND=noninteractive \
     ORACLE_SHA=dc4febdf59badb3a8dfe0c767ef2186323c2199a \
     RENV_PATHS_CACHE=/usr/local/lib/R/site-library
 
+# `python3` is for the entrypoint, which runs `scripts/run_benchmarks.py` and
+# `scripts/bench_gates.py`. Both are stdlib-only, so no pip packages are needed
+# -- but the interpreter itself was missing and the image built fine, then failed
+# at runtime with `python3: command not found`. A build that succeeds and a
+# container that cannot run its entrypoint is the worst kind of green.
 RUN apt-get update && apt-get install -y --no-install-recommends \
       ca-certificates curl git libcurl4-openssl-dev libssl-dev \
-      build-essential cmake pkg-config \
+      build-essential cmake pkg-config python3 \
     && rm -rf /var/lib/apt/lists/*
 
 # The pinned oracle, fetched by commit rather than by tag, and *verified* before
