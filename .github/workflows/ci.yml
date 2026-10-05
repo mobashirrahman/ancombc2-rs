@@ -4,6 +4,12 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Manual. Two jobs (`benchmarks`, `bench-container`) gate on
+  # `github.event_name == 'workflow_dispatch'`, and without this they can only
+  # ever run on the schedule -- including the first validation of a change to
+  # either of them, which is exactly when a human needs to watch. Dispatched
+  # runs execute the same jobs the schedule would; nothing here is push-only.
+  workflow_dispatch:
   # The R regeneration job and the weekly jobs are the reason this file is more
   # than a lint-and-test matrix: a golden that has drifted from the oracle is
   # worse than no golden, because every parity number it produces is then a
