@@ -189,6 +189,14 @@ jobs:
           # worse, fetched a same-named fork and benchmarked against a different
           # package. The `test` below is ORACLE.md's own verification, promoted
           # from documentation into the job that depends on it.
+          #
+          # The `rm` is load-bearing, not cleanup: the checkout above provides the
+          # vendored `reference/ANCOMBC/` (46 tracked files), and `git clone`
+          # refuses a destination that exists and is not empty. Without it this
+          # step fails before the verification it exists to perform. The vendored
+          # files are in git, so nothing is lost; the `checkout --detach` and the
+          # `test` then verify the replacement is exactly the pinned commit.
+          rm -rf reference/ANCOMBC
           git clone https://github.com/FrederickHuangLin/ANCOMBC.git reference/ANCOMBC
           git -C reference/ANCOMBC checkout --detach dc4febdf59badb3a8dfe0c767ef2186323c2199a
           test "$(git -C reference/ANCOMBC rev-parse HEAD)" = dc4febdf59badb3a8dfe0c767ef2186323c2199a
@@ -477,6 +485,14 @@ jobs:
           # worse, fetched a same-named fork and benchmarked against a different
           # package. The `test` below is ORACLE.md's own verification, promoted
           # from documentation into the job that depends on it.
+          #
+          # The `rm` is load-bearing, not cleanup: the checkout above provides the
+          # vendored `reference/ANCOMBC/` (46 tracked files), and `git clone`
+          # refuses a destination that exists and is not empty. Without it this
+          # step fails before the verification it exists to perform. The vendored
+          # files are in git, so nothing is lost; the `checkout --detach` and the
+          # `test` then verify the replacement is exactly the pinned commit.
+          rm -rf reference/ANCOMBC
           git clone https://github.com/FrederickHuangLin/ANCOMBC.git reference/ANCOMBC
           git -C reference/ANCOMBC checkout --detach dc4febdf59badb3a8dfe0c767ef2186323c2199a
           test "$(git -C reference/ANCOMBC rev-parse HEAD)" = dc4febdf59badb3a8dfe0c767ef2186323c2199a
