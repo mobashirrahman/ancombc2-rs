@@ -71,11 +71,14 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --de
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN rustup show && cargo build --release -p ancombc2-cli -p ancombc2-sim
 
-# Fail the build if the image's R is not the one the oracle declares, rather than
-# letting it produce a full benchmark surface that is silently off-target.
+# Fail the build if the image's R is not the one intended, rather than letting
+# it produce a full benchmark surface that is silently off-target.
+# `R.version$minor` is "6.1", not "6" -- `paste(major, minor)` gives "4.6.1", so
+# an `identical(v, "4.6")` check (which is what this used to say, for "4.5")
+# can never pass. Compare the series prefix and the oracle's floor instead.
 RUN R -e 'v <- paste(R.version$major, R.version$minor, sep = "."); \
-         stopifnot(identical(v, "4.6")); \
-         cat("R", v, "\n")'
+         stopifnot(startsWith(R.version$minor, "6"), getRversion() >= "4.5.0"); \
+         cat("R", v, " -- 4.6 series and >= the oracle floor\n")'
 
 # Reports what the image actually is, so a results row can carry it. BLAS/LAPACK
 # are reported, not pinned: see the header.
