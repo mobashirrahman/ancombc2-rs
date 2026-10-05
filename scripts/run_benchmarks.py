@@ -44,7 +44,7 @@ R_ARMS = ("r-1core", "r-parallel")
 RUST_ARMS = ("rust-1", "rust-4", "rust-8", "rust-16", "rust-32")
 TARGET = (
     "ancombc2-rs v0.1 equivalent to ANCOMBC 2.15.2 at "
-    "dc4febdf59badb3a8dfe0c767ef2186323c2199a, R 4.5.x, seed 42"
+    "dc4febdf59badb3a8dfe0c767ef2186323c2199a, R >= 4.5.0, seed 42"
 )
 
 

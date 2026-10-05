@@ -8,7 +8,7 @@ Description: A wrapper for 'ancombc2-rs', a Rust reimplementation of ANCOM-BC2.
     The analysis itself runs in Rust; this package builds the design matrix with
     R's own 'model.matrix', calls the core through a C ABI, and returns the
     reference's result tables. The compatibility target is ANCOMBC 2.15.2 at
-    commit dc4febdf59badb3a8dfe0c767ef2186323c2199a, under R 4.5.x with seed 42.
+    commit dc4febdf59badb3a8dfe0c767ef2186323c2199a, under R >= 4.5.0 with seed 42.
 License: Artistic-2.0
 Encoding: UTF-8
 Depends: R (>= 4.1.0)
