@@ -232,6 +232,12 @@ def run_and_measure(
     if proc.returncode != 0:
         rec["status"] = "failed"
         rec["stderr_tail"] = proc.stderr[-2000:]
+        # Print it too, not just record it: in CI the results file may never be
+        # uploaded (a later arm can abort the run first), and a failure with no
+        # visible stderr is undebuggable. This is how the container's R arms
+        # failed twice with nothing in the log.
+        print(f"{name}/{arm}: FAILED (exit {proc.returncode}):", file=sys.stderr)
+        print(proc.stderr[-2000:], file=sys.stderr)
         return rec
     rec["status"] = "ok"
     meta = read_stages(os.path.join(out_dir, "run_metadata.tsv"))
