@@ -36,7 +36,12 @@ echo "cpus:   $(nproc)   OMP_NUM_THREADS=$OMP_NUM_THREADS"
 # Both arms, then the gates. The gates are evaluated *inside* the container so the
 # ratios come from rows this run wrote; evaluating them outside would compare rows
 # recorded on different hosts.
-python3 scripts/run_benchmarks.py --data benchmarks/datasets "$@"
+# `--binary` names the image's own build explicitly. The default,
+# `target/release/ancombc2-rs`, resolves under /work, which the CI job mounts
+# over with the host checkout -- hiding the binaries the image built. Without
+# this the harness reports "not found" and exits 2 before appending anything.
+python3 scripts/run_benchmarks.py --data benchmarks/datasets \
+    --binary /usr/local/bin/ancombc2-rs "$@"
 python3 scripts/bench_gates.py --results benchmarks/results/results.jsonl \
     --report benchmarks/results/gates.json
 

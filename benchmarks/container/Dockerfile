@@ -63,7 +63,12 @@ RUN git clone https://github.com/FrederickHuangLin/ANCOMBC.git /opt/ANCOMBC \
     && test "$(git rev-parse HEAD)" = "${ORACLE_SHA}" \
     && rm -rf .git
 
-RUN R -e 'install.packages("nloptr", repos = "https://cloud.r-project.org")'
+# `MASS` ships with a full R but rocker/r-ver is minimal; the harness needs
+# `MASS::ginv` and fails on startup without it. Installing it explicitly is a
+# no-op where present and a fix where absent. (`Matrix` is not needed on the
+# fixed-effects path, which was verified by running a matrix cell with only
+# MASS+nloptr present.)
+RUN R -e 'install.packages(c("MASS", "nloptr"), repos = "https://cloud.r-project.org")'
 
 COPY . /work
 WORKDIR /work
@@ -75,6 +80,12 @@ WORKDIR /work
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
 ENV PATH="/root/.cargo/bin:${PATH}"
 RUN rustup show && cargo build --release -p ancombc2-cli -p ancombc2-sim
+# The CI job mounts the host checkout over /work, which hides the `target/`
+# this build just produced -- so `target/release/ancombc2-rs` does not exist at
+# runtime and the harness aborts before appending anything. Publish the two
+# binaries where no mount reaches, and have the entrypoint name them explicitly.
+RUN cp target/release/ancombc2-rs target/release/ancombc2-sim /usr/local/bin/ \
+    && ls -la /usr/local/bin/ancombc2-*
 
 # Fail the build if the image's R is not the one intended, rather than letting
 # it produce a full benchmark surface that is silently off-target.
