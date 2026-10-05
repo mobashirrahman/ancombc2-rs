@@ -51,6 +51,15 @@ the committed goldens record Ubuntu's reference BLAS, and an OpenBLAS R shifts
 > report drift that is real but not a regression, and the right response is to
 > check the BLAS, not to widen the comparison.
 
+CI enforces this rather than assuming it. The `oracle` job installs the reference
+`libblas-dev`/`liblapack-dev`, selects them through `update-alternatives` (which
+is how R resolves `libblas.so.3` at startup), and then *asserts* the BLAS in
+"record the environment" instead of merely printing it — a runner image that
+changes the BLAS fails there, with the cause in the message, rather than as a
+cryptic byte difference in `goldens-drift` three steps later. This bit once
+already: the first R 4.6 run failed on `fx03: 1.12e-06` because the runner linked
+OpenBLAS, and the environment record is how that was diagnosed.
+
 The same applies to one of the Layer 4 tables: `validation/realdata/qmp-vignette/`
 is *synthetic*, generated through a call to `eigen()`, whose eigenvector signs are
 not fixed by R and differ between LAPACK implementations. Its `counts.tsv` moves
