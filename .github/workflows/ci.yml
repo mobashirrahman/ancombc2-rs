@@ -481,6 +481,12 @@ jobs:
         # artifact rather than something a reader has to trust.
         run: |
           docker run --rm --entrypoint R ancombc2-bench:ci -e 'sessionInfo(); sessionInfo()$BLAS; sessionInfo()$LAPACK'
+      # The datasets are generated, not committed (`benchmarks/datasets/` is
+      # gitignored), so a fresh checkout has none and the image -- which mounts
+      # the repo at /work -- would fail with "not found; run make_bench_data".
+      # Generate them on the host first; the mount makes them visible inside.
+      - name: generate the datasets the image will read
+        run: python3 scripts/make_bench_data.py --out benchmarks/datasets
       - name: run one dataset end to end in the image
         run: |
           docker run --rm \
