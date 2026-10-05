@@ -25,8 +25,19 @@ load_harness <- function(oracle_dir = NULL) {
     }
   }
   here <- environment()
-  source(file.path(oracle_dir, "..", "R", "oracle.R"), local = TRUE)
-  source(file.path(oracle_dir, "..", "R", "stubs.R"), local = TRUE)
+  # Where the harness's own R files live. By default this is deduced from the
+  # oracle's location, assuming the repository layout (`<root>/reference/ANCOMBC`
+  # beside `<root>/reference/R`). That assumption breaks when the oracle is
+  # checked out elsewhere -- notably `/opt/ANCOMBC` in the benchmark image, for
+  # which `..` resolves to `/opt/R` and the `source()` fails with "No such file
+  # or directory", which is how the container's R arms failed twice with nothing
+  # in the log. `ANCOMBC_REFERENCE_R` overrides it explicitly.
+  ref_dir <- Sys.getenv("ANCOMBC_REFERENCE_R", unset = "")
+  if (!nzchar(ref_dir)) {
+    ref_dir <- file.path(oracle_dir, "..", "R")
+  }
+  source(file.path(ref_dir, "oracle.R"), local = TRUE)
+  source(file.path(ref_dir, "stubs.R"), local = TRUE)
 
   verify_oracle(oracle_dir)
   # foreach / %dorng% / registerDoSEQ are resolved in globalenv() by the sourced

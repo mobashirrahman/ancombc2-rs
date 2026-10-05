@@ -15,6 +15,9 @@ cd /work
 # `scripts/sim_r.R` and `scripts/bench_r.R` read; the vendored copy at
 # `reference/ANCOMBC` is kept for the non-container path.
 export ANCOMBC_ORACLE_DIR="${ANCOMBC_ORACLE_DIR:-/opt/ANCOMBC}"
+# The harness deduces its own R files as `$ORACLE_DIR/../R`, which is
+# `/opt/R` here and does not exist. Point it at the mounted checkout's copy.
+export ANCOMBC_REFERENCE_R="${ANCOMBC_REFERENCE_R:-/work/reference/R}"
 
 # Number of R threads for the `r-parallel` arm. 0 means "use every core", which is
 # what "R fully parallel" means in the plan's seven-arm list.
