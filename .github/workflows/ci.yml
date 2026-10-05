@@ -153,6 +153,28 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      # The committed goldens were drawn on Ubuntu's reference BLAS, and
+      # `goldens-drift` below byte-compares the `.f64` payloads. An OpenBLAS R
+      # shifts `beta` by up to 2.5e-06 relative -- above the contract's rtol --
+      # so the runner must use the reference implementation or the gate fails
+      # on something that is not a regression. R resolves `libblas.so.3` at
+      # startup through the alternatives system, which is how the runner can
+      # silently differ from the machine the goldens were drawn on; pin it here
+      # and the "record the environment" step below audits that it held.
+      - name: pin the reference BLAS the goldens were drawn with
+        run: |
+          # The runner image ships OpenBLAS alongside the reference
+          # implementation, and whichever `libblas.so.3` resolves to is what R
+          # loads. Install the reference packages so the alternatives below
+          # exist, then select them.
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq libblas-dev liblapack-dev
+          sudo update-alternatives --set libblas.so.3-x86_64-linux-gnu \
+            /usr/lib/x86_64-linux-gnu/blas/libblas.so.3
+          sudo update-alternatives --set liblapack.so.3-x86_64-linux-gnu \
+            /usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3
+          sudo ldconfig
+          ldconfig -p | grep -E "libblas.so.3 |liblapack.so.3 " | head -4
       - uses: r-lib/actions/setup-r@v2
         with:
           r-version: '4.6'
@@ -208,6 +230,10 @@ jobs:
             echo "date: $(date -u +%FT%TZ)"
             Rscript -e 'cat("R:", R.version.string, "\nplatform:", R.version$platform, "\n")'
             Rscript -e 'cat("BLAS:", extSoftVersion()[["BLAS"]], "\n")'
+            # Assert, not just record: if a future runner links a different BLAS,
+            # goldens-drift fails on a byte difference that is not a regression.
+            # Fail here instead, with the cause in the message.
+            Rscript -e 'b <- extSoftVersion()[["BLAS"]]; if (grepl("openblas|flexiblas|atlas|mkl|accelerate|blis", b, ignore.case = TRUE)) stop("BLAS is not the reference implementation (", b, "): the committed goldens were drawn on reference BLAS and goldens-drift byte-compares")'
             Rscript -e 'sessionInfo()'
           } | tee reference/env/CI_ENVIRONMENT.md
       - name: mirror self-check
