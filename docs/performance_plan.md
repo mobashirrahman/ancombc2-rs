@@ -214,9 +214,24 @@ The arithmetic does not change. The reflectors are computed from the same update
 the loop nesting differs. That is what makes it safe here: it can be bit-identical,
 and the golden suite is the check.
 
-**Expected:** 2.4 -> ~5 GFLOP/s in cache, recovering most of the 2.2x the size
-sweep says is on the table. **Risk: low.** The main hazard is accidentally
-changing the order of the trailing update, which would be caught by the matrix.
+**Measured 2026-10-05: 0 %.** A blocked implementation (panel of 4, exact
+`(v, vnorm_sq)` saved per reflector, trailing columns loaded once per block) is
+bit-identical — 332/332 workspace tests unchanged — and no faster: 1.55 ms vs
+1.48 ms per factorisation at `n = 10000, p = 10`, within run-to-run noise. The
+working set per reflector already fits in cache at these shapes, so there is no
+eviction for blocking to avoid. The cache-residency knee in section 6 is real but
+is not what limits this kernel; see below. The blocked code was reverted — a
+change that cannot be measured in seconds does not go in.
+
+**What actually limits it:** the dot-product reduction. `Iterator::sum()` is a
+single serial accumulator (2.8 GFLOP/s in isolation); four independent
+accumulators run at 11.2 GFLOP/s. The axpy half already runs at 11-14 GFLOP/s,
+so the dot is ~80 % of QR time. That dependency chain is the bottleneck, not
+cache traffic, which is why reordering the loops changed nothing.
+
+**Risk: low** for bit-identity (proven), but the step as specified does not move
+the gate. Do not re-attempt blocking without a shape where the trailing set
+exceeds the cache.
 
 ### Step 2 — the same treatment for `solve_multi_into`
 
@@ -248,9 +263,32 @@ So step 3 is to be **measured as a trade and presented as one**, with the
 deviation reported, not slipped in under a claim of equivalence. If it moves
 results, it becomes a `CompatMode` variant rather than a default.
 
-**Expected:** up to 2x more, at the cost of exactness. **Risk: medium.**
+**Measured 2026-10-05: +15 % for a 2e-07 deviation — not worth taking.**
+Four-accumulator reductions on all three hot sums (`norm_sq`, `vnorm_sq`, `dot`)
+move the kernel from 1.29 to 1.52 GFLOP/s at `n = 10000, p = 10`, because the
+memory traffic and the axpy dominate once the reduction is fixed. The golden
+contract fails on `delta_em` at rel 1.97e-07 — 20x over the `beta`/`theta` rtol
+and 2x over `delta_em`'s own. Fifteen percent faster for a broken contract is a
+bad trade on both axes, and it was reverted with the blocking above.
+
+The implication is blunt: even a perfect reassociation of the reduction buys at
+most ~2x on the QR, not the 3-5x P1 and P2 need, because only the dot half
+responds to it. Micro-optimising this kernel cannot close the gates, with or
+without bit-identity. What could is algorithmic — less QR work per run, not
+faster QR arithmetic — and that is a different plan.
+
+**Risk: medium** for the code, **unacceptable** for the contract at the measured
+deviation. Do not ship a reassociated reduction without a compatibility decision
+that explicitly accepts the new bits.
 
 ### Projections
+
+> **2026-10-05: these projections are withdrawn.** They assumed steps 1 and 2
+> would land at 3x by removing cache traffic. Step 1 measured 0 % and step 3
+> measured +15 % for a broken contract, so the assumption is false and the table
+> below is arithmetic from a false premise. It is kept so the reasoning can be
+> checked, not as a target. P1 and P2 have no known path that preserves
+> bit-identity; see steps 1 and 3 above.
 
 If steps 1 and 2 land at 3x, and **these are arithmetic, not measurements**:
 
