@@ -766,6 +766,23 @@ Revisit only after profiling shows the dense path is memory-bandwidth-bound at
 extreme sparsity (> 90 % zeros, S5/S6). Provide `Representation::{Dense, SparseTaxa}`
 behind a config flag and benchmark both.
 
+Measured 2026-10-05, on `bm3` (500 taxa x 5000 samples, 50 % zeros — the only
+benchmark dataset above the ~33 % crossover where the sparse layout can in
+principle win), one thread, three runs each:
+
+| representation | wall | peak RSS | results |
+| --- | --- | --- | --- |
+| dense (default) | 1.20 s | ~272 MB | — |
+| `--sparse-taxa` | 1.23 s | ~270 MB | byte-identical (`res`, `res_global`, `res_pair`) |
+
+No measurable difference on either axis. The flag's own help text already warns
+that only the prevalence and library-size screens benefit and only the storage;
+on a 1.2 s run allocating ~2.0 GB total, the screens are too small a fraction
+for the representation to show. The > 90 % condition for revisiting is met by no
+dataset here, so the 42-arm surface stays dense-only by design rather than by
+omission — and this paragraph is the record the code comment at
+`preprocess.rs` asked for instead of an argument.
+
 ---
 
 ## 10. Release roadmap

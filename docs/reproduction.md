@@ -446,12 +446,11 @@ thread count and the timing, which are supposed to differ.
   `benchmarks/container/environment-linux-64.lock` reproduces the same pinned
   environment — R, BLAS and all 15 oracle `Imports` — with no container at all.
   All committed results still came from the host path.
-* **The `full` simulation grid has no R arm yet.** The Rust arm is complete —
-  252 cells, 249,600 replicates, 0 failures, 3,998 s — and its results are written
-  up in `docs/simulation_results.md`. The R arm is running and needs on the order
-  of 39 hours. Until it exists there is no Rust-versus-R comparison for that grid,
-  and nothing in `docs/simulation_results.md` should be read as one; the summary
-  file records `"compared_against_r": false`.
+* ~~The `full` simulation grid has no R arm yet.~~ **Done.** The R arm finished
+  writing on 2026-10-01 (`validation/simulation/results/full.r.jsonl`, 13.6 GB):
+  252 cells, `compared_against_r: true`, `n_divergent: 0`. The Rust arm (252
+  cells, 249,600 replicates, 0 failures) and the comparison are both written up
+  in `docs/simulation_results.md`.
 * ~~Full oracle regeneration on R >= 4.5.0 has not run here.~~ **Done.** R 4.5.3
   and R 4.6.1 were both installed, ANCOMBC 2.15.2 installs and runs on both, and
   the fixture matrix is bit-identical across 4.3.3, 4.5.3 and 4.6.1 on one BLAS —

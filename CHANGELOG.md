@@ -6,7 +6,8 @@ project uses [semantic versioning](https://semver.org/spec/v2.0.0.html) with a
 
 The compatibility target is a separate and stricter axis. It is recorded in
 `reference/env/ORACLE.md` and asserted in
-`crates/ancombc2-core/src/compat.rs::ORACLE_SHA`:
+`crates/ancombc2-core/src/lib.rs::ORACLE_SHA` (with `ORACLE_VERSION` and
+`COMPAT_TARGET` beside it):
 
 ```
 ancombc2-rs v0.1  ==  ANCOMBC 2.15.2 @ dc4febdf59badb3a8dfe0c767ef2186323c2199a

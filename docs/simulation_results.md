@@ -120,11 +120,12 @@ standard error is about 0.05 on power, so the 3 SE acceptance band is roughly
 reported as inconclusive rather than as agreement, which is what
 `ancombc2-sim summarise` is built to do.
 
-The in-progress R arm is *not* wasted: its configuration (structural zeros on,
-lower-bound classification, `pseudo = 0.5`, `BH`, no filter cutoffs, `s0_perc =
-0.05`, `alpha = 0.05`) matches the grid's for 250 of the 252 cells. Only the two
-`reps = 200` sensitivity cells, which override `sensitivity`, need re-running on
-the R side.
+The R arm finished writing on 2026-10-01 (`validation/simulation/results/full.r.jsonl`,
+13.6 GB) and the comparison above is the full 252-cell acceptance result, not a
+subset: `full.summary.json` records `compared_against_r: true`, `n_divergent: 0`.
+Its configuration (structural zeros on, lower-bound classification,
+`pseudo = 0.5`, `BH`, no filter cutoffs, `s0_perc = 0.05`, `alpha = 0.05`)
+matches the grid throughout, including the two `reps = 200` sensitivity cells.
 
 Timing for the Rust arm, before the fix: 249,600 replicates in 3,998 s on 16
 threads, 0 failures.
@@ -192,13 +193,10 @@ has no bias is reported `inconclusive` rather than being treated as agreeing.
 
 ## What this does not establish
 
-* No Rust-versus-R comparison exists yet for the `full` grid. The per-cell
-  agreement reported above is over a handful of cells at 3–200 replicates,
-  selected to demonstrate that the configuration bug is fixed — it is not the
-  252-cell acceptance result.
-* The `full` grid's R arm is in progress. Its configuration already matches the
-  grid for 250 of the 252 cells, so it is not wasted; only the two `reps = 200`
-  sensitivity cells, which override `sensitivity`, need re-running on the R side.
+* The per-cell agreement reported above *is* the 252-cell acceptance result
+  (`full.summary.json`: `compared_against_r: true`, `n_divergent: 0`), not a
+  handful of cells selected to demonstrate a fix. The configuration-bug episode
+  it supersedes is history, not a caveat.
 * 39 of the 48 `quick` cells are **inconclusive**, not agreeing: 20 replicates
   cannot resolve the 3 SE band. The grid they belong to is the coarse one; the
   full grid's 1000 replicates are what the acceptance rule is written against.
