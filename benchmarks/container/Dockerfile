@@ -44,8 +44,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     RENV_PATHS_CACHE=/usr/local/lib/R/site-library
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-      ca-certificates git libcurl4-openssl-dev libssl-dev \
-      build-essential pkg-config \
+      ca-certificates curl git libcurl4-openssl-dev libssl-dev \
+      build-essential cmake pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
 # The pinned oracle, fetched by commit rather than by tag, and *verified* before
@@ -63,13 +63,18 @@ RUN R -e 'install.packages("nloptr", repos = "https://cloud.r-project.org")'
 COPY . /work
 WORKDIR /work
 
-# `rust-toolchain.toml` pins the compiler; the lockfile pins the dependency graph.
+# The base image has no Rust at all -- `rustup` is not on PATH, so the `cargo
+# build` below used to fail with exit 127. Install stable, which is what CI
+# runs (there is no rust-toolchain.toml pinning anything else); the lockfile
+# pins the dependency graph.
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+ENV PATH="/root/.cargo/bin:${PATH}"
 RUN rustup show && cargo build --release -p ancombc2-cli -p ancombc2-sim
 
 # Fail the build if the image's R is not the one the oracle declares, rather than
 # letting it produce a full benchmark surface that is silently off-target.
 RUN R -e 'v <- paste(R.version$major, R.version$minor, sep = "."); \
-         stopifnot(identical(v, "4.5")); \
+         stopifnot(identical(v, "4.6")); \
          cat("R", v, "\n")'
 
 # Reports what the image actually is, so a results row can carry it. BLAS/LAPACK
