@@ -29,7 +29,7 @@ compatibility claim and requires an explicit version bump in `CHANGELOG.md`.
 |---|---|
 | R version | 4.3.3 (2024-02-29) "Angel Food Cake" |
 | Platform | x86_64-pc-linux-gnu (64-bit) |
-| Extra library path | `/scratch/mdra00001/rlib` |
+| Extra library path | a private library holding `nloptr` etc. (the original run used a per-user `rlib`; set `ANCOMBC_RLIB`) |
 | RNG | `set.seed(42)`, default RNGkind |
 | Rust | 1.98.1 (797e8a9bc 2026-08-05) |
 

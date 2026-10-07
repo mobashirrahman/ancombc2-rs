@@ -17,7 +17,7 @@
 
 args <- commandArgs(trailingOnly = TRUE)
 built <- args[[1]]
-oracle_lib <- Sys.getenv("ANCOMBC_RLIB", "/scratch/mdra00001/rlib")
+oracle_lib <- Sys.getenv("ANCOMBC_RLIB", Sys.getenv("R_LIBS_USER", ".rlib/deps"))
 
 stray <- file.path(oracle_lib, "ancombc2rs")
 if (dir.exists(stray)) {

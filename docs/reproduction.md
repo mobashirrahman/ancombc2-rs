@@ -235,9 +235,9 @@ blobs over 100 MB           2  ->    0
 tracked validation/      841M  ->  532M
 ```
 
-A backup mirror of the pre-rewrite repository was kept at
-`/scratch/mdra00001/tmp/opencode/ancom-backup/ancom-bc2-rust.git`; delete it once
-the rewritten history has been pushed and cloned back successfully.
+A backup mirror of the pre-rewrite repository was kept outside the checkout;
+delete it once the rewritten history has been pushed and cloned back
+successfully.
 
 ## The golden format
 
