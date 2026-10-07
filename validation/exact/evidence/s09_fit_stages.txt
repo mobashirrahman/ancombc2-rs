@@ -1,0 +1,232 @@
+python3 scripts/with_profile_r.py --profile validation/exact/profiles/linux-r453-openblas.json \
+    --set-env R_LIBS=/scratch/mdra00001/ancom-bc2-rust/.rlib/replacement \
+    scripts/check_fit_stages.R
+ok    the bridge is present
+
+--- full-rank  (x 12 x 2, y 6 x 12)
+ok    full-rank: the probe runs
+  dims: n_samp 12, p 2, n_taxa 6, n_groups 1, raw_mask 72 of 72, x_ok 12, x NaN 0
+  groups: 1 [12 rows x 6 taxa]
+ok    full-rank: beta is byte-identical
+ok    full-rank: fitted is byte-identical
+ok    full-rank: dof agrees
+ok    full-rank: taxon 1 beta
+ok    full-rank: taxon 1 fitted
+ok    full-rank: taxon 1 dof
+ok    full-rank: taxon 2 beta
+ok    full-rank: taxon 2 fitted
+ok    full-rank: taxon 2 dof
+ok    full-rank: taxon 3 beta
+ok    full-rank: taxon 3 fitted
+ok    full-rank: taxon 3 dof
+ok    full-rank: taxon 4 beta
+ok    full-rank: taxon 4 fitted
+ok    full-rank: taxon 4 dof
+ok    full-rank: taxon 5 beta
+ok    full-rank: taxon 5 fitted
+ok    full-rank: taxon 5 dof
+ok    full-rank: taxon 6 beta
+ok    full-rank: taxon 6 fitted
+ok    full-rank: taxon 6 dof
+
+--- two-factors  (x 12 x 3, y 6 x 12)
+ok    two-factors: the probe runs
+  dims: n_samp 12, p 3, n_taxa 6, n_groups 1, raw_mask 72 of 72, x_ok 12, x NaN 0
+  groups: 1 [12 rows x 6 taxa]
+ok    two-factors: beta is byte-identical
+ok    two-factors: fitted is byte-identical
+ok    two-factors: dof agrees
+ok    two-factors: taxon 1 beta
+ok    two-factors: taxon 1 fitted
+ok    two-factors: taxon 1 dof
+ok    two-factors: taxon 2 beta
+ok    two-factors: taxon 2 fitted
+ok    two-factors: taxon 2 dof
+ok    two-factors: taxon 3 beta
+ok    two-factors: taxon 3 fitted
+ok    two-factors: taxon 3 dof
+ok    two-factors: taxon 4 beta
+ok    two-factors: taxon 4 fitted
+ok    two-factors: taxon 4 dof
+ok    two-factors: taxon 5 beta
+ok    two-factors: taxon 5 fitted
+ok    two-factors: taxon 5 dof
+ok    two-factors: taxon 6 beta
+ok    two-factors: taxon 6 fitted
+ok    two-factors: taxon 6 dof
+
+--- scaled-column  (x 12 x 2, y 6 x 12)
+ok    scaled-column: the probe runs
+  dims: n_samp 12, p 2, n_taxa 6, n_groups 1, raw_mask 72 of 72, x_ok 12, x NaN 0
+  groups: 1 [12 rows x 6 taxa]
+ok    scaled-column: beta is byte-identical
+ok    scaled-column: fitted is byte-identical
+ok    scaled-column: dof agrees
+ok    scaled-column: taxon 1 beta
+ok    scaled-column: taxon 1 fitted
+ok    scaled-column: taxon 1 dof
+ok    scaled-column: taxon 2 beta
+ok    scaled-column: taxon 2 fitted
+ok    scaled-column: taxon 2 dof
+ok    scaled-column: taxon 3 beta
+ok    scaled-column: taxon 3 fitted
+ok    scaled-column: taxon 3 dof
+ok    scaled-column: taxon 4 beta
+ok    scaled-column: taxon 4 fitted
+ok    scaled-column: taxon 4 dof
+ok    scaled-column: taxon 5 beta
+ok    scaled-column: taxon 5 fitted
+ok    scaled-column: taxon 5 dof
+ok    scaled-column: taxon 6 beta
+ok    scaled-column: taxon 6 fitted
+ok    scaled-column: taxon 6 dof
+
+--- missing-one  (x 12 x 2, y 6 x 12)
+ok    missing-one: the probe runs
+  dims: n_samp 12, p 2, n_taxa 6, n_groups 2, raw_mask 71 of 72, x_ok 12, x NaN 0
+  groups: 2 [12 rows x 5 taxa] [11 rows x 1 taxa]
+ok    missing-one: beta is byte-identical
+ok    missing-one: fitted is byte-identical
+ok    missing-one: dof agrees
+ok    missing-one: taxon 1 beta
+ok    missing-one: taxon 1 fitted
+ok    missing-one: taxon 1 dof
+ok    missing-one: taxon 2 beta
+ok    missing-one: taxon 2 fitted
+ok    missing-one: taxon 2 dof
+ok    missing-one: taxon 3 beta
+ok    missing-one: taxon 3 fitted
+ok    missing-one: taxon 3 dof
+ok    missing-one: taxon 4 beta
+ok    missing-one: taxon 4 fitted
+ok    missing-one: taxon 4 dof
+ok    missing-one: taxon 5 beta
+ok    missing-one: taxon 5 fitted
+ok    missing-one: taxon 5 dof
+ok    missing-one: taxon 6 beta
+ok    missing-one: taxon 6 fitted
+ok    missing-one: taxon 6 dof
+
+--- missing-all-in-a-taxon  (x 12 x 2, y 6 x 12)
+ok    missing-all-in-a-taxon: the probe runs
+  dims: n_samp 12, p 2, n_taxa 6, n_groups 2, raw_mask 60 of 72, x_ok 12, x NaN 0
+  groups: 2 [12 rows x 5 taxa] [0 rows x 1 taxa]
+ok    missing-all-in-a-taxon: beta is byte-identical
+ok    missing-all-in-a-taxon: fitted is byte-identical
+ok    missing-all-in-a-taxon: dof agrees
+ok    missing-all-in-a-taxon: taxon 1 beta
+ok    missing-all-in-a-taxon: taxon 1 fitted
+ok    missing-all-in-a-taxon: taxon 1 dof
+ok    missing-all-in-a-taxon: taxon 2 beta
+ok    missing-all-in-a-taxon: taxon 2 fitted
+ok    missing-all-in-a-taxon: taxon 2 dof
+ok    missing-all-in-a-taxon: taxon 3 beta
+ok    missing-all-in-a-taxon: taxon 3 fitted
+ok    missing-all-in-a-taxon: taxon 3 dof
+ok    missing-all-in-a-taxon: taxon 4 beta
+ok    missing-all-in-a-taxon: taxon 4 fitted
+ok    missing-all-in-a-taxon: taxon 4 dof
+ok    missing-all-in-a-taxon: taxon 5 beta
+ok    missing-all-in-a-taxon: taxon 5 fitted
+ok    missing-all-in-a-taxon: taxon 5 dof
+ok    missing-all-in-a-taxon: taxon 6 beta
+ok    missing-all-in-a-taxon: taxon 6 fitted
+ok    missing-all-in-a-taxon: taxon 6 dof
+
+--- huge-response  (x 12 x 2, y 6 x 12)
+ok    huge-response: the probe runs
+  dims: n_samp 12, p 2, n_taxa 6, n_groups 1, raw_mask 72 of 72, x_ok 12, x NaN 0
+  groups: 1 [12 rows x 6 taxa]
+ok    huge-response: beta is byte-identical
+ok    huge-response: fitted is byte-identical
+ok    huge-response: dof agrees
+ok    huge-response: taxon 1 beta
+ok    huge-response: taxon 1 fitted
+ok    huge-response: taxon 1 dof
+ok    huge-response: taxon 2 beta
+ok    huge-response: taxon 2 fitted
+ok    huge-response: taxon 2 dof
+ok    huge-response: taxon 3 beta
+ok    huge-response: taxon 3 fitted
+ok    huge-response: taxon 3 dof
+ok    huge-response: taxon 4 beta
+ok    huge-response: taxon 4 fitted
+ok    huge-response: taxon 4 dof
+ok    huge-response: taxon 5 beta
+ok    huge-response: taxon 5 fitted
+ok    huge-response: taxon 5 dof
+ok    huge-response: taxon 6 beta
+ok    huge-response: taxon 6 fitted
+ok    huge-response: taxon 6 dof
+
+--- incomplete-design-row  (x 12 x 2, y 6 x 12)
+ok    incomplete-design-row: the probe runs
+  dims: n_samp 12, p 2, n_taxa 6, n_groups 1, raw_mask 72 of 72, x_ok 11, x NaN 1
+  groups: 1 [11 rows x 6 taxa]
+ok    incomplete-design-row: beta is byte-identical
+ok    incomplete-design-row: fitted is byte-identical
+ok    incomplete-design-row: dof agrees
+ok    incomplete-design-row: taxon 1 beta
+ok    incomplete-design-row: taxon 1 fitted
+ok    incomplete-design-row: taxon 1 dof
+ok    incomplete-design-row: taxon 2 beta
+ok    incomplete-design-row: taxon 2 fitted
+ok    incomplete-design-row: taxon 2 dof
+ok    incomplete-design-row: taxon 3 beta
+ok    incomplete-design-row: taxon 3 fitted
+ok    incomplete-design-row: taxon 3 dof
+ok    incomplete-design-row: taxon 4 beta
+ok    incomplete-design-row: taxon 4 fitted
+ok    incomplete-design-row: taxon 4 dof
+ok    incomplete-design-row: taxon 5 beta
+ok    incomplete-design-row: taxon 5 fitted
+ok    incomplete-design-row: taxon 5 dof
+ok    incomplete-design-row: taxon 6 beta
+ok    incomplete-design-row: taxon 6 fitted
+ok    incomplete-design-row: taxon 6 dof
+
+--- incomplete-row-and-missing  (x 12 x 2, y 6 x 12)
+ok    incomplete-row-and-missing: the probe runs
+  dims: n_samp 12, p 2, n_taxa 6, n_groups 2, raw_mask 71 of 72, x_ok 11, x NaN 1
+  groups: 2 [11 rows x 5 taxa] [10 rows x 1 taxa]
+ok    incomplete-row-and-missing: beta is byte-identical
+ok    incomplete-row-and-missing: fitted is byte-identical
+ok    incomplete-row-and-missing: dof agrees
+ok    incomplete-row-and-missing: taxon 1 beta
+ok    incomplete-row-and-missing: taxon 1 fitted
+ok    incomplete-row-and-missing: taxon 1 dof
+ok    incomplete-row-and-missing: taxon 2 beta
+ok    incomplete-row-and-missing: taxon 2 fitted
+ok    incomplete-row-and-missing: taxon 2 dof
+ok    incomplete-row-and-missing: taxon 3 beta
+ok    incomplete-row-and-missing: taxon 3 fitted
+ok    incomplete-row-and-missing: taxon 3 dof
+ok    incomplete-row-and-missing: taxon 4 beta
+ok    incomplete-row-and-missing: taxon 4 fitted
+ok    incomplete-row-and-missing: taxon 4 dof
+ok    incomplete-row-and-missing: taxon 5 beta
+ok    incomplete-row-and-missing: taxon 5 fitted
+ok    incomplete-row-and-missing: taxon 5 dof
+ok    incomplete-row-and-missing: taxon 6 beta
+ok    incomplete-row-and-missing: taxon 6 fitted
+ok    incomplete-row-and-missing: taxon 6 dof
+
+--- one group against stats::lm.fit directly
+ok    one group: beta matches lm.fit's, bit for bit
+ok    one group: dof matches lm.fit's
+ok    one group: fitted matches lm.fit's, bit for bit
+ok    lm.fit's own fitted.values is not x %*% coef on this input
+ok    lm.fit's own fitted.values is not y - (y - x %*% coef) either
+ok    a missing factor level does not crash the probe
+ok    missing level: beta is byte-identical to the per-taxon lm()'s
+ok    missing level: fitted is byte-identical to the per-taxon lm()'s
+ok    missing level: dof is n_used - rank of the re-levelled model
+
+--- the primitive's own behaviour
+ok    lm.fit's rank is 2 on a duplicated column
+ok    lm.fit's aliased coefficient is NA_real_, not zero
+ok    lm.fit's df.residual is n - rank
+ok    lm.fit's rank does not depend on y
+ok    lm.fit's df.residual is 0 when underdetermined
+
+191/191 checks passed

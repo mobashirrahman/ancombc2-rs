@@ -644,6 +644,50 @@ int32_t ancombc2_rb_reducer(struct rb_reducer *out) {
 }
 
 /* ------------------------------------------------------------------------ */
+/* C_ancombc2_rb_dqrls / C_ancombc2_rb_set_blas                              */
+/* ------------------------------------------------------------------------ */
+
+extern int32_t ancombc2_rb_dqrls(int32_t kind, int64_t n, int64_t p, const double *x,
+                                 const double *y, double tol, double *coef,
+                                 double *resid, int32_t *rank);
+extern int32_t ancombc2_rb_set_blas(int32_t kind);
+
+/* Arguments: kind, x (n x p, double matrix), y (length n, double), tol.
+ * Returns list(coefficients, residuals, rank) computed by the Rust transcription of
+ * `Cdqrls` under BLAS `kind`, for R to compare bit for bit with its own. */
+SEXP C_ancombc2_rb_dqrls(SEXP kind, SEXP x, SEXP y, SEXP tol) {
+  if (TYPEOF(x) != REALSXP || TYPEOF(y) != REALSXP) {
+    Rf_error("dqrls calibration takes double `x` and `y`");
+  }
+  int64_t n = (int64_t) Rf_length(y);
+  int64_t p = (n > 0) ? (int64_t) (XLENGTH(x) / n) : 0;
+  if (n <= 0 || p <= 0 || (int64_t) XLENGTH(x) != n * p) {
+    Rf_error("dqrls calibration: `x` must be %lld x p", (long long) n);
+  }
+  SEXP coef = PROTECT(Rf_allocVector(REALSXP, (R_xlen_t) p));
+  SEXP resid = PROTECT(Rf_allocVector(REALSXP, (R_xlen_t) n));
+  int32_t rank = 0;
+  int32_t st = ancombc2_rb_dqrls((int32_t) scalar_real(kind, "kind"), n, p, REAL(x),
+                                 REAL(y), scalar_real(tol, "tol"), REAL(coef),
+                                 REAL(resid), &rank);
+  if (st != RB_OK) { UNPROTECT(2); rb_error(st, "dqrls calibration"); }
+  SEXP out = PROTECT(Rf_allocVector(VECSXP, 3));
+  SEXP nm = PROTECT(Rf_allocVector(STRSXP, 3));
+  SET_VECTOR_ELT(out, 0, coef); SET_STRING_ELT(nm, 0, Rf_mkChar("coefficients"));
+  SET_VECTOR_ELT(out, 1, resid); SET_STRING_ELT(nm, 1, Rf_mkChar("residuals"));
+  SET_VECTOR_ELT(out, 2, Rf_ScalarInteger(rank)); SET_STRING_ELT(nm, 2, Rf_mkChar("rank"));
+  Rf_setAttrib(out, R_NamesSymbol, nm);
+  UNPROTECT(4);
+  return out;
+}
+
+SEXP C_ancombc2_rb_set_blas(SEXP kind) {
+  int32_t st = ancombc2_rb_set_blas((int32_t) scalar_real(kind, "kind"));
+  if (st != RB_OK) rb_error(st, "set BLAS");
+  return R_NilValue;
+}
+
+/* ------------------------------------------------------------------------ */
 /* C_ancombc2_rb_fit_probe                                                   */
 /* ------------------------------------------------------------------------ */
 
@@ -1493,6 +1537,8 @@ static const R_CallMethodDef CallEntries[] = {
   {"C_ancombc2_rb_emit",       (DL_FUNC) &C_ancombc2_rb_emit,        1},
   {"C_ancombc2_rb_preprocess_probe", (DL_FUNC) &C_ancombc2_rb_preprocess_probe, 1},
   {"C_ancombc2_rb_fit_probe",        (DL_FUNC) &C_ancombc2_rb_fit_probe,        1},
+  {"C_ancombc2_rb_dqrls",            (DL_FUNC) &C_ancombc2_rb_dqrls,            4},
+  {"C_ancombc2_rb_set_blas",         (DL_FUNC) &C_ancombc2_rb_set_blas,         1},
   {"C_ancombc2_rb_oracle_sha", (DL_FUNC) &C_ancombc2_rb_oracle_sha,  0},
   {"C_ancombc2_rb_version",    (DL_FUNC) &C_ancombc2_rb_version,     0},
   {NULL, NULL, 0}

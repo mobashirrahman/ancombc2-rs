@@ -2492,6 +2492,83 @@ pub struct RawFit {
     pub observed: *const u8,
 }
 
+/// **BLAS calibration.** Solve one least-squares problem the way R's `Cdqrls`
+/// does, under a named BLAS, so R can compare the bits with its own `Cdqrls` and
+/// learn which BLAS it is linked to.
+///
+/// `kind` is `0` for the netlib reference BLAS and `1` for OpenBLAS's Haswell/Zen
+/// kernels. Nothing global is touched; see [`ancombc2_rb_set_blas`].
+///
+/// # Safety
+///
+/// `x` must hold `n * p` doubles, `y` and `resid_out` `n`, and `coef_out` `p`;
+/// `rank_out` must be valid.
+#[no_mangle]
+pub unsafe extern "C" fn ancombc2_rb_dqrls(
+    kind: i32,
+    n: i64,
+    p: i64,
+    x: *const f64,
+    y: *const f64,
+    tol: f64,
+    coef_out: *mut f64,
+    resid_out: *mut f64,
+    rank_out: *mut i32,
+) -> i32 {
+    use ancombc2_core::matrix::{dqrls_multi, OpenBlasHaswell, RefBlas};
+    if x.is_null() || y.is_null() || coef_out.is_null() || resid_out.is_null() || rank_out.is_null()
+    {
+        set_error("a dqrls calibration pointer was null");
+        return RB_ERR_ARGS;
+    }
+    if n <= 0 || p <= 0 {
+        set_error("dqrls calibration needs n > 0 and p > 0");
+        return RB_ERR_ARGS;
+    }
+    let (n, p) = (n as usize, p as usize);
+    match catch_unwind(AssertUnwindSafe(|| {
+        let xv = std::slice::from_raw_parts(x, n * p).to_vec();
+        let yv = std::slice::from_raw_parts(y, n);
+        let fit = match kind {
+            0 => dqrls_multi::<RefBlas>(xv, n, p, &[yv], tol),
+            #[cfg(target_arch = "x86_64")]
+            1 => dqrls_multi::<OpenBlasHaswell<false>>(xv, n, p, &[yv], tol),
+            _ => return Err(format!("unknown BLAS kind {kind} on this target")),
+        };
+        std::slice::from_raw_parts_mut(coef_out, p).copy_from_slice(&fit.coef[0]);
+        std::slice::from_raw_parts_mut(resid_out, n).copy_from_slice(&fit.resid[0]);
+        *rank_out = fit.rank as i32;
+        Ok(())
+    })) {
+        Ok(Ok(())) => RB_OK,
+        Ok(Err(m)) => {
+            set_error(m);
+            RB_ERR_ARGS
+        }
+        Err(_) => {
+            set_error("panic in dqrls calibration");
+            RB_ERR_PANIC
+        }
+    }
+}
+
+/// Select the BLAS semantics the least-squares fit reproduces: `0` reference,
+/// `1` OpenBLAS Haswell/Zen. Called once by R after a calibration succeeded.
+#[no_mangle]
+pub extern "C" fn ancombc2_rb_set_blas(kind: i32) -> i32 {
+    use ancombc2_core::matrix::{set_blas_kind, BlasKind};
+    match kind {
+        0 => set_blas_kind(BlasKind::Reference),
+        #[cfg(target_arch = "x86_64")]
+        1 => set_blas_kind(BlasKind::OpenBlasHaswell),
+        _ => {
+            set_error(format!("unknown BLAS kind {kind} on this target"));
+            return RB_ERR_ARGS;
+        }
+    }
+    RB_OK
+}
+
 /// **Least-squares probe.** Run the pipeline's own `lm_fit_all` and write its three
 /// outputs into the caller's buffers.
 ///

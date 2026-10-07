@@ -325,7 +325,7 @@ fn fit_one_group(cache: &DesignCache, y: &[f64], n_samp: usize, g: usize) -> Gro
                 coef[cols[pc]] = if pos < red_fit.rank {
                     red_fit.coef[0][pos]
                 } else {
-                    f64::NAN
+                    crate::reduce::na_real()
                 };
             }
             // `stats::fitted` is `lm.fit`'s *projection*, not `X %*% coef(fit)`.
@@ -403,7 +403,7 @@ fn fit_one_group(cache: &DesignCache, y: &[f64], n_samp: usize, g: usize) -> Gro
 /// See `parallel.rs`.
 pub fn lm_fit_all(cache: &DesignCache, y: &[f64], n_taxa: usize, n_samp: usize) -> FitAll {
     let p = cache.p;
-    let mut beta = vec![f64::NAN; n_taxa * p];
+    let mut beta = vec![crate::reduce::na_real(); n_taxa * p];
     // NaN-initialised, matching the reference: `.lm_fit_all` builds
     // `fitted = matrix(NA_real_, n_tax, n_samp)` and only writes what a fit
     // produced. A taxon whose per-taxon `lm` *fails* therefore keeps NA across
@@ -417,7 +417,7 @@ pub fn lm_fit_all(cache: &DesignCache, y: &[f64], n_taxa: usize, n_samp: usize) 
     // because the reference writes them explicitly too: `fitted[idx, !rows] = 0`
     // in the grouped branch, and `fit_one`'s `fi = rep(0, n_samp)` over the whole
     // row.
-    let mut fitted = vec![f64::NAN; n_taxa * n_samp];
+    let mut fitted = vec![crate::reduce::na_real(); n_taxa * n_samp];
     let mut dof = vec![999.0; n_taxa];
 
     let mut lvl = crate::parallel::NestingBudget::level("missingness groups");

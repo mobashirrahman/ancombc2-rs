@@ -13,7 +13,7 @@ demonstrated:
 | --- | --- |
 | Rust pipeline agrees with ANCOMBC 2.15.2 (commit `dc4febdf`) within the tolerances in `docs/numerical_contract.md` | **demonstrated** on 4 golden fixtures, 38 matrix cells, 4 real datasets and a 252-cell simulation grid |
 | Drop-in R package (`r/ANCOMBC`, same 32-argument `ancombc2()` and 7 exports) | **interface only**: it installs and matches the signature, but still executes the retained upstream R; Rust is not yet called from `ancombc2()` |
-| Byte-identical output to the original | **not yet**. 114/114 cases are byte-identical between the original and the replacement *scaffold*; that validates the harness, not Rust. The Rust fit is within 1-2 ulp, not bit-exact |
+| Byte-identical output to the original | **partly**. The least-squares fit is bit-identical to R's `lm.fit` (`make fit-stages` 191/191; `make dqrls-vs-r` 440/440 problems), on the netlib and OpenBLAS Haswell/Zen BLAS families, with the BLAS identified at run time by calibration against R. Preprocessing stages are exact (274/274). The iterative MLE, E-M, variance and testing stages are **not yet** shown exact, and 114/114 whole-result agreement still compares the original with the replacement *scaffold*, which runs retained R |
 | Faster than R | **not yet measured validly**. Earlier ratios used a sequential R stub and mismatched memory metrics; with them, large inputs were about 1.1x and small inputs 15-68x. The valid benchmark gates are pending |
 
 The active plan is `IMPROVED_PLAN.md` and the execution record, including every

@@ -227,7 +227,20 @@ for (f in fixtures) {
                                         pairs[seq.int(2L, 2L * ng, by = 2L)]),
                                 collapse = " ") else ""))
 
-  want <- ref_lm_fit_all(f$x, f$y)
+  # A two-column design is `(Intercept)` + one covariate, so the per-taxon `lm()`
+  # fallback can be given the formula it would have had. The probe returns plain
+  # matrices (names are restored by `rb_restore_names` in the assembly), so the
+  # reference's dimnames are dropped before the byte comparison: a name is not a
+  # number, and comparing it here would fail the fit for a transport detail.
+  xr_ <- f$x
+  meta_ <- NULL; tf_ <- NULL
+  if (ncol(xr_) == 2L) {
+    colnames(xr_) <- c("(Intercept)", "x1")
+    meta_ <- data.frame(x1 = xr_[, 2L]); tf_ <- y_crt ~ x1
+  }
+  want <- ref_lm_fit_all(xr_, f$y, meta_, tf_)
+  want$beta <- unname(want$beta); want$fitted <- unname(want$fitted)
+  want$dof <- unname(want$dof)
 
   ok(paste0(f$name, ": beta is byte-identical"),
      same_bytes(got$beta, want$beta), first_diff(got$beta, want$beta))
@@ -264,21 +277,21 @@ for (f in fixtures) {
 # aliased coefficient, `dof = n - rank` -- is visible without anything on top of it.
 
 cat("\n--- one group against stats::lm.fit directly\n")
-x1 <- cbind(1, rep(c(-1, 1), each = 6), rep(c(0.5, 1.5), times = 6))
+x1 <- cbind(1, rep(c(-1, 1), each = 3), rep(c(0.5, 1.5), times = 3))
 y1 <- matrix(c(2, -1, 0.5, 3, -2, 1, 4, -3, 2.5, -4, 3.5, 1.5), 4, 6)
 obs1 <- matrix(TRUE, 4, 6)
 g <- ANCOMBC:::rb_fit_probe(x1, y1, obs1)
 direct <- stats::lm.fit(x1, t(y1))
 
 ok("one group: beta matches lm.fit's, bit for bit",
-   same_bits(as.vector(g$beta), as.vector(direct$coefficients)),
-   first_diff(as.vector(g$beta), as.vector(direct$coefficients)))
+   same_bits(as.vector(g$beta), as.vector(t(direct$coefficients))),
+   first_diff(as.vector(g$beta), as.vector(t(direct$coefficients))))
 ok("one group: dof matches lm.fit's",
    all(g$dof == direct$df.residual),
    paste("got", paste(g$dof, collapse = ","), "want", direct$df.residual))
 ok("one group: fitted matches lm.fit's, bit for bit",
-   same_bits(as.vector(g$fitted), as.vector(direct$fitted.values)),
-   first_diff(as.vector(g$fitted), as.vector(direct$fitted.values)))
+   same_bits(as.vector(g$fitted), as.vector(t(direct$fitted.values))),
+   first_diff(as.vector(g$fitted), as.vector(t(direct$fitted.values))))
 ok("lm.fit's own fitted.values is not x %*% coef on this input",
    !same_bits(as.vector(direct$fitted.values), as.vector(x1 %*% direct$coefficients)),
    "it is, so the fitted path needs no care here")
@@ -288,23 +301,35 @@ ok("lm.fit's own fitted.values is not y - (y - x %*% coef) either",
    "it is, so the residuals come from the solver")
 
 # A rank-deficient group, which takes `.lm_fit_all`'s per-taxon `lm()` fallback.
-xd <- cbind(1, rep(c(-1, 1), each = 6), rep(c(-1, 1), each = 6))  # columns 2 and 3 equal
-gd <- try(ANCOMBC:::rb_fit_probe(xd, y1, obs1), silent = TRUE)
-ok("a rank-deficient design does not crash the probe", !inherits(gd, "try-error"),
+#
+# The fallback exists for one situation: a taxon whose usable samples miss a whole level
+# of the group factor, so a treatment contrast is all zero over its rows. `lm` then
+# *re-levels* (`drop.unused.levels`), the dropped contrast has no name in `coef()`, and
+# `fit_one` leaves a literal 0 there. The probe treats every non-intercept column as a
+# group contrast, so this is the case it models -- a numeric duplicated column is not,
+# and comparing against it would be comparing two different models.
+g3 <- factor(rep(c("a", "b", "c"), each = 4))
+x3 <- stats::model.matrix(~ g3); storage.mode(x3) <- "double"
+set.seed(5)
+y3 <- matrix(rnorm(4 * 12), 4, 12)
+y3[2, g3 == "c"] <- NA      # taxon 2 never sees level c
+y3[3, g3 == "b"] <- NA      # taxon 3 never sees level b
+obs3 <- is.finite(y3)
+gd <- try(ANCOMBC:::rb_fit_probe(x3, y3, obs3), silent = TRUE)
+ok("a missing factor level does not crash the probe", !inherits(gd, "try-error"),
    if (inherits(gd, "try-error")) as.character(gd) else "")
 if (!inherits(gd, "try-error")) {
-  # The reference refits per taxon with `stats::lm(tformula, ...)`, which needs a
-  # formula over `meta_data`; this fixture has none, so `ref_lm_fit_all` refuses
-  # rather than agreeing on something it did not compute.
-  wd <- try(ref_lm_fit_all(xd, y1), silent = TRUE)
-  ok("the reference's rank-deficient path is refused, not silently skipped",
-     inherits(wd, "try-error") &&
-       grepl("rank-deficient", as.character(wd)),
-     paste("got", if (inherits(wd, "try-error")) "an error" else "a result"))
-  ok("dof for a rank-deficient design is the reference's 999, not n - rank",
-     all(gd$dof == 999), paste("got", paste(gd$dof, collapse = ",")))
-  ok("beta for a rank-deficient design is the reference's NA",
-     all(is.nan(gd$beta)), paste("got", paste(gd$beta, collapse = ",")))
+  y3n <- y3; colnames(y3n) <- as.character(seq_len(ncol(y3)))
+  x3n <- x3; colnames(x3n) <- c("(Intercept)", "g3b", "g3c")
+  wd <- ref_lm_fit_all(x3n, y3n, data.frame(g3 = g3), y_crt ~ g3)
+  wd$beta <- unname(wd$beta); wd$fitted <- unname(wd$fitted); wd$dof <- unname(wd$dof)
+  ok("missing level: beta is byte-identical to the per-taxon lm()'s",
+     same_bytes(gd$beta, wd$beta), first_diff(gd$beta, wd$beta))
+  ok("missing level: fitted is byte-identical to the per-taxon lm()'s",
+     same_bytes(gd$fitted, wd$fitted), first_diff(gd$fitted, wd$fitted))
+  ok("missing level: dof is n_used - rank of the re-levelled model",
+     isTRUE(all.equal(gd$dof, wd$dof)),
+     paste("got", paste(gd$dof, collapse = ","), "want", paste(wd$dof, collapse = ",")))
 }
 
 # ---------------------------------------------------------------------------
@@ -316,13 +341,13 @@ xdup <- cbind(1, c(1, 2, 3, 4), c(1, 2, 3, 4))
 fd <- stats::lm.fit(xdup, c(1, 2, 3, 4))
 ok("lm.fit's rank is 2 on a duplicated column", fd$rank == 2L, fd$rank)
 ok("lm.fit's aliased coefficient is NA_real_, not zero",
-   is.na(fd$coefficients[3]) && identical(fd$coefficients[3], NA_real_),
+   is.na(fd$coefficients[3]) && identical(unname(fd$coefficients[3]), NA_real_),
    paste("got", fd$coefficients[3]))
 ok("lm.fit's df.residual is n - rank", fd$df.residual == nrow(xdup) - fd$rank,
    fd$df.residual)
 ok("lm.fit's rank does not depend on y",
    {
-     rs <- vapply(1:8, function(k) { set.seed(k); stats::lm.fit(x1, matrix(rnorm(4 * 6), 4, 6))$rank }, 0L)
+     rs <- vapply(1:8, function(k) { set.seed(k); stats::lm.fit(x1, matrix(rnorm(6 * 4), 6, 4))$rank }, 0L)
      length(unique(rs)) == 1L
    },
    "the .iter_mle smoke test draws rnorm, so this decides whether it is deterministic")

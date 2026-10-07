@@ -723,9 +723,13 @@ pub const LM_FIT_TOL: f64 = 1e-7;
 /// Householder QR with a rank-revealing tolerance matching `lm.fit`.
 ///
 /// Returns the economy form: `Q` is `n x p` with orthonormal columns and `R` is
-/// the `p x p` upper triangle. `lm.fit` uses LAPACK `dgeqp3` + `dormqr`; the
-/// fitted coefficients depend only on the least-squares solution, so any
-/// accurate QR agrees to rounding, and pivoting is off in both.
+/// the `p x p` upper triangle.
+///
+/// This is **not** what `lm.fit` runs. `lm.fit` is `C_Cdqrls`, LINPACK's `dqrdc2` and
+/// `dqrsl`, which is limited-pivoting Householder and not LAPACK `dgeqp3`; the
+/// fit path uses [`super::dqrls_multi_selected`], a bit-exact transcription of it.
+/// This factorisation remains for callers that need a general accurate QR and do not
+/// claim to reproduce R's rounding.
 pub fn qr(a: &Matrix) -> Qr {
     let n = a.rows;
     let p = a.cols;

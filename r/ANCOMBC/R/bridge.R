@@ -479,6 +479,66 @@ rb_row_sums_na_rm <- function(x) base::rowSums(x, na.rm = TRUE)
 # from the pinned `ancombc_bias_correct.R:11-84`, and against `stats::lm.fit` directly
 # for a single group.
 
+# ---------------------------------------------------------------------------
+# BLAS calibration
+# ---------------------------------------------------------------------------
+#
+# R's `lm.fit` is LINPACK's `dqrdc2`/`dqrsl` calling whatever BLAS R is linked to,
+# and that BLAS's rounding is part of the result. The Rust transcription has one
+# implementation per BLAS family; this finds which one *this* R is using by running
+# a fixed battery through R's own `Cdqrls` and through each implementation and
+# demanding every bit agree. If none does, `rb_blas_kind()` is `NA` and nothing
+# here claims byte identity.
+#
+# The battery is arithmetic, not random: touching the RNG would change
+# `.Random.seed`, which is part of what the package must leave as the original does.
+# It also stays at n <= 10000, because OpenBLAS threads `ddot`/`daxpy` above that and
+# R's own answer then depends on its thread count.
+
+.rb_state <- new.env(parent = emptyenv())
+
+.rb_battery <- function() {
+  lapply(list(c(5L, 2L), c(12L, 3L), c(17L, 4L), c(40L, 5L), c(100L, 6L), c(257L, 8L)),
+         function(d) {
+    n <- d[[1L]]; p <- d[[2L]]
+    i <- seq_len(n)
+    x <- vapply(seq_len(p), function(j) {
+      if (j == 1L) rep(1, n) else sin(i * (0.37 + 0.91 * j) + j * 1.7)
+    }, numeric(n))
+    dim(x) <- c(n, p)
+    list(x = x, y = cos(i * 0.73) + 0.01 * i)
+  })
+}
+
+#' Which BLAS family is R linked to, by bit-for-bit calibration against `Cdqrls`.
+#'
+#' @return `0L` (netlib reference), `1L` (OpenBLAS Haswell/Zen kernels) or `NA_integer_`
+#'   when neither reproduces R's own `Cdqrls` on every case. The answer is cached
+#'   and the Rust side is told, so later fits use it.
+rb_blas_kind <- function() {
+  if (!is.null(.rb_state$kind)) return(.rb_state$kind)
+  battery <- .rb_battery()
+  r_ref <- lapply(battery, function(b) {
+    z <- .Call(stats:::C_Cdqrls, b$x, b$y, 1e-7, FALSE)
+    list(coef = z$coefficients, resid = z$residuals, rank = z$rank)
+  })
+  bits <- function(v) serialize(as.double(v), NULL, ascii = FALSE, xdr = FALSE, version = 3)
+  kind <- NA_integer_
+  for (k in 0:1) {
+    ok <- tryCatch(all(vapply(seq_along(battery), function(i) {
+      z <- .Call(C_ancombc2_rb_dqrls, k, battery[[i]]$x, battery[[i]]$y, 1e-7,
+                 PACKAGE = "ANCOMBC")
+      identical(bits(z$coefficients), bits(r_ref[[i]]$coef)) &&
+        identical(bits(z$residuals), bits(r_ref[[i]]$resid)) &&
+        identical(z$rank, as.integer(r_ref[[i]]$rank))
+    }, logical(1L))), error = function(e) FALSE)
+    if (isTRUE(ok)) { kind <- k; break }
+  }
+  if (!is.na(kind)) .Call(C_ancombc2_rb_set_blas, kind, PACKAGE = "ANCOMBC")
+  .rb_state$kind <- kind
+  kind
+}
+
 #' Run the pipeline's `lm_fit_all` and return its three outputs.
 #'
 #' @param x The design, `n_samp x p`.
@@ -500,6 +560,7 @@ rb_fit_probe <- function(x, y, observed) {
     stop("`observed` is ", paste(dim(observed), collapse = " x "),
          " and `y` is ", paste(dim(y), collapse = " x "))
   }
+  rb_blas_kind()
   args <- list(x, y, observed, as.double(n_samp), as.double(p), as.double(n_taxa))
   .Call(C_ancombc2_rb_fit_probe, args, PACKAGE = "ANCOMBC")
 }

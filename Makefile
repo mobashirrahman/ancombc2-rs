@@ -360,7 +360,7 @@ exact-env-check:
 # depend on its thread count, so the profile pins one BLAS thread.
 DQRLS_BLAS ?= haswell
 DQRLS_CASES ?= $(CURDIR)/validation/exact/evidence/dqrls_cases_$(PROFILE).bin
-.PHONY: dqrls-vs-r
+.PHONY: dqrls-vs-r fit-stages
 dqrls-vs-r:
 	OPENBLAS_NUM_THREADS=1 $(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) \
 	    scripts/make_dqrls_cases.R $(DQRLS_CASES)
@@ -531,6 +531,12 @@ preprocess-stages:
 	$(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) \
 	    --set-env R_LIBS=$(REPLACEMENT_LIB) \
 	    scripts/check_preprocess_stages.R
+
+# S09: the least-squares fit against `.lm_fit_all` and `lm.fit`, byte for byte.
+fit-stages:
+	$(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) \
+	    --set-env R_LIBS=$(REPLACEMENT_LIB) \
+	    scripts/check_fit_stages.R
 
 # The bridge's own Rust-side checks, which need no R at all.
 r-bridge-rust-tests:
