@@ -86,6 +86,7 @@ fn run_cell(c: &CellInfo) {
         &f.cfg,
         &f.taxon_names,
         &f.sample_names,
+        &ancombc2_core::F64Reductions,
     )
     .unwrap_or_else(|e| {
         panic!(

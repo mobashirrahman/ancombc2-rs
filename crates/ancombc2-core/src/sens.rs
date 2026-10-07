@@ -131,12 +131,19 @@ pub fn nonconservative_passed(scores: &[f64], p_main: &[f64], alpha: f64) -> Vec
 /// is `samp_frac - y`, because the reference writes `t(t(y) - samp_frac)`, which
 /// in R's column-major `t()` idiom is the *transpose* of the difference, i.e.
 /// `samp_frac` minus `y`.
+/// # The reduction is a parameter
+///
+/// The centring is `rowMeans`, and R accumulates that in `long double`. See
+/// [`crate::reduce`]. So the reduction is supplied rather than defaulted: a caller
+/// that reaches a result through here has to have said which accumulator produced
+/// the mean, at the call site, where it is visible.
 pub fn sens_response(
     counts: &crate::preprocess::CountMatrix,
     samp_frac: &[f64],
     pseudo: f64,
+    red: &dyn crate::reduce::Reductions,
 ) -> RMatrix {
-    let mut y = counts.log_center_replacing_zeros(pseudo);
+    let mut y = counts.log_center_replacing_zeros_with(pseudo, red);
     y.sub_cols_in_place(samp_frac);
     y
 }
@@ -144,14 +151,52 @@ pub fn sens_response(
 /// [`sens_response`] on a sub-table of `counts`, without materialising that
 /// sub-table. See [`crate::preprocess::CountMatrix::log_center_replacing_zeros_sub`]
 /// for why both axes are selected here.
+/// [`sens_response`] with the reduction supplied. See that function for why it is a
+/// parameter rather than a default.
 pub fn sens_response_sub(
     counts: &crate::preprocess::CountMatrix,
     rows: &[usize],
     cols: &[usize],
     samp_frac: &[f64],
     pseudo: f64,
+    red: &dyn crate::reduce::Reductions,
 ) -> RMatrix {
-    let mut y = counts.log_center_replacing_zeros_sub(rows, cols, pseudo);
+    let means = sens_response_means(counts, rows, cols, pseudo, red);
+    sens_response_sub_with_means(counts, rows, cols, samp_frac, pseudo, &means)
+}
+
+/// The per-row centring means for one pseudo-count, and only that.
+///
+/// Split out for the same reason as [`crate::preprocess::CountMatrix::log_row_means`]:
+/// the reduction may be R, which cannot be called from a worker thread, and the
+/// non-conservative refits run in parallel. So the means are reduced once on the calling
+/// thread -- `grid.len() * rows.len()` doubles -- and
+/// [`sens_response_sub_with_means`] redoes only the arithmetic.
+pub fn sens_response_means(
+    counts: &crate::preprocess::CountMatrix,
+    rows: &[usize],
+    cols: &[usize],
+    pseudo: f64,
+    red: &dyn crate::reduce::Reductions,
+) -> Vec<f64> {
+    let y = counts.log_replacing_zeros_sub(rows, cols, pseudo);
+    red.row_means_na_rm(&y)
+}
+
+/// [`sens_response_sub`] with the centring means supplied instead of a reduction.
+///
+/// Same values as [`sens_response_sub`], cell for cell; a test asserts it, so the split
+/// cannot quietly become a difference.
+pub fn sens_response_sub_with_means(
+    counts: &crate::preprocess::CountMatrix,
+    rows: &[usize],
+    cols: &[usize],
+    samp_frac: &[f64],
+    pseudo: f64,
+    means: &[f64],
+) -> RMatrix {
+    let mut y = counts.log_replacing_zeros_sub(rows, cols, pseudo);
+    y.sub_rows_in_place(means);
     y.sub_cols_in_place(samp_frac);
     y
 }
@@ -177,7 +222,7 @@ pub fn nonconservative_run<F>(
     fit_one: F,
 ) -> Result<SensitivityScores>
 where
-    F: Fn(f64) -> Vec<f64> + Sync,
+    F: Fn(usize, f64) -> Vec<f64> + Sync,
 {
     let total = n_taxa * n_col;
     // Level 1 of the nesting order: the pseudo-count runs, outermost.
@@ -193,8 +238,8 @@ where
     // refits run one at a time with the whole pool inside each -- which on `bm5`
     // is the difference between three busy cores and sixteen.
     let mut lvl = crate::parallel::NestingBudget::level_for_items("pseudo-count runs", grid.len());
-    let by_refit: Vec<Vec<f64>> = crate::parallel::map_par(&mut lvl, grid, |&pc| {
-        let p = fit_one(pc);
+    let by_refit: Vec<Vec<f64>> = crate::parallel::map_par(&mut lvl, grid, |k, &pc| {
+        let p = fit_one(k, pc);
         debug_assert_eq!(p.len(), total);
         p
     });
@@ -272,6 +317,7 @@ pub fn default_method() -> AdjustMethod {
 mod tests {
     use super::*;
     use crate::preprocess::CountMatrix;
+    use crate::reduce::F64Reductions;
 
     #[test]
     fn conservative_grid_matches_the_reference() {
@@ -349,7 +395,7 @@ mod tests {
     fn sens_response_subtracts_the_sampling_fractions() {
         // 1 taxon, 2 samples, counts 1 and 4
         let c = CountMatrix::new(1, 2, vec![1.0, 4.0]).unwrap();
-        let out = sens_response(&c, &[0.5, 0.5], 0.01);
+        let out = sens_response(&c, &[0.5, 0.5], 0.01, &F64Reductions);
         // y = (log 1, log 4) centred -> (-log 2, log 2); then minus 0.5
         let l2 = 2.0f64.ln();
         assert!(
@@ -368,10 +414,10 @@ mod tests {
     fn sens_response_fills_zeros_only_for_positive_pseudo() {
         let c = CountMatrix::new(1, 2, vec![0.0, 4.0]).unwrap();
         // pseudo = 0 leaves the zero missing
-        let out0 = sens_response(&c, &[0.0, 0.0], 0.0);
+        let out0 = sens_response(&c, &[0.0, 0.0], 0.0, &F64Reductions);
         assert!(out0.get(0, 0).is_nan());
         // a positive pseudo fills it, and the centring then uses both entries
-        let out1 = sens_response(&c, &[0.0, 0.0], 0.01);
+        let out1 = sens_response(&c, &[0.0, 0.0], 0.01, &F64Reductions);
         assert!(out1.get(0, 0).is_finite());
         // and the two columns are negatives of each other after centring
         assert!((out1.get(0, 0) + out1.get(0, 1)).abs() < 1e-15);
@@ -383,8 +429,9 @@ mod tests {
         let grid: Vec<f64> = (1..=50).map(|i| i as f64 / 100.0).collect();
         // One coefficient. Taxon 0 is significant under every pseudo-count,
         // taxon 1 under none, taxon 2 under half.
-        let fit =
-            move |pc: f64| -> Vec<f64> { vec![0.001, 0.9, if pc <= 0.25 { 0.001 } else { 0.9 }] };
+        let fit = move |_k: usize, pc: f64| -> Vec<f64> {
+            vec![0.001, 0.9, if pc <= 0.25 { 0.001 } else { 0.9 }]
+        };
         let r = nonconservative_run(&grid, n_taxa, 1, 0.05, fit).unwrap();
         assert_eq!(r.pseudo.len(), 50);
         assert!((r.scores[0] - 0.0).abs() < 1e-15, "{}", r.scores[0]);
@@ -397,8 +444,9 @@ mod tests {
     fn parallel_refits_agree_with_sequential_ones() {
         let n_taxa = 4usize;
         let grid: Vec<f64> = (1..=50).map(|i| i as f64 / 100.0).collect();
-        let f_par =
-            move |pc: f64| -> Vec<f64> { (0..n_taxa).map(|i| pc * (i as f64 + 1.0)).collect() };
+        let f_par = move |_k: usize, pc: f64| -> Vec<f64> {
+            (0..n_taxa).map(|i| pc * (i as f64 + 1.0)).collect()
+        };
         let par = nonconservative_run(&grid, n_taxa, 1, 0.05, f_par).unwrap();
         let seq: Vec<Vec<f64>> = grid
             .iter()

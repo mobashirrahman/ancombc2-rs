@@ -801,6 +801,11 @@ pub fn run_with_names(
         cfg,
         &taxon_names,
         &sample_names,
+        // The IO layer has no R to ask, so it says so here rather than taking a
+        // default: `F64Reductions` is exact for integer-valued reductions and an
+        // approximation for `rowMeans`, which R accumulates in `long double`. See
+        // `ancombc2_core::reduce`.
+        &ancombc2_core::F64Reductions,
     )
 }
 

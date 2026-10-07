@@ -989,9 +989,17 @@ fn cmd_realdata(root: &Path, out: &Path, only: Option<Vec<String>>) -> Result<()
                 ..AncombcConfig::default()
             };
 
-            let res =
-                ancombc2_run_named(&counts, &x, group_index.as_deref(), &cfg, &taxa, &samples)
-                    .map_err(|e| e.to_string())?;
+            let res = ancombc2_run_named(
+                &counts,
+                &x,
+                group_index.as_deref(),
+                &cfg,
+                &taxa,
+                &samples,
+                // No R to ask; see `ancombc2_core::reduce`.
+                &ancombc2_core::F64Reductions,
+            )
+            .map_err(|e| e.to_string())?;
             let c = &res.core;
 
             // The coefficient under comparison, by name. The group contrast is

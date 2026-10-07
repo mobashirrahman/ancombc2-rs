@@ -343,6 +343,7 @@ fn run(case: &Case) -> Result<ancombc2_core::pipeline::AncombcResult, String> {
         &cfg,
         &case.taxa,
         &samples,
+        &ancombc2_core::F64Reductions,
     )
     .map_err(|e| e.to_string())?;
     got.core.fix_eff = fix_eff;

@@ -183,7 +183,7 @@ pub fn bias_em_all(
     // splitting them is deterministic with no reduction to order.
     let mut lvl = crate::parallel::NestingBudget::level("E-M coefficients");
     let coefs: Vec<usize> = (0..n_eff).collect();
-    let results: Vec<Result<BiasResult>> = crate::parallel::map_par(&mut lvl, &coefs, |&k| {
+    let results: Vec<Result<BiasResult>> = crate::parallel::map_par(&mut lvl, &coefs, |_k, &k| {
         let b: Vec<f64> = (0..n_taxa).map(|i| beta[i * n_eff + k]).collect();
         let v: Vec<f64> = (0..n_taxa).map(|i| var_hat[i * n_eff + k]).collect();
         bias_em(&b, &v, tol, max_iter)

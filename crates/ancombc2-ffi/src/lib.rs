@@ -224,6 +224,9 @@ fn run(req: Request) -> Result<String, String> {
         &cfg,
         &req.taxon_names,
         &req.sample_names,
+        // No R to ask, so the `f64` accumulator: exact for the integer-valued
+        // reductions, an approximation for `rowMeans`. See `ancombc2_core::reduce`.
+        &ancombc2_core::F64Reductions,
     )
     .map_err(|e| e.to_string())?;
 

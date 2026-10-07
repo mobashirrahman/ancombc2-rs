@@ -456,8 +456,9 @@ pub fn lm_fit_all(cache: &DesignCache, y: &[f64], n_taxa: usize, n_samp: usize) 
 
     let mut lvl = crate::parallel::NestingBudget::level("missingness groups");
     let indices: Vec<usize> = (0..cache.taxa.len()).collect();
-    let results =
-        crate::parallel::map_par(&mut lvl, &indices, |&g| fit_one_group(cache, y, n_samp, g));
+    let results = crate::parallel::map_par(&mut lvl, &indices, |_k, &g| {
+        fit_one_group(cache, y, n_samp, g)
+    });
     // `map_par` preserves index order, so zipping against `cache.rows` recovers
     // which pattern each result belongs to.
     for (rows, g) in cache.rows.iter().zip(results) {
@@ -836,7 +837,7 @@ fn theta_new(y: &[f64], fitted: &[f64], n_taxa: usize, n_samp: usize) -> Vec<f64
     // bit for no gain, and it would nest inside the sample split besides.
     let mut lvl = crate::parallel::NestingBudget::level("taxa (per-sample means)");
     let samples: Vec<usize> = (0..n_samp).collect();
-    crate::parallel::map_par(&mut lvl, &samples, |&j| {
+    crate::parallel::map_par(&mut lvl, &samples, |_k, &j| {
         let mut s = 0.0;
         let mut n = 0usize;
         for i in 0..n_taxa {

@@ -12,6 +12,9 @@
 //!   entries only.
 
 use crate::error::{AncombcError, Result};
+use crate::reduce::{
+    count_nonzero_observed, count_observed, r_log, sum_counts, F64Reductions, Reductions,
+};
 use crate::workspace::RMatrix;
 
 /// Row-major `taxa x samples` count matrix.
@@ -65,6 +68,48 @@ impl CountMatrix {
         RMatrix::from_row_major(self.n_taxa, self.n_samp, self.data.clone())
     }
 
+    /// A count table from a buffer in **R's** order, which is column-major.
+    ///
+    /// # Why this exists
+    ///
+    /// [`CountMatrix`] is row-major, because every hot loop in this crate walks a
+    /// taxon's samples contiguously. R's matrices are column-major. A caller that
+    /// builds one from an R buffer with [`CountMatrix::new`] gets a table that is
+    /// *transposed* -- and for a `n_tax != n_samp` table that transposed table is still
+    /// a valid `n_tax x n_samp` matrix, so nothing complains.
+    ///
+    /// The stage probe did exactly that. It fed the transposed table to preprocessing
+    /// and the symptoms were entirely plausible: `O1` came back with the right shape
+    /// and plausible values, `tax_keep` was right when the table was square-ish, and
+    /// `lib_size1` was the column sum of the wrong table. Only `serialize()`-level
+    /// comparison against R's own expressions located it.
+    ///
+    /// Named rather than inlined at each call site so the next caller has to think
+    /// about it once.
+    pub fn from_column_major(n_taxa: usize, n_samp: usize, data: &[f64]) -> Result<Self> {
+        if data.len() != n_taxa * n_samp {
+            return Err(AncombcError::Shape {
+                expected: n_taxa * n_samp,
+                got: data.len(),
+            });
+        }
+        let mut out = Self::zeros(n_taxa, n_samp);
+        for i in 0..n_taxa {
+            for j in 0..n_samp {
+                out.set(i, j, data[i + j * n_taxa]);
+            }
+        }
+        Ok(out)
+    }
+
+    /// A count table from a buffer in this crate's order, which is row-major.
+    ///
+    /// [`CountMatrix::new`] already does this; the named constructor exists so that a
+    /// call site has to state which order it is handing over.
+    pub fn from_row_major(n_taxa: usize, n_samp: usize, data: &[f64]) -> Result<Self> {
+        Self::new(n_taxa, n_samp, data.to_vec())
+    }
+
     /// `.data_core`: discard taxa below `prv_cut` and samples below `lib_cut`.
     ///
     /// The reference applies the two filters in a specific order that matters for
@@ -113,12 +158,14 @@ impl CountMatrix {
         };
 
         // Step 2: recompute prevalence on that subset and apply the cutoff.
+        // The same rule as `prevalence`, on a subset. Named rather than inlined so
+        // the second pass and the first cannot disagree about what an `NA` means.
         let prevalence_on = |taxa: &[usize]| -> Vec<f64> {
             taxa.iter()
                 .map(|&t| {
                     let r = self.row(t);
-                    let nonzero = r.iter().filter(|&&v| !v.is_nan() && v != 0.0).count();
-                    let observed = r.iter().filter(|&&v| !v.is_nan()).count();
+                    let nonzero = count_nonzero_observed(r.iter().copied());
+                    let observed = count_observed(r.iter().copied());
                     if observed == 0 {
                         f64::NAN
                     } else {
@@ -182,12 +229,17 @@ impl CountMatrix {
     }
 
     /// R: `rowSums(x != 0, na.rm = TRUE) / rowSums(!is.na(x))`
+    ///
+    /// Both reductions are over 0/1 and whole counts, so they are exact in `f64`
+    /// and need no `long double`; see [`crate::reduce::sum_counts`]. An all-missing
+    /// row is `0/0`, which in R is `NaN` — a *computed* NaN, so it keeps the plain
+    /// payload rather than becoming `NA_real_`.
     pub fn prevalence(&self) -> Vec<f64> {
         (0..self.n_taxa)
             .map(|i| {
                 let r = self.row(i);
-                let nonzero = r.iter().filter(|&&v| !v.is_nan() && v != 0.0).count();
-                let observed = r.iter().filter(|&&v| !v.is_nan()).count();
+                let nonzero = count_nonzero_observed(r.iter().copied());
+                let observed = count_observed(r.iter().copied());
                 if observed == 0 {
                     f64::NAN
                 } else {
@@ -209,47 +261,61 @@ impl CountMatrix {
     }
 
     /// R: `colSums(feature_table, na.rm = TRUE)`, with `NaN` treated as missing.
+    ///
+    /// Counts, so exact in `f64`; the reduction order is immaterial because every
+    /// partial sum is a whole number.
     pub fn library_sizes(&self) -> Vec<f64> {
         (0..self.n_samp)
-            .map(|j| {
-                let mut s = 0.0;
-                for i in 0..self.n_taxa {
-                    let v = self.get(i, j);
-                    if !v.is_nan() {
-                        s += v;
-                    }
-                }
-                s
-            })
+            .map(|j| sum_counts((0..self.n_taxa).map(|i| self.get(i, j))))
             .collect()
     }
 
+    /// Library size over a *subset* of taxa, then `which(lib_size >= lib_cut)`.
+    ///
+    /// The reference subsets `feature_table = feature_table[tax_keep, ]` *before*
+    /// computing `colSums`, so the library size is over the retained taxa and not
+    /// over all of them. Summing the full column and then filtering taxa would give
+    /// a different answer on every case where `prv_cut` actually removes something.
     fn samples_above_library_size(&self, taxa: &[usize], lib_cut: f64) -> Vec<usize> {
         (0..self.n_samp)
-            .filter(|&j| {
-                let mut s = 0.0;
-                for &i in taxa {
-                    let v = self.get(i, j);
-                    if !v.is_nan() {
-                        s += v;
-                    }
-                }
-                s >= lib_cut
-            })
+            .filter(|&j| sum_counts(taxa.iter().map(|&i| self.get(i, j))) >= lib_cut)
             .collect()
     }
 
-    /// R: `O1 = data + pseudo`, then `log`, then `-Inf` becomes `NA`.
+    /// R: `O1 = data + pseudo`, then `log`, then `is.infinite` becomes `NA`.
+    ///
+    /// Both halves of that sentence are load-bearing and both were wrong here at
+    /// once:
+    ///
+    /// * the mask is `is.infinite`, not "not finite", so an `NA_real_` in the
+    ///   counts keeps its own payload and a *computed* `NaN` is not rewritten to
+    ///   `NA_real_`;
+    /// * the replacement is `NA_real_` (`0x7ff00000000007a2`), not `f64::NAN`
+    ///   (`0x7ff8000000000000`). `identical(NA_real_, NaN)` is `FALSE` and
+    ///   `serialize()` records the payload, so a stage array holding a bare NaN
+    ///   where the oracle holds `NA_real_` is not byte-identical.
+    ///
+    /// The centring reduction is R's `rowMeans`, accumulated in `long double`;
+    /// see [`crate::reduce`]. This entry point uses [`F64Reductions`], which is
+    /// exact for integer inputs and an approximation for these.
     pub fn log_center(&self, pseudo: f64) -> RMatrix {
+        self.log_center_with(pseudo, &F64Reductions)
+    }
+
+    /// [`CountMatrix::log_center`] with the centring reduction supplied.
+    ///
+    /// The R path passes [`RBackedReductions`], so the row means are R's own
+    /// `long double` accumulation rather than a re-derivation of it.
+    pub fn log_center_with(&self, pseudo: f64, red: &dyn Reductions) -> RMatrix {
         let mut y = RMatrix::zeros(self.n_taxa, self.n_samp);
         for i in 0..self.n_taxa {
             for j in 0..self.n_samp {
                 let v = self.get(i, j) + pseudo;
-                y.set(i, j, v.ln());
+                y.set(i, j, r_log(v));
             }
         }
-        y.map_nonfinite_in_place(|_| f64::NAN);
-        let means = y.row_means_na_rm();
+        y.replace_infinite_with_na();
+        let means = red.row_means_na_rm(&y);
         y.sub_rows_in_place(&means);
         y
     }
@@ -267,18 +333,62 @@ impl CountMatrix {
     /// table, and `.ancombc2_core` performs its own row subsetting the same way, so
     /// this is the reference's arithmetic with one fewer copy.
     pub fn log_center_rows(&self, rows: &[usize], pseudo: f64) -> RMatrix {
+        self.log_center_rows_with(rows, pseudo, &F64Reductions)
+    }
+
+    /// [`CountMatrix::log_center_rows`] with the centring reduction supplied.
+    pub fn log_center_rows_with(
+        &self,
+        rows: &[usize],
+        pseudo: f64,
+        red: &dyn Reductions,
+    ) -> RMatrix {
+        let mut y = self.log_rows(rows, pseudo);
+        let means = red.row_means_na_rm(&y);
+        y.sub_rows_in_place(&means);
+        y
+    }
+
+    /// `log(rows + pseudo)` with `is.infinite` mapped to `NA_real_`, and *nothing
+    /// else* -- no centring.
+    ///
+    /// Split out because the centring's reduction may only run on the calling thread
+    /// (see [`Self::log_row_means`]), so a caller that wants to parallelise the rest of
+    /// the work has to do this part itself.
+    pub fn log_rows(&self, rows: &[usize], pseudo: f64) -> RMatrix {
         let mut y = RMatrix::zeros(rows.len(), self.n_samp);
         for (i, &t) in rows.iter().enumerate() {
             let src = t * self.n_samp;
             for j in 0..self.n_samp {
                 let v = self.data[src + j] + pseudo;
-                y.set(i, j, v.ln());
+                y.set(i, j, r_log(v));
             }
         }
-        y.map_nonfinite_in_place(|_| f64::NAN);
-        let means = y.row_means_na_rm();
-        y.sub_rows_in_place(&means);
+        y.replace_infinite_with_na();
         y
+    }
+
+    /// `rowMeans(log_rows(rows, pseudo), na.rm = TRUE)`, and **only** that.
+    ///
+    /// # Why this is separate from [`Self::log_center_rows_with`]
+    ///
+    /// The reference's reduction may be R itself -- [`crate::reduce`] -- and R cannot
+    /// be called from a thread the main thread did not start. The sensitivity analysis
+    /// refits once per pseudo-count in parallel, so a reduction inside that loop is
+    /// either wrong (a `Send`/`Sync` bound faked) or serial (the whole refit grid on one
+    /// thread).
+    ///
+    /// Both are avoidable. The reduction's input depends only on `rows` and `pseudo`,
+    /// both of which are fixed before the loop, so the means can be computed up front on
+    /// the calling thread -- `grid.len() * rows.len()` doubles, which is kilobytes --
+    /// and the workers can redo the cheap part (a `ln` per cell, no R) and centre by the
+    /// supplied means.
+    ///
+    /// [`Self::log_center_rows_with`] is then exactly this followed by
+    /// [`Self::log_rows`] and [`RMatrix::sub_rows_in_place`], and a test asserts the two
+    /// agree cell for cell so the split cannot drift.
+    pub fn log_row_means(&self, rows: &[usize], pseudo: f64, red: &dyn Reductions) -> Vec<f64> {
+        red.row_means_na_rm(&self.log_rows(rows, pseudo))
     }
 
     /// The `O` table used by the non-conservative sensitivity analysis.
@@ -303,34 +413,51 @@ impl CountMatrix {
         cols: &[usize],
         pseudo: f64,
     ) -> RMatrix {
+        self.log_center_replacing_zeros_sub_with(rows, cols, pseudo, &F64Reductions)
+    }
+
+    /// [`CountMatrix::log_center_replacing_zeros_sub`] with the reduction supplied.
+    pub fn log_center_replacing_zeros_sub_with(
+        &self,
+        rows: &[usize],
+        cols: &[usize],
+        pseudo: f64,
+        red: &dyn Reductions,
+    ) -> RMatrix {
+        let mut y = self.log_replacing_zeros_sub(rows, cols, pseudo);
+        let means = red.row_means_na_rm(&y);
+        y.sub_rows_in_place(&means);
+        y
+    }
+
+    /// `log(counts[rows, cols], zeros replaced by pseudo)`, `is.infinite` mapped to
+    /// `NA_real_`, and nothing else.
+    ///
+    /// The uncentred half of [`Self::log_center_replacing_zeros_sub`], split out for the
+    /// same reason as [`Self::log_rows`].
+    pub fn log_replacing_zeros_sub(&self, rows: &[usize], cols: &[usize], pseudo: f64) -> RMatrix {
         let mut y = RMatrix::zeros(rows.len(), cols.len());
         for (i, &t) in rows.iter().enumerate() {
             let src = t * self.n_samp;
             for (j, &c) in cols.iter().enumerate() {
                 let v = self.data[src + c];
                 let v = if v == 0.0 { pseudo } else { v };
-                y.set(i, j, v.ln());
+                y.set(i, j, r_log(v));
             }
         }
-        y.map_nonfinite_in_place(|_| f64::NAN);
-        let means = y.row_means_na_rm();
-        y.sub_rows_in_place(&means);
+        y.replace_infinite_with_na();
         y
     }
 
     pub fn log_center_replacing_zeros(&self, pseudo: f64) -> RMatrix {
-        let mut y = RMatrix::zeros(self.n_taxa, self.n_samp);
-        for i in 0..self.n_taxa {
-            for j in 0..self.n_samp {
-                let v = self.get(i, j);
-                let v = if v == 0.0 { pseudo } else { v };
-                y.set(i, j, v.ln());
-            }
-        }
-        y.map_nonfinite_in_place(|_| f64::NAN);
-        let means = y.row_means_na_rm();
-        y.sub_rows_in_place(&means);
-        y
+        self.log_center_replacing_zeros_with(pseudo, &F64Reductions)
+    }
+
+    /// [`CountMatrix::log_center_replacing_zeros`] with the reduction supplied.
+    pub fn log_center_replacing_zeros_with(&self, pseudo: f64, red: &dyn Reductions) -> RMatrix {
+        let rows: Vec<usize> = (0..self.n_taxa).collect();
+        let cols: Vec<usize> = (0..self.n_samp).collect();
+        self.log_center_replacing_zeros_sub_with(&rows, &cols, pseudo, red)
     }
 
     /// The set of usable (taxon, sample) pairs: a non-finite response and a

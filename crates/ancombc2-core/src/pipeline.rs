@@ -35,6 +35,7 @@ use crate::mle::{
     check_design_identifiable, iter_mle_estimate_theta, iter_mle_fixed_theta, IterMle,
 };
 use crate::preprocess::{structural_zeros, CountMatrix};
+use crate::reduce::{F64Reductions, Reductions};
 use crate::sens;
 use crate::test_mod::{global_test, group_columns, pairwise_test};
 pub use crate::test_mod::{GlobalTest, PairwiseTest};
@@ -361,13 +362,22 @@ mod coefficient_tests {
 /// [`CountMatrix`] from a raw slice, so this function is independent of the IO
 /// layer.
 #[allow(clippy::too_many_arguments)]
+/// # Which accumulator produced the row means
+///
+/// This uses [`F64Reductions`], which is **not** what R uses. R's `rowMeans`
+/// accumulates in C `long double`, and on x86-64 that is 64 bits of mantissa rather
+/// than 53, so a cancelling sum keeps bits this drops. See [`crate::reduce`] for the
+/// measurement and [`ancombc2_run_named`] for the entry point the R session must use.
+///
+/// A separate wrapper rather than a default argument, because a default is invisible
+/// at the call site and this is precisely the difference that would be invisible.
 pub fn ancombc2_run(
     counts: &CountMatrix,
     x: &Matrix,
     group_index: Option<&[usize]>,
     cfg: &AncombcConfig,
 ) -> Result<AncombcResult> {
-    ancombc2_run_named(counts, x, group_index, cfg, &[], &[])
+    ancombc2_run_named(counts, x, group_index, cfg, &[], &[], &F64Reductions)
 }
 
 /// The name of a group level, defaulting to its 0-based index.
@@ -380,6 +390,15 @@ fn level_name(group: Option<&str>, level: usize) -> String {
 
 /// [`ancombc2_run`] with the input's taxon and sample names, so the result can
 /// report *which* taxon diverged rather than its index.
+/// Run the core with an explicit reduction.
+///
+/// `red` decides the accumulator for every `rowMeans` in the centring steps. The R
+/// session must pass one backed by R itself, because re-deriving `long double` in
+/// Rust would pin one platform's answer as the oracle's; see [`crate::reduce`].
+///
+/// [`ancombc2_run`] is the `f64` wrapper, kept for the CLI and the simulation harness
+/// where there is no R to ask. It is a different function rather than a default
+/// argument so that "which accumulator" is a thing every call site says out loud.
 pub fn ancombc2_run_named(
     counts: &CountMatrix,
     x: &Matrix,
@@ -387,6 +406,7 @@ pub fn ancombc2_run_named(
     cfg: &AncombcConfig,
     taxon_names: &[String],
     sample_names: &[String],
+    red: &dyn Reductions,
 ) -> Result<AncombcResult> {
     if cfg.pseudo < 0.0 {
         return Err(AncombcError::NegativePseudo);
@@ -598,7 +618,7 @@ pub fn ancombc2_run_named(
 
     // ---- MLE 1: estimate theta ----
     let t = Stage::named("preprocess");
-    let y1 = o1.log_center(cfg.pseudo);
+    let y1 = o1.log_center_with(cfg.pseudo, red);
     timings.preprocess += t.elapsed();
     t.trace_mem("y1 built");
     let t = Stage::named("mle1");
@@ -647,7 +667,7 @@ pub fn ancombc2_run_named(
     // structural-zero screen, and that *is* modelled here as a second taxon set
     // because it changes the estimate.
     let t = Stage::named("preprocess");
-    let y2 = o2.log_center(cfg.pseudo);
+    let y2 = o2.log_center_with(cfg.pseudo, red);
     timings.preprocess += t.elapsed();
     let t = Stage::named("mle2");
     let mle2 = iter_mle_fixed_theta(
@@ -814,7 +834,7 @@ pub fn ancombc2_run_named(
     };
     if cfg.pseudo_sens {
         let t = Stage::named("sensitivity");
-        run_sensitivity(&mut result, counts, &o1, &xs, &samples1, &taxa2, cfg)?;
+        run_sensitivity(&mut result, counts, &o1, &xs, &samples1, &taxa2, cfg, red)?;
         result.core.timings.sensitivity += t.elapsed();
     }
     Ok(result)
@@ -874,6 +894,7 @@ fn run_sensitivity(
     samples: &[usize],
     taxa: &[usize],
     cfg: &AncombcConfig,
+    red: &dyn Reductions,
 ) -> Result<()> {
     let o1 = o1_raw;
     let t2 = taxa;
@@ -893,10 +914,24 @@ fn run_sensitivity(
         let mut lvl = crate::parallel::NestingBudget::level("pseudo-count runs (conservative)");
         Stage::named("sens:conservative").trace_mem("sens:before");
         let rest: Vec<f64> = grid.iter().copied().skip(1).collect();
-        let others: Vec<Vec<f64>> = crate::parallel::map_par(&mut lvl, &rest, |&pc| {
+        // The row means for every refit, computed **here, on this thread**, before the
+        // parallel loop.
+        //
+        // The reduction may be R itself, and R cannot be called from a thread this one
+        // did not start -- so a reduction inside the loop is not an option. It does not
+        // need to be: the means depend only on `taxa2` and the pseudo-count, both fixed
+        // before the loop, so they cost `rest.len() * taxa2.len()` doubles -- kilobytes
+        // next to the log tables, which are `n_taxa x n_samp` each and are *not*
+        // retained.
+        let means_by_pc: Vec<Vec<f64>> = rest
+            .iter()
+            .map(|&pc| o1.log_row_means(t2, pc, red))
+            .collect();
+        let others: Vec<Vec<f64>> = crate::parallel::map_par(&mut lvl, &rest, |k, &pc| {
             // A refit cannot fail where the main run succeeded: same
             // design, same taxa, only the pseudo-count differs.
-            core_run_at_pseudo(o1, t2, x, pc, cfg).unwrap_or_else(|_| vec![1.0; n_taxa * p])
+            core_run_at_pseudo(o1, t2, x, pc, cfg, &means_by_pc[k])
+                .unwrap_or_else(|_| vec![1.0; n_taxa * p])
         });
         Stage::named("sens:conservative").trace_mem("sens:after refits");
         let mut runs = vec![main_q];
@@ -916,8 +951,24 @@ fn run_sensitivity(
         // run, and only the inference step is refitted.
         let samp_frac = result.core.samp_frac.clone();
         let grid = cfg.nonconservative_pseudo_grid();
-        let fit = |pc: f64| -> Vec<f64> {
-            let y = sens::sens_response_sub(counts, taxa, samples, &samp_frac, pc);
+        // Same reasoning as the conservative branch, and the same solution: the centring
+        // means are reduced on this thread, one set per grid point, and the refits redo
+        // only the arithmetic.
+        let nc_means: Vec<Vec<f64>> = grid
+            .iter()
+            .map(|&pc| sens::sens_response_means(counts, taxa, samples, pc, red))
+            .collect();
+        // The index, not the value: the pseudo-count grid repeats entries, so a mean
+        // looked up by value would be ambiguous.
+        let fit = |k: usize, pc: f64| -> Vec<f64> {
+            let y = sens::sens_response_sub_with_means(
+                counts,
+                taxa,
+                samples,
+                &samp_frac,
+                pc,
+                &nc_means[k],
+            );
             ols_p_values(&y, x, cfg)
         };
         Stage::named("sens:nonconservative").trace_mem("sens:nc before");
@@ -988,7 +1039,7 @@ fn ols_p_values(y: &RMatrix, x: &Matrix, _cfg: &AncombcConfig) -> Vec<f64> {
     // R there (41.0s vs 29.3s) despite winning every smaller dataset by 2x-48x.
     let mut lvl = crate::parallel::NestingBudget::level("taxa (sensitivity ols)");
     let indices: Vec<usize> = (0..y.rows).collect();
-    let rows: Vec<Vec<f64>> = crate::parallel::map_par(&mut lvl, &indices, |&i| {
+    let rows: Vec<Vec<f64>> = crate::parallel::map_par(&mut lvl, &indices, |_k, &i| {
         ols_p_values_one(y, x, &xtx, &inv, p, df, i)
     });
     for (i, r) in rows.into_iter().enumerate() {
@@ -1080,18 +1131,28 @@ fn ols_p_values_one(
 /// fractions run over all of `o1`, the second MLE and the reported q-values over
 /// `o1`'s rows selected by `taxa2`. `taxa2` must be a subset of `o1`'s rows, in
 /// the same order, which is what the pipeline produces.
+/// # `row_means` is supplied, not computed
+///
+/// The means come from [`CountMatrix::log_row_means`] on the calling thread. This
+/// function runs inside a `map_par` over the pseudo-count grid, and the reduction may
+/// be R itself, which cannot be called from a worker. The split costs nothing: the
+/// worker redoes a `ln` per cell, which is arithmetic, and subtracts a mean it is
+/// handed.
+#[allow(clippy::too_many_arguments)]
 pub fn core_run_at_pseudo(
     o1: &CountMatrix,
     taxa2: &[usize],
     x: &Matrix,
     pseudo: f64,
     cfg: &AncombcConfig,
+    row_means: &[f64],
 ) -> Result<Vec<f64>> {
     let n_taxa1 = o1.n_taxa;
     let n_taxa = taxa2.len();
     let n_samp = o1.n_samp;
     let p = x.cols;
-    let y1 = o1.log_center(pseudo);
+    let mut y1 = o1.log_rows(&(0..n_taxa1).collect::<Vec<_>>(), pseudo);
+    y1.sub_rows_in_place(row_means);
     let mle1 = iter_mle_estimate_theta(
         x,
         &y1.data,
@@ -1116,7 +1177,8 @@ pub fn core_run_at_pseudo(
     let theta = sampling_fractions(&y1, x, &beta_corr, n_taxa1, p);
     // Logged straight out of `o1`'s selected rows: materialising the selected
     // count table as well would hold both for the duration of the transform.
-    let y2 = o1.log_center_rows(taxa2, pseudo);
+    let mut y2 = o1.log_rows(taxa2, pseudo);
+    y2.sub_rows_in_place(row_means);
     let mle2 = iter_mle_fixed_theta(
         x,
         &y2.data,

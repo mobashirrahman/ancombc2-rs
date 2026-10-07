@@ -43,6 +43,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "ancombc2-rbridge"
+version = "0.1.0"
+dependencies = [
+ "ancombc2-core",
+]
+
+[[package]]
 name = "ancombc2-sim"
 version = "0.1.0"
 dependencies = [

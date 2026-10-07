@@ -200,54 +200,55 @@ pub fn sandwich_all(
     // a lock on the analysis's hottest loop.
     let mut lvl = crate::parallel::NestingBudget::level("taxa (sandwich blocks)");
     let block_starts: Vec<usize> = (0..n_taxa).step_by(taxa_block).collect();
-    let per_block = crate::parallel::map_par(&mut lvl, &block_starts, |&i0| -> (usize, Vec<f64>) {
-        let mut tile: Vec<f64> = Vec::with_capacity(samp_block * p * p);
-        // `taxa_block` accumulators, live only while this block is being built.
-        let mut acc = vec![0.0f64; taxa_block * p * p];
-        let i1 = (i0 + taxa_block).min(n_taxa);
-        for j0 in (0..n_samp).step_by(samp_block) {
-            let j1 = (j0 + samp_block).min(n_samp);
-            tile.clear();
-            for j in j0..j1 {
-                for a in 0..p {
-                    for b in 0..p {
-                        tile.push(xx.at(j, a, b));
+    let per_block =
+        crate::parallel::map_par(&mut lvl, &block_starts, |_k, &i0| -> (usize, Vec<f64>) {
+            let mut tile: Vec<f64> = Vec::with_capacity(samp_block * p * p);
+            // `taxa_block` accumulators, live only while this block is being built.
+            let mut acc = vec![0.0f64; taxa_block * p * p];
+            let i1 = (i0 + taxa_block).min(n_taxa);
+            for j0 in (0..n_samp).step_by(samp_block) {
+                let j1 = (j0 + samp_block).min(n_samp);
+                tile.clear();
+                for j in j0..j1 {
+                    for a in 0..p {
+                        for b in 0..p {
+                            tile.push(xx.at(j, a, b));
+                        }
+                    }
+                }
+                for (bi, i) in (i0..i1).enumerate() {
+                    let base = i * n_samp;
+                    let acc = &mut acc[bi * p * p..(bi + 1) * p * p];
+                    for (jj, j) in (j0..j1).enumerate() {
+                        let e2 = {
+                            let e = eps[base + j];
+                            e * e
+                        };
+                        let off = jj * p * p;
+                        if e2.is_finite() && !xx.row_incomplete[j] {
+                            // The fast path: both operands are finite everywhere, so
+                            // no per-entry test is needed. This is every sample of
+                            // every taxon when the design is complete and the taxon
+                            // is fully observed.
+                            for k in 0..(p * p) {
+                                acc[k] += e2 * tile[off + k];
+                            }
+                        } else if compat == CompatMode::Ancombc2_15 {
+                            // Entry-wise: a term is 0.1 wherever the product is NA,
+                            // which is everywhere if `eps2` is NA, and only at the
+                            // positions involving a missing design entry otherwise.
+                            for k in 0..(p * p) {
+                                let t = e2 * tile[off + k];
+                                acc[k] += if t.is_nan() { 0.1 } else { t };
+                            }
+                        }
+                        // StrictSpec: contribute nothing where the product is not finite
                     }
                 }
             }
-            for (bi, i) in (i0..i1).enumerate() {
-                let base = i * n_samp;
-                let acc = &mut acc[bi * p * p..(bi + 1) * p * p];
-                for (jj, j) in (j0..j1).enumerate() {
-                    let e2 = {
-                        let e = eps[base + j];
-                        e * e
-                    };
-                    let off = jj * p * p;
-                    if e2.is_finite() && !xx.row_incomplete[j] {
-                        // The fast path: both operands are finite everywhere, so
-                        // no per-entry test is needed. This is every sample of
-                        // every taxon when the design is complete and the taxon
-                        // is fully observed.
-                        for k in 0..(p * p) {
-                            acc[k] += e2 * tile[off + k];
-                        }
-                    } else if compat == CompatMode::Ancombc2_15 {
-                        // Entry-wise: a term is 0.1 wherever the product is NA,
-                        // which is everywhere if `eps2` is NA, and only at the
-                        // positions involving a missing design entry otherwise.
-                        for k in 0..(p * p) {
-                            let t = e2 * tile[off + k];
-                            acc[k] += if t.is_nan() { 0.1 } else { t };
-                        }
-                    }
-                    // StrictSpec: contribute nothing where the product is not finite
-                }
-            }
-        }
 
-        (i0, acc)
-    });
+            (i0, acc)
+        });
 
     // Scattered in block order, so `vcov` and `var_hat` are indexed by taxon and
     // not by whichever worker finished first.

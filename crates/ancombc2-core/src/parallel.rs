@@ -264,10 +264,18 @@ pub fn pool_threads() -> Option<usize> {
 /// reimplementation that can drift from the parallel one. That is the property
 /// worth stating: a "fast path" and a "fallback" that are separately written are
 /// a bug waiting for the inputs that take one and not the other.
+/// Map `f` over `items`, in parallel when the level allows it.
+///
+/// `f` receives the item **and its index**, because "the value at this position in the
+/// caller's grid" is a thing parallel code needs and cannot reconstruct from the value:
+/// the pseudo-count grids repeat entries, so looking a mean up by value would be
+/// ambiguous. The index is what pairs a work item with something the caller computed
+/// before the loop -- which is how the reduction stays on the main thread while the
+/// arithmetic does not.
 pub fn map_par<T: Send + Sync, R: Send>(
     lvl: &mut Level,
     items: &[T],
-    f: impl Fn(&T) -> R + Send + Sync,
+    f: impl Fn(usize, &T) -> R + Send + Sync,
 ) -> Vec<R> {
     // `len() <= 1` is not a micro-optimisation here, it is the case that decides
     // where the analysis runs: splitting the pool for a single item costs more in
@@ -275,10 +283,10 @@ pub fn map_par<T: Send + Sync, R: Send>(
     // against the levels below, which is how a dense table ended up single-threaded
     // with `--threads 16`. So the level hands the pool down instead.
     if lvl.may_parallelise() && items.len() > 1 {
-        items.par_iter().map(f).collect()
+        items.par_iter().enumerate().map(|(i, t)| f(i, t)).collect()
     } else {
         lvl.release();
-        items.iter().map(f).collect()
+        items.iter().enumerate().map(|(i, t)| f(i, t)).collect()
     }
 }
 
@@ -333,7 +341,8 @@ mod tests {
     #[test]
     fn both_branches_agree_and_preserve_order() {
         let items: Vec<usize> = (0..64).collect();
-        let square = |v: &usize| v * v;
+        // The index is ignored here; the test is about the two branches agreeing.
+        let square = |_i: usize, v: &usize| v * v;
         let base = NestingBudget::depth();
 
         let par = {
@@ -420,7 +429,7 @@ mod tests {
                 "the outermost level holds the pool"
             );
             // One group: the level cannot use the pool, and must say so.
-            map_par(&mut outer, &one, |v| *v);
+            map_par(&mut outer, &one, |_i, v| *v);
             assert!(
                 !outer.may_parallelise(),
                 "a spent level must release the pool"
@@ -436,7 +445,7 @@ mod tests {
         // ...and a level with real work does *not* release it.
         {
             let mut busy = NestingBudget::level("missingness groups");
-            map_par(&mut busy, &items, |v| *v);
+            map_par(&mut busy, &items, |_i, v| *v);
             assert!(
                 busy.may_parallelise(),
                 "a level that split the pool keeps it"

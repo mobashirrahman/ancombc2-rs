@@ -74,7 +74,7 @@ pub fn sampling_fractions(
     // sixteen, which is the signature of a stage that never got the pool at all.
     let mut lvl = crate::parallel::NestingBudget::level("taxa (sampling fractions)");
     let samples: Vec<usize> = (0..n_samp).collect();
-    let done = crate::parallel::map_par(&mut lvl, &samples, |&j| {
+    let done = crate::parallel::map_par(&mut lvl, &samples, |_k, &j| {
         sampling_fraction_one(y1, x, beta_corrected, n_taxa, p, j)
     });
     for (j, v) in done.into_iter().enumerate() {

@@ -39,6 +39,7 @@ pub mod mle;
 pub mod parallel;
 pub mod pipeline;
 pub mod preprocess;
+pub mod reduce;
 pub mod sens;
 pub mod stats;
 pub mod test_mod;
@@ -51,6 +52,7 @@ pub use pipeline::{
     ZeroIndication,
 };
 pub use preprocess::CountMatrix;
+pub use reduce::{is_infinite, is_na, na_real, F64Reductions, Reductions, NA_REAL_BITS};
 pub use sens::SensitivityScores;
 pub use workspace::Workspace;
 

@@ -65,38 +65,31 @@ impl RMatrix {
         Self { rows, cols, data }
     }
 
-    /// Mean of each row over the *finite* entries, R's `rowMeans(x, na.rm = TRUE)`.
-    pub fn row_means_na_rm(&self) -> Vec<f64> {
-        (0..self.rows)
-            .map(|i| {
-                let mut s = 0.0;
-                let mut n = 0usize;
-                for &v in self.row(i) {
-                    if !v.is_nan() {
-                        s += v;
-                        n += 1;
-                    }
-                }
-                if n == 0 {
-                    f64::NAN
-                } else {
-                    s / n as f64
-                }
-            })
-            .collect()
-    }
-
+    /// Mean of each row over the non-`NA` entries.
+    ///
+    /// **Deliberately absent.** This method used to exist and sum in `f64`, and it
+    /// was wrong: R accumulates `rowMeans` in `long double` (64 bits of mantissa on
+    /// x86-64), and a cancelling sum loses bits the oracle keeps. There is now no
+    /// way to reach a row mean without choosing a [`Reductions`], so the
+    /// approximation cannot be used by accident.
+    ///
+    /// See [`crate::reduce`] for the measurement.
     /// Subtract a per-row constant in place: `x[i, ] -= v[i]`.
     ///
     /// This is the per-taxon centring step, `Y[i, ] - rowMeans(Y)[i]`, which
     /// removes taxon-specific sequencing efficiency. It is *row*-wise, unlike
     /// the theta adjustment below, which is column-wise.
+    ///
+    /// The subtraction is [`r_sub`], not `-`, so an `NA` cell keeps R's `NA_real_`
+    /// payload. `Y[i, ] - v[i]` on a matrix containing `NA_real_` produces
+    /// `0x7ff8000000000002` on x86-64 where R produces `NA_real_`; the difference is
+    /// invisible to every numeric check and visible to `serialize()`.
     pub fn sub_rows_in_place(&mut self, v: &[f64]) {
         debug_assert_eq!(v.len(), self.rows);
         for (i, &vv) in v.iter().enumerate() {
             let r = self.row_mut(i);
             for x in r.iter_mut() {
-                *x -= vv;
+                *x = crate::reduce::r_sub(*x, vv);
             }
         }
     }
@@ -107,7 +100,7 @@ impl RMatrix {
         for i in 0..self.rows {
             let r = self.row_mut(i);
             for (j, &vv) in v.iter().enumerate() {
-                r[j] -= vv;
+                r[j] = crate::reduce::r_sub(r[j], vv);
             }
         }
     }
@@ -143,12 +136,20 @@ impl RMatrix {
         }
     }
 
-    /// Replace non-finite entries with `v`, R's `x[is.infinite(x)] <- NA` plus
-    /// the compatibility quirk in the sandwich accumulation.
-    pub fn map_nonfinite_in_place(&mut self, f: impl Fn(f64) -> f64) {
+    /// `x[is.infinite(x)] <- NA`, which is what the reference does after every
+    /// `log`.
+    ///
+    /// Two things this gets right that a `!is_finite()` test does not:
+    ///
+    /// * the mask is `is.infinite`, so a NaN of any payload is left alone — an
+    ///   `NA_real_` in the counts keeps its own bits through `log`, and a computed
+    ///   `NaN` is not turned into `NA_real_`;
+    /// * the replacement is `NA_real_` (`0x7ff00000000007a2`), not `f64::NAN`
+    ///   (`0x7ff8000000000000`).
+    pub fn replace_infinite_with_na(&mut self) {
         for v in self.data.iter_mut() {
-            if !v.is_finite() {
-                *v = f(*v);
+            if v.is_infinite() {
+                *v = crate::reduce::na_real();
             }
         }
     }
@@ -240,19 +241,49 @@ mod tests {
 
     #[test]
     fn row_means_ignore_nan() {
+        use crate::reduce::{F64Reductions, Reductions};
         let mut m = RMatrix::zeros(2, 3);
         m.row_mut(0).copy_from_slice(&[1.0, 2.0, f64::NAN]);
         m.row_mut(1).copy_from_slice(&[3.0, f64::NAN, 6.0]);
-        let means = m.row_means_na_rm();
-        assert!((means[0] - 1.5).abs() < 1e-15);
-        assert!((means[1] - 4.5).abs() < 1e-15);
+        let means = F64Reductions.row_means_na_rm(&m);
+        assert_eq!(means, vec![1.5, 4.5]);
     }
 
+    /// An all-`NA` row is `NA_real_`, not `NaN`, and the two have different bits.
     #[test]
-    fn all_nan_row_gives_nan_mean() {
+    fn an_all_missing_row_is_na_real_not_nan() {
+        use crate::reduce::{F64Reductions, Reductions};
         let mut m = RMatrix::zeros(1, 2);
         m.row_mut(0).copy_from_slice(&[f64::NAN, f64::NAN]);
-        assert!(m.row_means_na_rm()[0].is_nan());
+        let got = F64Reductions.row_means_na_rm(&m)[0];
+        assert_eq!(got.to_bits(), crate::reduce::NA_REAL_BITS);
+        assert_ne!(got.to_bits(), f64::NAN.to_bits());
+    }
+
+    /// `x[is.infinite(x)] <- NA`: `±Inf` becomes `NA_real_`, NaN is untouched.
+    #[test]
+    fn only_infinity_is_replaced_by_the_na_mask() {
+        let mut m = RMatrix::from_row_major(
+            1,
+            5,
+            vec![
+                f64::NEG_INFINITY,
+                f64::INFINITY,
+                crate::reduce::na_real(),
+                f64::NAN,
+                1.5,
+            ],
+        );
+        m.replace_infinite_with_na();
+        let r = m.row(0);
+        assert_eq!(r[0].to_bits(), crate::reduce::NA_REAL_BITS);
+        assert_eq!(r[1].to_bits(), crate::reduce::NA_REAL_BITS);
+        // An `NA_real_` that was already there keeps its payload.
+        assert_eq!(r[2].to_bits(), crate::reduce::NA_REAL_BITS);
+        // A computed NaN keeps the plain payload and is *not* promoted to
+        // `NA_real_`.
+        assert_eq!(r[3].to_bits(), f64::NAN.to_bits());
+        assert_eq!(r[4], 1.5);
     }
 
     #[test]

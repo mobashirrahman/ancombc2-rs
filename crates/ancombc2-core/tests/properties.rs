@@ -210,7 +210,16 @@ fn p5_a_single_group_is_a_typed_error() {
         group: Some("grp".into()),
         ..support::default_config(2, "grp")
     };
-    let e = ancombc2_run_named(&c, &x, Some(&all_zero), &cfg, &[], &[]).unwrap_err();
+    let e = ancombc2_run_named(
+        &c,
+        &x,
+        Some(&all_zero),
+        &cfg,
+        &[],
+        &[],
+        &ancombc2_core::F64Reductions,
+    )
+    .unwrap_err();
     assert!(
         matches!(e, ancombc2_core::AncombcError::GroupTooFewLevels),
         "expected GroupTooFewLevels for a single-level group, got {e:?}"
@@ -227,7 +236,16 @@ fn p6_rank_deficient_design_is_a_typed_error() {
     let (c, _x, g) = support::two_group(50, 16, 3);
     let rows: Vec<Vec<f64>> = (0..16).map(|j| vec![1.0, 1.0 + j as f64 * 0.0]).collect();
     let x = Matrix::from_rows(&rows);
-    let e = ancombc2_run_named(&c, &x, Some(&g), &AncombcConfig::default(), &[], &[]).unwrap_err();
+    let e = ancombc2_run_named(
+        &c,
+        &x,
+        Some(&g),
+        &AncombcConfig::default(),
+        &[],
+        &[],
+        &ancombc2_core::F64Reductions,
+    )
+    .unwrap_err();
     match e {
         ancombc2_core::AncombcError::UnidentifiableCovariates { covariates } => {
             assert!(!covariates.is_empty(), "the error must name a covariate");
@@ -464,7 +482,16 @@ fn p11_none_makes_q_equal_to_p() {
 fn p12_a_single_sample_is_a_typed_error() {
     let c = CountMatrix::new(20, 1, vec![10.0; 20]).unwrap();
     let x = Matrix::from_rows(&[vec![1.0]]);
-    let e = ancombc2_run_named(&c, &x, None, &AncombcConfig::default(), &[], &[]).unwrap_err();
+    let e = ancombc2_run_named(
+        &c,
+        &x,
+        None,
+        &AncombcConfig::default(),
+        &[],
+        &[],
+        &ancombc2_core::F64Reductions,
+    )
+    .unwrap_err();
     assert!(
         matches!(e, ancombc2_core::AncombcError::NoResidualDegreesOfFreedom),
         "got {e:?}"
@@ -666,7 +693,7 @@ proptest! {
             prv_cut: 0.0,
             ..support::default_config(2, "grp")
         };
-        if let Ok(r) = ancombc2_run_named(&c, &x, Some(&g), &cfg, &[], &[]) {
+        if let Ok(r) = ancombc2_run_named(&c, &x, Some(&g), &cfg, &[], &[], &ancombc2_core::F64Reductions) {
             let n = r.core.taxa.len();
             prop_assert_eq!(r.core.beta.len(), n * 2);
             prop_assert_eq!(r.core.se.len(), n * 2);
@@ -704,8 +731,8 @@ proptest! {
         }
         let cp = c.select(&perm, &(0..n_samp).collect::<Vec<_>>());
         let (a, b) = match (
-            ancombc2_run_named(&c, &x, Some(&g), &cfg, &[], &[]),
-            ancombc2_run_named(&cp, &x, Some(&g), &cfg, &[], &[]),
+            ancombc2_run_named(&c, &x, Some(&g), &cfg, &[], &[], &ancombc2_core::F64Reductions),
+            ancombc2_run_named(&cp, &x, Some(&g), &cfg, &[], &[], &ancombc2_core::F64Reductions),
         ) {
             (Ok(a), Ok(b)) => (a, b),
             _ => return Ok(()),

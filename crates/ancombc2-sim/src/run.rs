@@ -125,6 +125,9 @@ pub fn run_replicate(grid: &Grid, cell: &Cell, rep: usize, arm: &str) -> RepMetr
         &cfg,
         &r.taxon_names,
         &r.sample_names,
+        // No R to ask, so the `f64` accumulator: exact for the integer-valued
+        // reductions, an approximation for `rowMeans`. See `ancombc2_core::reduce`.
+        &ancombc2_core::F64Reductions,
     ) {
         Ok(res) => {
             let out = &res.core;

@@ -6,6 +6,7 @@ members = [
     "crates/ancombc2-io",
     "crates/ancombc2-cli",
     "crates/ancombc2-ffi",
+    "crates/ancombc2-rbridge",
     "crates/ancombc2-sim",
 ]
 

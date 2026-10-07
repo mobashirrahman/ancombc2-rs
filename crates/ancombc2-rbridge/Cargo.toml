@@ -1,0 +1,28 @@
+[package]
+name = "ancombc2-rbridge"
+description = "Typed native bridge between R and the ANCOMBC replacement's numerical stages"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[lib]
+# `cdylib` is what R links. There is deliberately no `rlib`: nothing in this
+# workspace consumes the bridge as a Rust library, and an `rlib` would invite
+# exactly that. The crate's own tests are in `tests/`, which link the `cdylib`
+# through a thin C-ABI shim exactly as R does, so what the tests exercise is what
+# R exercises.
+crate-type = ["cdylib"]
+
+[dependencies]
+# The numerical core, and only the numerical core. If `ancombc2-core` ever grows
+# an R dependency this crate inherits it, which is the signal that the split has
+# been broken.
+ancombc2-core.workspace = true
+
+# No serde, no serde_json. IMPROVED_PLAN.md section 2 names the JSON bridge as a
+# required closure: `NaN` becomes `null`, `-0.0` becomes `0.0`, and rebuilding the
+# R object from parsed JSON changes its structure and attributes. Nothing here
+# serialises.

@@ -28,6 +28,7 @@ fn run_fixture(id: usize) {
         &f.cfg,
         &f.taxon_names,
         &f.sample_names,
+        &ancombc2_core::F64Reductions,
     )
     .unwrap_or_else(|e| {
         panic!("fixture {id} failed to run: {e}");

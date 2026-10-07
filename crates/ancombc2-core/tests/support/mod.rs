@@ -203,5 +203,6 @@ pub fn run_with(
 ) -> AncombcResult {
     let mut cfg = cfg.clone();
     cfg.pseudo = pseudo;
-    ancombc2_run_named(c, x, Some(g), &cfg, &[], &[]).expect("the run must succeed")
+    ancombc2_run_named(c, x, Some(g), &cfg, &[], &[], &ancombc2_core::F64Reductions)
+        .expect("the run must succeed")
 }
