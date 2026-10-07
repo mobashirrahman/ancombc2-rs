@@ -1,14 +1,27 @@
 # ancombc2-rs
 
 A Rust reimplementation of ANCOM-BC2, the bias-corrected differential abundance
-analysis for microbiome count data.
+analysis for microbiome count data, plus an in-progress drop-in replacement for
+the R package `ANCOMBC`.
 
-**Compatibility target: `ancombc2-rs v0.1` is equivalent to ANCOMBC 2.15.2 at
-commit `dc4febdf59badb3a8dfe0c767ef2186323c2199a`, under R >= 4.5.0, seed 42.**
+## Status
 
-That string is a claim with a test behind it, not a slogan: the golden parity
-suite compares 29 quantities against the pinned R implementation on four
-fixtures, and `docs/reference_behavior.md` records every divergence it found.
+This is research software under active development. What is and is not
+demonstrated:
+
+| claim | state |
+| --- | --- |
+| Rust pipeline agrees with ANCOMBC 2.15.2 (commit `dc4febdf`) within the tolerances in `docs/numerical_contract.md` | **demonstrated** on 4 golden fixtures, 38 matrix cells, 4 real datasets and a 252-cell simulation grid |
+| Drop-in R package (`r/ANCOMBC`, same 32-argument `ancombc2()` and 7 exports) | **interface only**: it installs and matches the signature, but still executes the retained upstream R; Rust is not yet called from `ancombc2()` |
+| Byte-identical output to the original | **not yet**. 114/114 cases are byte-identical between the original and the replacement *scaffold*; that validates the harness, not Rust. The Rust fit is within 1-2 ulp, not bit-exact |
+| Faster than R | **not yet measured validly**. Earlier ratios used a sequential R stub and mismatched memory metrics; with them, large inputs were about 1.1x and small inputs 15-68x. The valid benchmark gates are pending |
+
+The active plan is `IMPROVED_PLAN.md` and the execution record, including every
+open gate, is `IMPLEMENTATION_STATUS.md`. `PLAN.md`, `docs/release_status.md` and
+`docs/performance_plan.md` are history; their numbers are not the release baseline.
+"Bit-identical" in older documents means Rust self-determinism across thread
+counts, not equality with ANCOMBC.
+
 
 ## What is implemented
 

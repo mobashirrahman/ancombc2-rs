@@ -1,5 +1,21 @@
 # Compatibility
 
+> **Unvalidated for the current release contract.** This document is history.
+> `IMPROVED_PLAN.md` is the active plan; `IMPLEMENTATION_STATUS.md` is the
+> authoritative record. Specifically, as of 2026-10-05:
+>
+> * The word "equivalent" below means tolerance-based parity, **not** byte
+>   identity. No whole-result byte comparison against the installed original
+>   exists yet.
+> * "byte-identical" / "bit-identical" in this file means Rust-vs-Rust
+>   determinism (across thread counts, across R versions, across repeated
+>   simulation runs). It never means equality with the original's output.
+> * The R-relative benchmark numbers were produced against
+>   `reference/R/harness.R`, which installs sequential `foreach`/`%dorng%` stubs;
+>   the reference arm was therefore single-threaded by construction, and R's
+>   memory was recorded with `gc()` while Rust's came from `VmHWM`. Neither is
+>   comparable. These rows are invalid for the P1-P5 gates.
+
 ## The statement
 
 **`ancombc2-rs v0.1` is equivalent to ANCOMBC 2.15.2 at commit

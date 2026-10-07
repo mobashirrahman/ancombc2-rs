@@ -1,5 +1,10 @@
 # ancombc2-rs — Development Plan
 
+> Historical plan. The implementation plan for an exact package replacement is
+> now [IMPROVED_PLAN.md](IMPROVED_PLAN.md). Its scope and release gates supersede
+> the fixed-effects-only scope and tolerance-based acceptance criteria below.
+> Use [IMPLEMENTATION_PROMPT.md](IMPLEMENTATION_PROMPT.md) to start implementation.
+
 A numerically compatible, high-performance Rust reimplementation of the **fixed-effects**
 core of ANCOM-BC2, with a rigorous validation and benchmarking program sufficient to
 support a computational-methods manuscript.

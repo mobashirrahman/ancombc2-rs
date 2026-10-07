@@ -1,5 +1,14 @@
 # Release status
 
+> **Superseded for the current objective.** This file records the `PLAN.md`
+> v0.1-v1.0 sequence and is preserved as history. The active release gates are
+> C1-C4, B1 and P1-P5 as frozen in `IMPROVED_PLAN.md` §3, and their state is in
+> `IMPLEMENTATION_STATUS.md`. None of C1-C4/B1/P1-P5 has passed yet. Every
+> benchmark ratio in this file was measured against the sequential
+> `reference/R/harness.R` stubs with incomparable memory metrics, so it is not a
+> measurement of the R-relative quantities the new gates name. "Bit-identical"
+> claims in this file are Rust self-determinism, not equality with the original.
+
 PLAN.md section 10 sequences the releases v0.1 to v1.0 and gives each a gate. This
 records, for each gate, whether it is met and **what the evidence is**. A gate
 marked unmet is a result, not an omission; the plan treats its performance gates as
