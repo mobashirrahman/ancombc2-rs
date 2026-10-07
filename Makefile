@@ -33,15 +33,19 @@ RESULTS := benchmarks/results/results.jsonl
 # oracle fails to load, and the harnesses record that failure in every row rather
 # than producing numbers, so a run that quietly analysed nothing still looks like
 # a run. See docs/reproduction.md for the install command.
-# This machine's private library is `/scratch/mdra00001/rlib`; override on the
-# command line or in the environment for a different checkout.
-R_LIBS_USER ?= /scratch/mdra00001/rlib
+# The default is a library inside the checkout (`make r-deps` style installs go
+# there). Point it at an existing library per machine, without editing this file,
+# in an untracked `local.mk` (`R_LIBS_USER = /path/to/rlib`), on the command line,
+# or in the environment.
+-include local.mk
+R_LIBS_USER ?= $(CURDIR)/.rlib/deps
 
 .PHONY: all build test parity parity-large properties fmt clippy lint doc \
         goldens goldens-drift smoke bench-data bench bench-container gates sim \
         sim-rust sim-r sim-agree sim-summary \
         sim-full realdata realdata-prep realdata-rust realdata-r realdata-summary \
         phyloseq-shim edge-cases edge-gen \
+        exact-env-check exact-env-selftest \
         miri r-install r-test distclean clean
 
 all: lint test
@@ -314,6 +318,223 @@ REALDATA_MB ?= microbiome/data
 # the harness reads, and cross-checks the id against `ORACLE_SHA` in
 # `crates/ancombc2-core/src/lib.rs`. Cheap, and it is the difference between a
 # frozen oracle and a directory that happens to look right.
+# ---------------------------------------------------------------------------
+# IMPROVED_PLAN.md phase 1: profiles, exact comparison, release gates.
+#
+# Everything above this line is the historical PLAN.md surface and is kept as
+# it was. The targets below are the enforceable interface the new plan names;
+# none of them existed before, and each one is a thin wrapper that cannot turn
+# a missing tool into a pass.
+# ---------------------------------------------------------------------------
+
+EXACT_DIR := validation/exact
+PROFILE ?= linux-r453-openblas
+PROFILE_JSON := $(EXACT_DIR)/profiles/$(PROFILE).json
+
+# Separate installation libraries for the two arms. They must not overlap: an
+# arm that can see both can silently measure whichever it finds first, which is
+# the failure C4 exists to prevent.
+ORIGINAL_LIB ?= $(CURDIR)/.rlib/original
+REPLACEMENT_LIB ?= $(CURDIR)/.rlib/replacement
+
+# Preflight for one execution profile (IMPROVED_PLAN.md S01).
+#
+# Proves, before any analysis runs, that this really is the pinned runtime: the
+# oracle's per-file SHA-256s, the pinned version/licence/Depends, the exact R
+# version and BLAS, the controlled library path, the installed original's
+# identity digest, and every declared dependency at its recorded version. A
+# wrong digest, R, BLAS, package hash, library path or missing dependency exits
+# non-zero, so a run in the wrong runtime cannot produce a number that looks
+# like a result.
+exact-env-check:
+	@test -f $(PROFILE_JSON) || { \
+	  echo "no such profile: $(PROFILE_JSON)"; \
+	  echo "known:"; ls $(EXACT_DIR)/profiles/*.json 2>/dev/null; exit 2; }
+	$(PYTHON) scripts/verify_profile.py --profile $(PROFILE_JSON) \
+	    --json-out $(EXACT_DIR)/profiles/$(PROFILE).report.json
+
+# The negative checks: every mutation of the profile must produce a non-zero
+# preflight, and must trip the check it was designed to exercise. Run this when
+# verify_profile.py changes; a preflight that cannot fail is not a preflight.
+exact-env-selftest:
+	$(PYTHON) scripts/verify_profile.py --profile $(PROFILE_JSON) --selftest
+
+# Build the exact input RDS both arms consume (IMPROVED_PLAN.md S04).
+#
+# An RDS, not the fixture's text files: if each arm parsed counts.tsv itself,
+# each arm would own a parser and a parser difference would look like a
+# numerical difference.
+exact-input:
+	@test -n "$(FIXTURE)" || { echo "usage: make exact-input FIXTURE=<dir> OUT=<rds> [CASE_ID=..] [SEED=..] [THREADS=..]"; exit 2; }
+	$(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) \
+	    scripts/make_exact_input.R --fixture $(FIXTURE) --out $(OUT) \
+	    $(if $(CASE_ID),--case-id $(CASE_ID),) $(if $(SEED),--seed $(SEED),) \
+	    $(if $(THREADS),--threads $(THREADS),)
+
+# Run one exact case through both installed packages (IMPROVED_PLAN.md S02).
+# With only the original installed, this still establishes the reference's own
+# repeatability, which every later comparison depends on.
+exact-run:
+	$(PYTHON) scripts/run_exact.py --profile $(PROFILE_JSON) --case $(CASE) \
+	    --repeats $(or $(REPEATS),2) $(if $(OUT),--out $(OUT),) \
+	    $(if $(JSON_OUT),--json-out $(JSON_OUT),)
+
+# The runner's guard checks: a missing or wrong library, a wrong input schema,
+# an unknown arm, and -- most importantly -- running the original under the
+# candidate's name, which must be impossible rather than merely unlikely.
+exact-runner-selftest:
+	$(PYTHON) scripts/run_exact.py --profile $(PROFILE_JSON) --case $(CASE) --selftest
+
+# The comparator's negative checks. Every deliberate mutation must be rejected
+# and identical objects must pass; a comparator that cannot fail is not one.
+exact-comparator-selftest:
+	$(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) \
+	    scripts/check_exact.R --selftest
+
+# Compare two capture directories, or reduce an observed run to a case list and
+# check it against the required manifest.
+exact-compare:
+	$(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) \
+	    scripts/check_exact.R --left $(LEFT) --right $(RIGHT)
+
+exact-cases:
+	$(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) \
+	    scripts/check_exact.R --cases validation/exact/cases.json \
+	    --case-set $(or $(CASESET),small) $(if $(OBSERVED),--observed $(OBSERVED),)
+
+# Build every exact input the fixture manifest names, then digest it.
+exact-inputs:
+	$(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) \
+	    scripts/make_exact_inputs.R --spec validation/exact/fixtures.json \
+	    --out-dir validation/exact/inputs --index validation/exact/inputs/built.json \
+	    --profile $(PROFILE)
+	$(PYTHON) scripts/check_exact_inputs.py --write --profile $(PROFILE)
+
+# Regenerate every input in a temporary directory and require every digest to
+# match the manifest. This is the check that the exact inputs are reproducible
+# and that the committed source files they were read from have not moved.
+exact-inputs-verify:
+	$(PYTHON) scripts/check_exact_inputs.py --verify --profile $(PROFILE)
+
+# The new exact fixtures that no committed fixture can express, with their
+# round-trip check. Explicit seeds; the input is written before either arm runs.
+exact-source-fixtures:
+	$(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) \
+	    scripts/make_exact_source_fixtures.R \
+	    --out-dir validation/exact/fixtures-src \
+	    --manifest validation/exact/fixtures-src/index.json
+
+# Install the replacement package into its own library and prove it is a drop-in
+# for the pinned original: same exports, same 32 formals in order with the same
+# default expressions, and no dependence on the original's installation.
+replacement-build:
+	mkdir -p $(REPLACEMENT_LIB)
+	$(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) --r-cmd \
+	    R CMD INSTALL --library=$(REPLACEMENT_LIB) r/ANCOMBC
+
+replacement-check:
+	$(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) \
+	    scripts/check_replacement.R \
+	    --original-lib $(ORIGINAL_LIB) --candidate-lib $(REPLACEMENT_LIB)
+
+# The per-file provenance record for the retained upstream code, and its check.
+# A locally modified retained file that is not named in
+# r/ANCOMBC/inst/REPLACEMENT_PROVENANCE.md fails here.
+upstream-manifest:
+	$(PYTHON) scripts/upstream_manifest.py --write
+
+upstream-manifest-verify:
+	$(PYTHON) scripts/upstream_manifest.py --verify
+
+# One exact pass over every case in the input index, both arms, storing the
+# original's captures under validation/exact/golden and the observed case list
+# where scripts/check_exact.R --cases reads it.
+exact:
+	$(PYTHON) scripts/run_exact.py --profile $(PROFILE_JSON) \
+	    --input-index validation/exact/inputs/built.json \
+	    --repeats $(or $(REPEATS),1) \
+	    --goldens validation/exact/golden \
+	    --observed-out validation/exact/observed.json \
+	    $(if $(OUT),--out $(OUT),) \
+	    --json-out $(or $(JSON_OUT),validation/exact/two_arm.json)
+
+# The 25-case `small` set, as its own campaign with its own observed file. Used as
+# the quick regression after a task that touched the installed package; the full
+# 114-case `exact` above is the one that counts.
+exact-small:
+	$(PYTHON) scripts/run_exact.py --profile $(PROFILE_JSON) \
+	    --input-index validation/exact/inputs/built.json --case-set small \
+	    --repeats $(or $(REPEATS),1) \
+	    --goldens validation/exact/golden \
+	    --observed-out $(or $(OBSERVED),validation/exact/observed_small.json) \
+	    $(if $(OUT),--out $(OUT),) \
+	    --json-out $(or $(JSON_OUT),validation/exact/two_arm_small.json)
+
+# ... and the manifest completeness check over what that pass observed.
+exact-cases-required:
+	$(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) \
+	    scripts/check_exact.R --cases validation/exact/cases.json \
+	    --case-set $(or $(CASESET),required) --observed validation/exact/observed.json
+
+# Regenerate validation/exact/cases.json from the fixture manifest, or check it
+# is not stale. One source of truth: the manifest and the suite cannot describe
+# different case sets.
+exact-case-manifest:
+	$(PYTHON) scripts/make_case_manifest.py
+
+exact-case-manifest-check:
+	$(PYTHON) scripts/make_case_manifest.py --check
+
+# The typed native transport's own acceptance checks (IMPROVED_PLAN.md S06).
+#
+# Run against the *installed* replacement, so what is exercised is the compiled
+# init.c and the compiled Rust bridge rather than the source files. The library
+# path is set explicitly because the profile's R_LIBS is the *original* arm's, and
+# a test that silently loaded the original would pass without testing anything.
+r-bridge-selftest:
+	$(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) \
+	    --set-env R_LIBS=$(REPLACEMENT_LIB) \
+	    r/ANCOMBC/tests/bridge_selftest.R
+
+# The output transport's acceptance check (IMPROVED_PLAN.md S07). Round-trips the
+# captured payloads through the compiled bridge and compares the assembled result
+# to the pinned original's, byte for byte.
+#
+# ANCOMBC_PAYLOAD_RDS is passed explicitly rather than defaulted, so the test
+# cannot silently pick up whatever fixture happens to be lying around.
+r-output-selftest:
+	$(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) \
+	    --set-env R_LIBS=$(REPLACEMENT_LIB) \
+	    --set-env ANCOMBC_PAYLOAD_RDS=validation/exact/payloads/tiny-defaults.rds \
+	    r/ANCOMBC/tests/output_selftest.R
+
+# The preprocessing stages, compared bit for bit against R's own expressions
+# (IMPROVED_PLAN.md S08). Every fixture is built in the script rather than read from
+# a file, so the claim and the input cannot drift apart.
+preprocess-stages:
+	$(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) \
+	    --set-env R_LIBS=$(REPLACEMENT_LIB) \
+	    scripts/check_preprocess_stages.R
+
+# The bridge's own Rust-side checks, which need no R at all.
+r-bridge-rust-tests:
+	$(CARGO) test --release -p ancombc2-rbridge
+	$(CARGO) clippy --release -p ancombc2-rbridge --all-targets -- -D warnings
+
+# The pure Rust library must keep building and testing with no R present, which is
+# what keeps the R integration behind a boundary.
+r-core-without-r:
+	$(CARGO) build --release -p ancombc2-core
+	$(CARGO) test --release -p ancombc2-core --lib
+
+.PHONY: exact-small r-output-selftest r-bridge-selftest r-bridge-rust-tests r-core-without-r \
+        exact-case-manifest exact-case-manifest-check \
+        exact-env-check exact-env-selftest exact-input exact-run \
+        exact-runner-selftest exact-comparator-selftest exact-compare exact-cases \
+        exact-inputs exact-inputs-verify exact-source-fixtures \
+        replacement-build replacement-check upstream-manifest upstream-manifest-verify \
+        exact exact-cases-required
+
 oracle-sha:
 	$(RSCRIPT) --vanilla scripts/check_oracle_sha.R
 

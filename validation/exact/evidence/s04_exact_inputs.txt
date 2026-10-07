@@ -1,0 +1,165 @@
+# S04 acceptance evidence -- 2026-10-05T21:04:41Z
+
+## the new source fixtures, with their round-trip check
+--- make exact-source-fixtures
+re2g           8 taxa x 12 samples, 2 group(s), 1 covariate(s)  round-trip OK
+re3g-sens      8 taxa x 12 samples, 3 group(s), 1 covariate(s)  round-trip OK
+tiny5x8        5 taxa x 8 samples, 2 group(s), 1 covariate(s)  round-trip OK
+onegroup       6 taxa x 9 samples, 1 group(s), 1 covariate(s)  round-trip OK
+absent-in-group-a-2col         6 taxa x 10 samples  derived from validation/edge/absent_in_group_a  round-trip OK
+rare-in-group-a-2col           6 taxa x 10 samples  derived from validation/edge/rare_in_group_a  round-trip OK
+present-in-every-group-2col    6 taxa x 10 samples  derived from validation/edge/present_in_every_group  round-trip OK
+na-counts-2col                 6 taxa x 10 samples  derived from validation/edge/na_counts  round-trip OK
+struc-zero-off-2col            6 taxa x 10 samples  derived from validation/edge/struc_zero_off  round-trip OK
+prv-cut-boundary-2col          5 taxa x 10 samples  derived from validation/edge/prv_cut_boundary  round-trip OK
+wrote validation/exact/fixtures-src/index.json
+exit=0
+
+## every exact input, built from the fixture manifest
+--- make exact-inputs
+fx01-basic                         error    n_tax=10     n_samp=10     1251 bytes
+fx02-basic                         success  n_tax=100    n_samp=30     8142 bytes
+fx03-basic                         success  n_tax=1000   n_samp=100    203340 bytes
+edge-absent-in-group-a             error    n_tax=6      n_samp=10     900 bytes
+edge-rare-in-group-a               error    n_tax=6      n_samp=10     903 bytes
+edge-present-in-every-group        error    n_tax=6      n_samp=10     903 bytes
+edge-na-counts                     error    n_tax=6      n_samp=10     878 bytes
+edge-group-of-size-one             error    n_tax=5      n_samp=7      846 bytes
+edge-struc-zero-off                error    n_tax=6      n_samp=10     897 bytes
+edge-prv-cut-boundary              error    n_tax=5      n_samp=10     862 bytes
+fx02-positional                    error    n_tax=100    n_samp=30     7836 bytes
+fx03-pseudo-half                   success  n_tax=1000   n_samp=100    203352 bytes
+fx03-pseudo-sens-off               success  n_tax=1000   n_samp=100    203353 bytes
+fx03-conservative-off              success  n_tax=1000   n_samp=100    203358 bytes
+fx03-pairwise-only                 success  n_tax=1000   n_samp=100    203353 bytes
+fx03-dunnet                        success  n_tax=1000   n_samp=100    203350 bytes
+fx03-trend                         error    n_tax=1000   n_samp=100    203384 bytes
+fx03-p-adj-bh                      success  n_tax=1000   n_samp=100    203346 bytes
+fx03-p-adj-bonferroni              success  n_tax=1000   n_samp=100    203369 bytes
+fx03-struc-zero-on                 success  n_tax=1000   n_samp=100    203350 bytes
+fx03-neg-lb                        success  n_tax=1000   n_samp=100    203341 bytes
+fx03-alpha-0                       success  n_tax=1000   n_samp=100    203341 bytes
+fx03-alpha-1                       success  n_tax=1000   n_samp=100    203342 bytes
+fx03-prv-cut-1                     error    n_tax=1000   n_samp=100    203340 bytes
+fx03-lib-cut-huge                  success  n_tax=1000   n_samp=100    203353 bytes
+fx03-bad-p-adj                     error    n_tax=1000   n_samp=100    203351 bytes
+fx03-bad-iter-control              success  n_tax=1000   n_samp=100    203352 bytes
+tiny-assay-alias                   success  n_tax=5      n_samp=8      889 bytes
+tiny-rank-null                     success  n_tax=5      n_samp=8      884 bytes
+tiny-defaults-positional           error    n_tax=5      n_samp=8      848 bytes
+re2g-rand-intercept                success  n_tax=8      n_samp=12     1099 bytes
+re2g-rand-slope                    success  n_tax=8      n_samp=12     1100 bytes
+re2g-rand-bare                     error    n_tax=8      n_samp=12     1090 bytes
+re2g-rand-with-sens                success  n_tax=8      n_samp=12     1091 bytes
+re2g-rand-control-null             success  n_tax=8      n_samp=12     1487 bytes
+onegroup-basic                     error    n_tax=6      n_samp=9      963 bytes
+tiny-p-adj-bh                      success  n_tax=5      n_samp=8      897 bytes
+tiny-p-adj-bonferroni              success  n_tax=5      n_samp=8      908 bytes
+tiny-p-adj-hochberg                success  n_tax=5      n_samp=8      903 bytes
+tiny-p-adj-hom                     success  n_tax=5      n_samp=8      897 bytes
+tiny-p-adj-none                    success  n_tax=5      n_samp=8      894 bytes
+tiny-p-adj-bad                     error    n_tax=5      n_samp=8      900 bytes
+tiny-alpha-at-005                  success  n_tax=5      n_samp=8      900 bytes
+tiny-alpha-above-005               success  n_tax=5      n_samp=8      903 bytes
+tiny-alpha-below-005               success  n_tax=5      n_samp=8      903 bytes
+tiny-prv-cut-half                  success  n_tax=5      n_samp=8      899 bytes
+tiny-prv-cut-1                     success  n_tax=5      n_samp=8      890 bytes
+tiny-lib-cut-1                     success  n_tax=5      n_samp=8      891 bytes
+tiny-lib-cut-huge                  error    n_tax=5      n_samp=8      897 bytes
+tiny-struc-zero-on                 success  n_tax=5      n_samp=8      902 bytes
+tiny-struc-zero-off                success  n_tax=5      n_samp=8      892 bytes
+tiny-neg-lb-on                     success  n_tax=5      n_samp=8      892 bytes
+tiny-pseudo-half                   success  n_tax=5      n_samp=8      894 bytes
+tiny-pseudo-sens-off               success  n_tax=5      n_samp=8      892 bytes
+tiny-conservative-off              success  n_tax=5      n_samp=8      891 bytes
+re3g-dunnet                        success  n_tax=8      n_samp=12     1079 bytes
+re3g-trend                         error    n_tax=8      n_samp=12     1112 bytes
+re3g-global-only                   success  n_tax=8      n_samp=12     1071 bytes
+re3g-pairwise-only                 success  n_tax=8      n_samp=12     1072 bytes
+tiny-iter-max-1                    success  n_tax=5      n_samp=8      934 bytes
+tiny-iter-max-0                    success  n_tax=5      n_samp=8      937 bytes
+tiny-iter-tiny-tol                 success  n_tax=5      n_samp=8      936 bytes
+tiny-em-max-1                      success  n_tax=5      n_samp=8      922 bytes
+tiny-em-max-0                      error    n_tax=5      n_samp=8      932 bytes
+tiny-mdfdr-b                       success  n_tax=5      n_samp=8      940 bytes
+tiny-mdfdr-bad-method              success  n_tax=5      n_samp=8      924 bytes
+tiny-trend-control-null            success  n_tax=5      n_samp=8      932 bytes
+tiny-s0-0                          success  n_tax=5      n_samp=8      889 bytes
+tiny-s0-100                        error    n_tax=5      n_samp=8      890 bytes
+tiny-threads-2                     success  n_tax=5      n_samp=8      882 bytes
+tiny-threads-4                     success  n_tax=5      n_samp=8      885 bytes
+tiny-threads-8                     success  n_tax=5      n_samp=8      884 bytes
+re3g-trend-contrast                error    n_tax=8      n_samp=12     1140 bytes
+re3g-trend-contrast-node           error    n_tax=8      n_samp=12     1139 bytes
+re3g-dunnet-with-mdfdr             success  n_tax=8      n_samp=12     1128 bytes
+re3g-dunnet-bad-mdfdr              error    n_tax=8      n_samp=12     1132 bytes
+tiny-global-without-group          error    n_tax=5      n_samp=8      895 bytes
+tiny-struc-zero-without-group      error    n_tax=5      n_samp=8      908 bytes
+tiny-pairwise-without-group        error    n_tax=5      n_samp=8      894 bytes
+tiny-bad-group-name                error    n_tax=5      n_samp=8      897 bytes
+tiny-group-ok                      success  n_tax=5      n_samp=8      897 bytes
+tiny-lib-cut-below-min             success  n_tax=5      n_samp=8      896 bytes
+fx03-lib-cut-1                     success  n_tax=1000   n_samp=100    203344 bytes
+fx03-prv-cut-0                     success  n_tax=1000   n_samp=100    203342 bytes
+fx03-prv-cut-half                  success  n_tax=1000   n_samp=100    203349 bytes
+tiny-prv-cut-0                     success  n_tax=5      n_samp=8      893 bytes
+tiny-s0-perc-1                     success  n_tax=5      n_samp=8      891 bytes
+tiny-em-tiny-tol                   success  n_tax=5      n_samp=8      927 bytes
+tiny-iter-tol-0                    success  n_tax=5      n_samp=8      929 bytes
+smoke-data-sanity-check            success  n_tax=5      n_samp=8      705 bytes
+smoke-ancombc                      success  n_tax=5      n_samp=8      715 bytes
+smoke-ancom                        success  n_tax=5      n_samp=8      701 bytes
+smoke-secom-dist                   success  n_tax=8      n_samp=12     1079 bytes
+smoke-secom-linear                 success  n_tax=8      n_samp=12     1091 bytes
+smoke-sim-plnm                     success  n_tax=5      n_samp=8      562 bytes
+re3g-trend-runs                    error    n_tax=8      n_samp=12     1172 bytes
+re3g-trend-non-square              error    n_tax=8      n_samp=12     1152 bytes
+re3g-trend-mismatched-nodes        error    n_tax=8      n_samp=12     1164 bytes
+re3g-trend-no-control              error    n_tax=8      n_samp=12     1094 bytes
+re3g-pairwise-no-mdfdr             success  n_tax=8      n_samp=12     1072 bytes
+re3g-pairwise-null-mdfdr           success  n_tax=8      n_samp=12     1110 bytes
+tiny-two-group-global              success  n_tax=5      n_samp=8      904 bytes
+re3g-basic                         success  n_tax=8      n_samp=12     1080 bytes
+fx02-defaults                      success  n_tax=100    n_samp=30     8108 bytes
+tiny-defaults                      success  n_tax=5      n_samp=8      882 bytes
+smoke-ancombc2-dataframe           success  n_tax=5      n_samp=8      748 bytes
+smoke-data-sane                    success  n_tax=5      n_samp=8      705 bytes
+smoke-data-sane-bad-formula        error    n_tax=5      n_samp=8      713 bytes
+absent-in-group-a                  success  n_tax=6      n_samp=10     1041 bytes
+rare-in-group-a                    success  n_tax=6      n_samp=10     1039 bytes
+present-in-every-group             success  n_tax=6      n_samp=10     1038 bytes
+na-counts                          success  n_tax=6      n_samp=10     1025 bytes
+struc-zero-off                     success  n_tax=6      n_samp=10     1037 bytes
+prv-cut-boundary                   success  n_tax=5      n_samp=10     1005 bytes
+wrote validation/exact/inputs/built.json (114 cases)
+wrote /scratch/mdra00001/ancom-bc2-rust/validation/exact/inputs/manifest.json (114 cases)
+exit=0
+
+## regeneration in a temporary directory must be byte-identical
+--- make exact-inputs-verify
+profile: linux-r453-openblas   cases: 114
+REGENERATION: byte-identical for every input and every source file
+exit=0
+
+## the required-case manifest is generated, not hand-written
+--- make exact-case-manifest-check
+validation/exact/cases.json is up to date (25 small, 114 required)
+exit=0
+
+## inputs and their source digests (first 12 of 114)
+  spec_sha256 b709b3a23a124ffb  n_cases 114
+  absent-in-group-a                  35f62afe3d0d567e  success  counts=6f5665f05b72
+  edge-absent-in-group-a             5dde2311f3cf98f5  error    counts=6f5665f05b72
+  edge-group-of-size-one             73413674926c58fc  error    counts=a2380d7384bc
+  edge-na-counts                     305d5a090287e048  error    counts=4a53d4e337be
+  edge-present-in-every-group        0bde9d6088204ebc  error    counts=0de2a70d0777
+  edge-prv-cut-boundary              95bb54f997881577  error    counts=118d0ef25d18
+  edge-rare-in-group-a               35e83be678c51aef  error    counts=120482025af1
+  edge-struc-zero-off                692eaa11d7dd5e2e  error    counts=a9dd1d4bb1fa
+  fx01-basic                         3aee278da6410225  error    counts=4b5fb6fe0f72
+  fx02-basic                         c16f127ccbecb1d6  success  counts=0284c54d11a5
+  fx02-defaults                      ddcf4b459dd2a509  success  counts=0284c54d11a5
+  fx02-positional                    7cc470a91d9b208c  error    counts=0284c54d11a5
+
+## the two arms consume the same input bytes
+  cases whose arms read different input bytes: 0 []

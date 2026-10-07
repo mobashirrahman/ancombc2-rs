@@ -1,0 +1,285 @@
+# S06 acceptance evidence -- 2026-10-05T21:55:46Z
+
+## the seam inventory
+  docs/exact_seam_inventory.md
+  - what is inside the seam and what is not, with line references
+  - .ancombc2_core's inputs, the 12 derived arrays in the order the original makes them
+  - .lm_fit_all: the primitive is stats::lm.fit (LAPACK dqrls), not a hand-written QR
+  - .sandwich_vcov: MASS::ginv on t(X)X, column-major outer products, the 0.1 NA substitution
+  - what a transport must preserve: NA vs NaN vs +-Inf vs -0.0, int vs double,
+    column-major, dof 999 vs 20, options(na.action), column order, NULL entries
+
+## the pure Rust library still builds and tests with no R present
+--- make r-core-without-r
+    Finished `release` profile [optimized] target(s) in 0.14s
+    Finished `release` profile [optimized] target(s) in 0.20s
+     Running unittests src/lib.rs (target/release/deps/ancombc2_core-3153bcb2d2ae4819)
+
+running 154 tests
+test config::tests::defaults_match_the_reference_signature ... ok
+test config::tests::pseudo_grids_match_the_reference ... ok
+test config::tests::strict_spec_is_not_the_default ... ok
+test correct::tests::a_zero_standard_error_gives_p_of_one ... ok
+test correct::tests::a_non_finite_dof_gives_p_of_one ... ok
+test correct::tests::add_bias_variance_matches_the_reference_expression_bit_for_bit ... ok
+test correct::tests::bias_correct_table_subtracts_columns ... ok
+test correct::tests::bias_correction_propagates_nan ... ok
+test correct::tests::bias_correction_subtracts_per_column ... ok
+test correct::tests::bias_variance_is_the_squared_sum_of_root_variances ... ok
+test correct::tests::holm_adjustment_runs_per_column ... ok
+test correct::tests::primary_inference_matches_r_on_a_hand_computed_case ... ok
+test correct::tests::q_is_monotone_within_each_column ... ok
+test correct::tests::regularisation_masks_taxa_with_missing_coefficients ... ok
+test correct::tests::s0_ignores_nan_entries ... ok
+test correct::tests::s0_is_the_percentile_of_the_variance_column ... ok
+test correct::tests::s0_none_disables_regularisation ... ok
+test correct::tests::sampling_fraction_is_nan_when_a_sample_has_no_observations ... ok
+test correct::tests::vcov_diagonal_refresh_leaves_off_diagonals_alone ... ok
+test em::tests::all_missing_input_returns_nan_rather_than_panicking ... ok
+test em::tests::a_constant_beta_yields_a_finite_estimate ... ok
+test em::tests::initial_params_are_the_documented_quantile_starting_values ... ok
+test em::tests::a_pure_null_mixture_recovers_a_near_zero_bias ... ok
+test em::tests::zero_variance_is_an_error_naming_the_taxon ... ok
+test correct::tests::inference_is_deterministic ... ok
+test em::tests::initial_priors_match_the_reference ... ok
+test matrix::linalg::tests::column_major_layout_is_r_compatible ... ok
+test matrix::linalg::tests::eigen_matches_r_symmetric ... ok
+test em::tests::max_iter_is_respected ... ok
+test matrix::linalg::tests::cholesky_solve_matches_r_solve ... ok
+test matrix::linalg::tests::ginv_drops_tiny_singular_values_like_mass ... ok
+test matrix::linalg::tests::ginv_inverts_a_well_conditioned_matrix ... ok
+test matrix::linalg::tests::ginv_of_a_design_gram_matrix ... ok
+test matrix::linalg::tests::matmul_matches_hand_computation ... ok
+test matrix::linalg::tests::eigen_of_a_general_symmetric_matrix ... ok
+test matrix::linalg::tests::qr_detects_rank_deficiency ... ok
+test matrix::linalg::tests::qr_handles_multiple_responses_at_once ... ok
+test matrix::linalg::tests::qr_solves_a_least_squares_problem ... ok
+test matrix::linalg::tests::select_helpers_match_r_subsetting ... ok
+test matrix::pattern::tests::bitset_basics ... ok
+test matrix::pattern::tests::complete_data_is_a_single_group ... ok
+test matrix::pattern::tests::grouping_is_order_stable ... ok
+test matrix::pattern::tests::groups_taxa_sharing_a_pattern ... ok
+test matrix::pattern::tests::nnz_counts_the_fit_work ... ok
+test mle::tests::an_aliased_column_is_na_and_an_absent_name_is_zero ... ok
+test matrix::pattern::tests::all_zero_rows_still_form_a_group ... ok
+test mle::tests::fitted_is_the_projection_and_interpolates_when_n_equals_rank ... ok
+test mle::tests::the_base_level_is_the_first_observed_one ... ok
+test matrix::pattern::tests::large_input_is_consistent ... ok
+test correct::tests::sampling_fractions_average_over_observed_taxa_per_sample ... ok
+test parallel::tests::one_thread_still_installs_a_pool ... ok
+test parallel::tests::the_parallel_axes_write_to_disjoint_slots ... ok
+test parallel::tests::both_branches_agree_and_preserve_order ... ok
+test pipeline::coefficient_tests::a_length_that_is_not_a_multiple_of_the_taxa_count_is_refused ... ok
+test parallel::tests::depth_governs_who_may_parallelise ... ok
+test pipeline::coefficient_tests::a_named_column_is_read_with_the_right_stride ... ok
+test pipeline::coefficient_tests::a_stride_that_disagrees_with_the_column_names_is_refused ... ok
+test em::tests::wls_var_delta_is_exactly_one_over_the_weight_sum ... ok
+test pipeline::coefficient_tests::an_empty_result_refuses_every_column ... ok
+test pipeline::coefficient_tests::an_unknown_name_is_refused_rather_than_defaulted ... ok
+test pipeline::coefficient_tests::flags_are_read_with_the_same_stride_as_floats ... ok
+test em::tests::missing_entries_are_dropped_as_a_pair ... ok
+test parallel::tests::the_pool_is_installed_once_and_is_the_one_used ... ok
+test parallel::tests::an_empty_level_passes_the_pool_down ... ok
+test pipeline::tests::global_requires_a_group ... ok
+test em::tests::a_shifted_mixture_recovers_the_shift ... ok
+test pipeline::tests::rejects_a_design_with_the_wrong_number_of_rows ... ok
+test pipeline::tests::rejects_a_negative_pseudo ... ok
+test pipeline::tests::rejects_a_design_with_no_residual_degrees_of_freedom ... ok
+test pipeline::tests::a_constant_count_table_has_zero_variance_and_is_reported ... ok
+test pipeline::tests::rejects_a_rank_deficient_design ... ok
+test pipeline::tests::structural_zeros_require_a_group ... ok
+test pipeline::tests::rejects_an_empty_input ... ok
+test preprocess::tests::a_bitset_round_trips_through_its_vec_form ... ok
+test pipeline::tests::a_size_one_group_is_a_typed_error ... ok
+test preprocess::tests::a_row_screen_sees_flags_past_a_word_boundary ... ok
+test preprocess::tests::an_empty_structural_zero_set_reports_all_taxa_structural_zeros ... ok
+test preprocess::tests::an_empty_table_compresses_to_nothing_but_the_offsets ... ok
+test preprocess::tests::a_sample_with_no_group_is_not_evidence_of_absence ... ok
+test preprocess::tests::an_all_zero_table_reports_no_taxa_remain_on_the_first_pass ... ok
+test preprocess::tests::a_sparse_table_round_trips_to_the_same_dense_one ... ok
+test preprocess::tests::library_size_filter_uses_the_taxon_filtered_table ... ok
+test preprocess::tests::log_center_matches_r ... ok
+test preprocess::tests::both_representations_filter_identically ... ok
+test preprocess::tests::log_center_makes_zeros_nan_and_uses_finite_only_means ... ok
+test preprocess::tests::log_center_with_pseudo_makes_every_entry_finite ... ok
+test preprocess::tests::log_center_rows_equals_select_then_log_center ... ok
+test preprocess::tests::observed_mask_folds_in_design_completeness ... ok
+test preprocess::tests::filter_produces_the_reference_index_sets ... ok
+test preprocess::tests::neg_lb_catches_rare_taxa ... ok
+test preprocess::tests::replacing_zeros_and_adding_a_pseudo_are_different_transforms ... ok
+test preprocess::tests::replacing_zeros_with_a_pseudo_makes_zeros_finite_when_pseudo_is_positive ... ok
+test preprocess::tests::prevalence_cutoff_is_inclusive ... ok
+test preprocess::tests::prevalence_uses_observed_samples_as_the_denominator ... ok
+test preprocess::tests::the_single_pass_matches_the_reference_triple_loop ... ok
+test preprocess::tests::the_sparse_form_only_shrinks_above_the_break_even_zero_rate ... ok
+test preprocess::tests::the_sentinel_does_not_rescue_a_genuinely_absent_taxon ... ok
+test preprocess::tests::the_sparse_screens_agree_with_the_dense_ones ... ok
+test preprocess::tests::structural_zero_detects_group_absence ... ok
+test preprocess::tests::zero_replacing_sub_equals_select_then_transform ... ok
+test sens::tests::conservative_run_assembles_a_matrix_of_columns ... ok
+test sens::tests::conservative_score_counts_runs_above_alpha ... ok
+test sens::tests::nonconservative_grid_matches_the_reference ... ok
+test sens::tests::nonconservative_passed_uses_the_main_run_p_value ... ok
+test sens::tests::nonconservative_treats_na_main_p_as_one ... ok
+test sens::tests::conservative_treats_exactly_alpha_as_agreement ... ok
+test sens::tests::scores_are_deterministic ... ok
+test sens::tests::parallel_refits_agree_with_sequential_ones ... ok
+test sens::tests::nonconservative_run_reduces_over_the_whole_grid ... ok
+test sens::tests::sens_response_fills_zeros_only_for_positive_pseudo ... ok
+test preprocess::tests::the_any_group_screen_agrees_with_the_reference_expression ... ok
+test sens::tests::conservative_grid_matches_the_reference ... ok
+test test_mod::tests::an_empty_screen_reproduces_the_reference_degenerate_behaviour ... ok
+test test_mod::tests::global_test_flags_only_the_strong_taxon ... ok
+test test_mod::tests::global_test_uses_the_f_distribution_when_dof_is_supplied ... ok
+test test_mod::tests::group_columns_match_on_substring ... ok
+test test_mod::tests::group_columns_exclude_interactions ... ok
+test test_mod::tests::mdfdr_denominator_scales_with_the_screened_count ... ok
+test test_mod::tests::pairwise_column_count_is_g_plus_g_choose_2 ... ok
+test test_mod::tests::pairwise_column_order_matches_combn ... ok
+test test_mod::tests::pairwise_difference_and_variance_are_correct ... ok
+test sens::tests::sens_response_subtracts_the_sampling_fractions ... ok
+test test_mod::tests::pairwise_screen_zeroes_the_failing_taxa ... ok
+test test_mod::tests::the_two_sided_global_p_value_is_two_times_the_smaller_chi_square_tail ... ok
+test test_mod::tests::results_are_deterministic ... ok
+test em::tests::estimates_are_finite_and_in_range ... ok
+test vcov::tests::accumulation_is_increasing_taxon_and_sample_order ... ok
+test test_mod::tests::global_test_rejects_a_missing_group_column ... ok
+test vcov::tests::block_size_matches_the_reference_formula ... ok
+test vcov::tests::results_are_bitwise_reproducible ... ok
+test vcov::tests::incomplete_design_row_also_triggers_the_quirk ... ok
+test vcov::tests::outer_products_are_column_major_vec ... ok
+test em::tests::component_locations_stay_on_their_side_of_the_centre ... ok
+test vcov::tests::compat_modes_differ_only_where_the_quirk_applies ... ok
+test vcov::tests::sandwich_of_a_fully_observed_taxon_matches_a_direct_computation ... ok
+test workspace::tests::all_nan_row_gives_nan_mean ... ok
+test vcov::tests::strict_spec_contributes_nothing_for_missing_cells ... ok
+test vcov::tests::xtx_inverse_matches_r ... ok
+test workspace::tests::reversed_subtraction_flips_the_sign ... ok
+test workspace::tests::row_means_ignore_nan ... ok
+test vcov::tests::var_hat_is_the_diagonal_of_vcov ... ok
+test workspace::tests::workspace_allocates_once ... ok
+test vcov::tests::both_block_sizes_bracket_the_l2_budget ... ok
+test workspace::tests::row_major_round_trip ... ok
+test vcov::tests::the_blocked_sandwich_is_bit_identical_to_the_naive_one ... ok
+test pipeline::tests::two_group_levels_deactivate_the_multi_group_comparisons ... ok
+test pipeline::tests::a_small_group_only_warns ... ok
+test pipeline::tests::a_run_is_reproducible ... ok
+test em::tests::all_results_are_deterministic ... ok
+test em::tests::convergence_tolerance_is_respected ... ok
+test em::tests::parallel_and_sequential_agree_bitwise ... ok
+test pipeline::tests::a_clean_two_group_problem_runs_end_to_end ... ok
+test pipeline::tests::the_global_test_runs_when_asked ... ok
+test em::tests::each_coefficient_gets_its_own_column ... ok
+
+test result: ok. 154 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+exit=0
+
+## the bridge's own Rust checks (no R needed either)
+--- make r-bridge-rust-tests
+    Finished `release` profile [optimized] target(s) in 0.10s
+     Running unittests src/lib.rs (target/release/deps/ancombc2_rbridge-179f217a9af8024b)
+
+running 14 tests
+test owned::tests::na_real_carries_rs_bit_pattern ... ok
+test owned::tests::cloning_a_handle_does_not_copy_the_contents ... ok
+test owned::tests::from_borrowed_copies_rather_than_aliasing ... ok
+test transport::tests::a_group_index_outside_the_levels_is_rejected_and_zero_means_absent ... ok
+test transport::tests::a_name_buffer_must_be_a_monotone_partition ... ok
+test transport::tests::a_name_count_that_disagrees_with_its_buffer_is_rejected ... ok
+test transport::tests::a_non_binary_mask_is_rejected ... ok
+test transport::tests::a_non_finite_control_is_named_rather_than_becoming_a_nan ... ok
+test transport::tests::a_short_buffer_is_a_named_error_not_a_read_past_the_end ... ok
+test transport::tests::a_well_formed_request_validates ... ok
+test transport::tests::column_major_is_the_layout_and_element_lookup_follows_it ... ok
+test transport::tests::na_integer_survives_as_int_min_and_is_not_the_same_as_zero ... ok
+test transport::tests::names_round_trip_through_the_packed_form ... ok
+test transport::tests::the_shape_error_names_the_two_numbers_that_disagree ... ok
+
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+    Finished `release` profile [optimized] target(s) in 0.15s
+exit=0
+
+## the transport's acceptance checks, against the INSTALLED replacement
+--- make r-bridge-selftest
+    r/ANCOMBC/tests/bridge_selftest.R
+typed native transport selftest
+  [PASS] the package exposes `rb_bits`, which is how transports are compared
+
+## the bridge identifies its target
+  [PASS] the bridge names the pinned commit it is written against
+  [PASS] the bridge reports a version
+
+## integer counts, including NA_integer_
+  [PASS] the integer count matrix comes back element for element
+  [PASS] NA_integer_ comes back as NA_integer_ and not as a number
+  [PASS] NA_integer_ is still INT_MIN after the round trip
+  [PASS] the payload length is rows * columns
+  [PASS] the payload came back as an integer vector, not a double
+
+## real counts: NA_real_, NaN, Inf, -Inf and -0.0
+  [PASS] every one of the 64 bits of every cell survives
+  [PASS] +0.0 keeps its own bits
+  [PASS] -0.0 keeps its own bits and is not turned into +0.0
+  [PASS] -0.0 and +0.0 are distinguishable after the round trip
+  [PASS] NA_real_ arrives with R's own NaN payload
+  [PASS] a real NaN is not turned into NA_real_
+  [PASS] +Inf and -Inf both keep their own bits
+  [PASS] the payload came back as a double vector
+
+## dimensions, names and masks
+  [PASS] the count matrix's shape is reported back
+  [PASS] taxon names survive intact
+  [PASS] sample names survive intact
+  [PASS] coefficient names survive intact
+  [PASS] group labels survive intact
+  [PASS] the design comes back element for element, column-major
+  [PASS] the mask came back as a raw vector
+  [PASS] the completeness mask survives element for element
+
+## the group index
+  [PASS] the 1-based group index survives
+  [PASS] 0 means 'no group' and is not confused with a level index
+
+## the aggregate table
+  [PASS] the aggregate table survives, in its own integer type
+
+## lifetime: the returned buffer is R's, not a view of the input
+  [PASS] the returned buffer does not alias the input, so a later change to the input cannot alter it
+  [PASS] and the change was made to a copy, not the fixture
+
+## rejections: each must be an R error naming the argument
+  [PASS] a real count table is refused by the integer probe
+  [PASS] an NA in the mask is refused
+  [PASS] a mask of the wrong length is refused
+  [PASS] a group index of the wrong length is refused
+  [PASS] a group index past the last level is refused
+  [PASS] a coefficient-name count that disagrees with the design is refused
+  [PASS] a taxon-name count that disagrees with the table is refused
+  [PASS] an aggregate table of the wrong shape is refused
+  [PASS] a design with the wrong number of rows is refused
+  [PASS] a non-finite control is refused, named
+  [PASS] a character count table is refused by type
+
+  0 check(s) failed
+exit=0
+
+## no JSON on the exact path
+  crates/ancombc2-rbridge/Cargo.toml dependency lines:
+    ancombc2-core.workspace = true
+  (no serde, no serde_json: the JSON bridge is not on this path)
+  the only bytes that cross the boundary are packed UTF-8 names:
+    456:pub struct PackedNames {
+    463:impl PackedNames {
+
+## provenance: the one retained upstream file this build modified
+--- upstream manifest
+files in package: 54   manifest rows: 54   locally modified: 1
+  modified: NAMESPACE
+UPSTREAM MANIFEST: consistent
+exit=0
+
+## the replacement still matches the original byte for byte, with the bridge linked
+  (25-case small set, both installed packages; full 114-case campaign is S04's evidence)
+  cases 25  byte-identical 25  problems 0  nondeterminism 0

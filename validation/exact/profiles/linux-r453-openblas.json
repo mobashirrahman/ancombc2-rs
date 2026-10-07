@@ -1,0 +1,173 @@
+{
+  "schema": "ancombc2-exact-profile/1",
+  "id": "linux-r453-openblas",
+  "role": "primary",
+  "purpose": "Primary certified profile. It is the runtime the committed container lock realises, and the first R release series that satisfies the pinned DESCRIPTION's Depends: R (>= 4.5.0), so an installed original can exist here at all.",
+  "supersedes_nothing": "The legacy goldens under validation/golden were drawn on linux-r433-refblas. They are history and are not a certificate for this profile.",
+  "provisioning": {
+    "source_of_truth": "benchmarks/container/environment-linux-64.lock",
+    "generated_with": "micromamba 2.9.0",
+    "command": "micromamba create -y -p <prefix> --file benchmarks/container/environment-linux-64.lock",
+    "note": "The Dockerfile realises the same lock; benchmarks/container/Dockerfile is the containerised form of this profile."
+  },
+  "runtime": {
+    "r_version": "4.5.3",
+    "r_platform": "x86_64-conda-linux-gnu",
+    "r_arch": "x86_64",
+    "blas": {
+      "kind": "openblas",
+      "version": "0.3.34",
+      "linked_so": "libopenblasp-r0.3.34.so"
+    },
+    "laplack": {
+      "resolves_to": "libopenblasp-r0.3.34.so",
+      "note": "liblapack.so.3 is a symlink to the same OpenBLAS object; extSoftVersion()[[\"LAPACK\"]] is absent on this build, so identity is taken from the BLAS shared object that also serves LAPACK."
+    },
+    "library_path": [
+      ".rlib/original",
+      ".rlib/replacement",
+      "/scratch/mdra00001/tmp/opencode/mm/benchenv/lib/R/library"
+    ],
+    "rng_kind": "Mersenne-Twister|Inversion|Rejection",
+    "locale": "LC_CTYPE=C.UTF-8;LC_NUMERIC=C;LC_TIME=C.UTF-8;LC_COLLATE=C.UTF-8;LC_MONETARY=C.UTF-8;LC_MESSAGES=C.UTF-8;LC_PAPER=C.UTF-8;LC_NAME=C;LC_ADDRESS=C;LC_TELEPHONE=C;LC_MEASUREMENT=C.UTF-8;LC_IDENTIFICATION=C",
+    "env": {
+      "R_LIBS": ".rlib/original:.rlib/replacement",
+      "R_LIBS_USER": ".rlib/original:.rlib/replacement",
+      "R_LIBS_SITE": "/scratch/mdra00001/tmp/opencode/mm/benchenv/lib/R/library",
+      "LANG": "C.UTF-8",
+      "LC_ALL": "C.UTF-8",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1"
+    },
+    "thread_env_note": "Nested BLAS/OpenMP threads are pinned to 1 so a worker budget means workers. Benchmarks that intend more must set it explicitly and record it; the profile verifier checks the values it declares.",
+    "probe_argv": [
+      "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+      "run",
+      "-p",
+      "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+      "Rscript",
+      "--vanilla",
+      "scripts/probe_runtime.R"
+    ],
+    "interpreter_note": "Rscript is invoked with --vanilla so the repository's .Rprofile, which prepends /scratch/mdra00001/rlib, cannot shadow a dependency. A certified run must not pick up an unlisted library.",
+    "interpreter_argv": [
+      "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+      "run",
+      "-p",
+      "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+      "Rscript",
+      "--vanilla"
+    ],
+    "r_cmd_argv": [
+      "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+      "run",
+      "-p",
+      "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+      "R"
+    ]
+  },
+  "oracle": {
+    "package": "ANCOMBC",
+    "version": "2.15.2",
+    "upstream_commit": "dc4febdf59badb3a8dfe0c767ef2186323c2199a",
+    "upstream_url": "https://github.com/FrederickHuangLin/ANCOMBC",
+    "license": "Artistic-2.0",
+    "depends": "R (>= 4.5.0)",
+    "imports": "stats, DescTools, Hmisc, MASS, Matrix, Rdpack, doParallel,\ndoRNG, energy, foreach, gtools, lme4, lmerTest, multcomp,\nnloptr, parallel, utils, quadprog",
+    "source_dir": "reference/ANCOMBC",
+    "sha256_manifest": "reference/env/oracle.sha256",
+    "digest_scope_note": "reference/ANCOMBC carries no .git of its own (test -d reference/ANCOMBC/.git -> absent), so reference/R/oracle.R's verify_oracle() skips its commit check entirely on this checkout. The per-file SHA-256 list above is the real pin and is what verify_profile.py enforces.",
+    "installed_library": ".rlib/original",
+    "installed_identity_sha256": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+    "installed_identity_scope": "DESCRIPTION (minus Built/Packaged/NeedsCompilation and other build metadata), NAMESPACE, and R/*.R, each hashed with its relative path.",
+    "install_command": "R CMD INSTALL --library=<installed_library> reference/ANCOMBC",
+    "required_dependency_versions": {
+      "stats": [
+        "4.5.3"
+      ],
+      "DescTools": [
+        "0.99.60"
+      ],
+      "Hmisc": [
+        "5.3-0"
+      ],
+      "MASS": [
+        "7.3-66"
+      ],
+      "Matrix": [
+        "1.7-5"
+      ],
+      "Rdpack": [
+        "2.6.6"
+      ],
+      "doParallel": [
+        "1.0.17"
+      ],
+      "doRNG": [
+        "1.8.6.3"
+      ],
+      "energy": [
+        "1.7-12"
+      ],
+      "foreach": [
+        "1.5.2"
+      ],
+      "gtools": [
+        "3.9.5"
+      ],
+      "lme4": [
+        "2.0-6"
+      ],
+      "lmerTest": [
+        "3.2-1"
+      ],
+      "multcomp": [
+        "1.4-32"
+      ],
+      "nloptr": [
+        "2.2.1"
+      ],
+      "parallel": [
+        "4.5.3"
+      ],
+      "utils": [
+        "4.5.3"
+      ],
+      "quadprog": [
+        "1.5-8"
+      ]
+    }
+  },
+  "host": {
+    "min_physical_cores": 8,
+    "observed_physical_cores": 8,
+    "observed_logical_cpus": 16,
+    "cpu_model": "AMD Ryzen 7 3700X 8-Core Processor",
+    "threads_per_core": 2,
+    "core_requirement_note": "P1-P4 need a stable multi-core host; 8 physical cores qualifies. P5 is defined on >= 16 physical cores and CANNOT be certified here (ENV-1). Do not read the 16 logical CPUs as satisfying it.",
+    "cgroup_v2_writable": false,
+    "cgroup_note": "ENV-2: /sys/fs/cgroup is mounted v2 with the memory controller, but mkdir is denied at the root, at user.slice and at user.slice/user-7059086.slice, and there is no sudo. P4's required peak_cgroup_memory_bytes is therefore unmeasurable here.",
+    "container_engine": "<absent>"
+  },
+  "certified": false,
+  "certification_note": "Set to true only by IMPLEMENTATION_STATUS.md once verify_profile.py passes on this profile and every required case has been executed against the installed original in this runtime.",
+  "replacement": {
+    "package": "ANCOMBC",
+    "source_dir": "r/ANCOMBC",
+    "installed_library": ".rlib/replacement",
+    "installed_identity_sha256": "544d236d3ff449c603a40910eb81c858d74356de4eea4b9ea592b5ec5992582d",
+    "marker": "REPLACEMENT_PROVENANCE.md",
+    "marker_note": "R CMD INSTALL copies an inst/ directory's contents to the installed package root, so the marker is looked for there.",
+    "install_command": "R CMD INSTALL --library=<installed_library> r/ANCOMBC",
+    "upstream_manifest": "r/ANCOMBC/inst/UPSTREAM_MANIFEST.sha256",
+    "provenance": "r/ANCOMBC/inst/REPLACEMENT_PROVENANCE.md",
+    "note": "r/ancombc2rs is NOT this package and is not on its search path. The typed native bridge (crates/ancombc2-rbridge + r/ANCOMBC/src/init.c) is linked and loaded, but ancombc2() does not call it yet: S06 delivered the transport and S07-S13 deliver the stages. A loaded-but-uncalled bridge is not Rust execution and is not reported as such.",
+    "native": {
+      "bridge_crate": "crates/ancombc2-rbridge",
+      "cdylib": "libancombc2_rbridge.so",
+      "registration": "useDynLib(ANCOMBC, .registration = TRUE); R_init_ANCOMBC",
+      "installed_so": ".rlib/replacement/ANCOMBC/libs/ANCOMBC.so"
+    }
+  }
+}

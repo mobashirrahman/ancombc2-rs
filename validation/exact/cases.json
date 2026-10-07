@@ -1,0 +1,2013 @@
+{
+  "schema": "ancombc2-exact-cases/1",
+  "generated_by": "scripts/make_case_manifest.py",
+  "generated_from": "validation/exact/fixtures.json",
+  "note": "Every case both arms must execute, and the outcome each must produce. A case absent from an observed run is a failed gate, not a skip: reference errors are comparable outcomes and are declared with expect.outcome = error. This file is generated from fixtures.json so the manifest and the suite cannot describe different case sets; edit the fixture manifest, not this file. Removing a case requires a recorded rationale in IMPLEMENTATION_STATUS.md and a new campaign.",
+  "case_sets": {
+    "small": {
+      "description": "Strict cases for normal CI. Selected by the `small` tag in fixtures.json: no lmer path, no fx03-scale case. Broad enough that a schema or default change breaks them.",
+      "allow_extra": false,
+      "cases": [
+        {
+          "id": "fx01-basic",
+          "input": "inputs/fx01-basic.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "fixtures",
+            "matrix-input",
+            "reference-error",
+            "single-column-meta",
+            "small"
+          ]
+        },
+        {
+          "id": "fx02-basic",
+          "input": "inputs/fx02-basic.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "fixed-effects",
+            "fixtures",
+            "matrix-input",
+            "sensitivity-off",
+            "small",
+            "two-groups"
+          ]
+        },
+        {
+          "id": "edge-absent-in-group-a",
+          "input": "inputs/edge-absent-in-group-a.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "edge",
+            "neg-lb-on",
+            "small",
+            "struc-zero-on",
+            "structural-zero"
+          ]
+        },
+        {
+          "id": "edge-na-counts",
+          "input": "inputs/edge-na-counts.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "edge",
+            "missing-values",
+            "na-vs-zero",
+            "small"
+          ]
+        },
+        {
+          "id": "fx02-positional",
+          "input": "inputs/fx02-positional.rds",
+          "fn": "ancombc2",
+          "call_style": "positional",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "defaults",
+            "fixed-effects",
+            "positional",
+            "small"
+          ]
+        },
+        {
+          "id": "tiny-assay-alias",
+          "input": "inputs/tiny-assay-alias.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "aliases",
+            "assay-name",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-rank-null",
+          "input": "inputs/tiny-rank-null.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "aliases",
+            "explicit-null",
+            "rank",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-defaults-positional",
+          "input": "inputs/tiny-defaults-positional.rds",
+          "fn": "ancombc2",
+          "call_style": "positional",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "defaults",
+            "positional",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "re2g-rand-bare",
+          "input": "inputs/re2g-rand-bare.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "random-effects",
+            "reference-error",
+            "retained-r",
+            "small"
+          ]
+        },
+        {
+          "id": "tiny-p-adj-bh",
+          "input": "inputs/tiny-p-adj-bh.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "adjust",
+            "bh",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-p-adj-bad",
+          "input": "inputs/tiny-p-adj-bad.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "adjust",
+            "invalid",
+            "reference-error",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-alpha-at-005",
+          "input": "inputs/tiny-alpha-at-005.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "alpha",
+            "boundary",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-prv-cut-1",
+          "input": "inputs/tiny-prv-cut-1.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "prv-cut",
+            "reference-error",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-lib-cut-huge",
+          "input": "inputs/tiny-lib-cut-huge.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "lib-cut",
+            "reference-error",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-struc-zero-on",
+          "input": "inputs/tiny-struc-zero-on.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "group-required",
+            "small",
+            "struc-zero-on",
+            "structural-zero",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-iter-max-0",
+          "input": "inputs/tiny-iter-max-0.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "iter-control",
+            "reference-error",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-em-max-0",
+          "input": "inputs/tiny-em-max-0.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "boundary",
+            "em-control",
+            "reference-error",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-s0-100",
+          "input": "inputs/tiny-s0-100.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "boundary",
+            "s0-perc",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-global-without-group",
+          "input": "inputs/tiny-global-without-group.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "global",
+            "group-required",
+            "reference-error",
+            "small"
+          ]
+        },
+        {
+          "id": "tiny-struc-zero-without-group",
+          "input": "inputs/tiny-struc-zero-without-group.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "group-required",
+            "reference-error",
+            "small",
+            "structural-zero"
+          ]
+        },
+        {
+          "id": "smoke-sim-plnm",
+          "input": "inputs/smoke-sim-plnm.rds",
+          "fn": "sim_plnm",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "facade",
+            "other-export",
+            "sim-data",
+            "small"
+          ]
+        },
+        {
+          "id": "tiny-two-group-global",
+          "input": "inputs/tiny-two-group-global.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "deactivation-warning",
+            "groups",
+            "null-entries",
+            "small"
+          ]
+        },
+        {
+          "id": "tiny-defaults",
+          "input": "inputs/tiny-defaults.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "defaults",
+            "omitted-arguments",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "smoke-data-sane",
+          "input": "inputs/smoke-data-sane.rds",
+          "fn": "data_sanity_check",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "facade",
+            "other-export",
+            "small"
+          ]
+        },
+        {
+          "id": "smoke-data-sane-bad-formula",
+          "input": "inputs/smoke-data-sane-bad-formula.rds",
+          "fn": "data_sanity_check",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "facade",
+            "other-export",
+            "reference-error",
+            "small"
+          ]
+        }
+      ]
+    },
+    "required": {
+      "description": "Every case in the fixture manifest.",
+      "allow_extra": false,
+      "cases": [
+        {
+          "id": "fx01-basic",
+          "input": "inputs/fx01-basic.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "fixtures",
+            "matrix-input",
+            "reference-error",
+            "single-column-meta",
+            "small"
+          ]
+        },
+        {
+          "id": "fx02-basic",
+          "input": "inputs/fx02-basic.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "fixed-effects",
+            "fixtures",
+            "matrix-input",
+            "sensitivity-off",
+            "small",
+            "two-groups"
+          ]
+        },
+        {
+          "id": "fx03-basic",
+          "input": "inputs/fx03-basic.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "fixtures",
+            "global-and-pairwise",
+            "matrix-input",
+            "sensitivity-on",
+            "three-groups"
+          ]
+        },
+        {
+          "id": "edge-absent-in-group-a",
+          "input": "inputs/edge-absent-in-group-a.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "edge",
+            "neg-lb-on",
+            "small",
+            "struc-zero-on",
+            "structural-zero"
+          ]
+        },
+        {
+          "id": "edge-rare-in-group-a",
+          "input": "inputs/edge-rare-in-group-a.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "edge",
+            "neg-lb-on",
+            "structural-zero"
+          ]
+        },
+        {
+          "id": "edge-present-in-every-group",
+          "input": "inputs/edge-present-in-every-group.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "edge",
+            "negative-control",
+            "structural-zero"
+          ]
+        },
+        {
+          "id": "edge-na-counts",
+          "input": "inputs/edge-na-counts.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "edge",
+            "missing-values",
+            "na-vs-zero",
+            "small"
+          ]
+        },
+        {
+          "id": "edge-group-of-size-one",
+          "input": "inputs/edge-group-of-size-one.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "edge",
+            "group-size",
+            "reference-error"
+          ]
+        },
+        {
+          "id": "edge-struc-zero-off",
+          "input": "inputs/edge-struc-zero-off.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "edge",
+            "struc-zero-off",
+            "structural-zero"
+          ]
+        },
+        {
+          "id": "edge-prv-cut-boundary",
+          "input": "inputs/edge-prv-cut-boundary.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "boundary",
+            "edge",
+            "prevalence-filter"
+          ]
+        },
+        {
+          "id": "fx02-positional",
+          "input": "inputs/fx02-positional.rds",
+          "fn": "ancombc2",
+          "call_style": "positional",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "defaults",
+            "fixed-effects",
+            "positional",
+            "small"
+          ]
+        },
+        {
+          "id": "fx03-pseudo-half",
+          "input": "inputs/fx03-pseudo-half.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "pseudo-count"
+          ]
+        },
+        {
+          "id": "fx03-pseudo-sens-off",
+          "input": "inputs/fx03-pseudo-sens-off.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "pseudo-sens",
+            "sensitivity"
+          ]
+        },
+        {
+          "id": "fx03-conservative-off",
+          "input": "inputs/fx03-conservative-off.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "conservative",
+            "sensitivity"
+          ]
+        },
+        {
+          "id": "fx03-pairwise-only",
+          "input": "inputs/fx03-pairwise-only.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "pairwise"
+          ]
+        },
+        {
+          "id": "fx03-dunnet",
+          "input": "inputs/fx03-dunnet.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "dunnet",
+            "multcomp"
+          ]
+        },
+        {
+          "id": "fx03-trend",
+          "input": "inputs/fx03-trend.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "mdfdr",
+            "trend"
+          ]
+        },
+        {
+          "id": "fx03-p-adj-bh",
+          "input": "inputs/fx03-p-adj-bh.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "adjust",
+            "bh"
+          ]
+        },
+        {
+          "id": "fx03-p-adj-bonferroni",
+          "input": "inputs/fx03-p-adj-bonferroni.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "adjust",
+            "bonferroni"
+          ]
+        },
+        {
+          "id": "fx03-struc-zero-on",
+          "input": "inputs/fx03-struc-zero-on.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "struc-zero-on",
+            "structural-zero"
+          ]
+        },
+        {
+          "id": "fx03-neg-lb",
+          "input": "inputs/fx03-neg-lb.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "neg-lb",
+            "structural-zero"
+          ]
+        },
+        {
+          "id": "fx03-alpha-0",
+          "input": "inputs/fx03-alpha-0.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "alpha",
+            "boundary"
+          ]
+        },
+        {
+          "id": "fx03-alpha-1",
+          "input": "inputs/fx03-alpha-1.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "alpha",
+            "boundary"
+          ]
+        },
+        {
+          "id": "fx03-prv-cut-1",
+          "input": "inputs/fx03-prv-cut-1.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "boundary",
+            "prv-cut",
+            "reference-error"
+          ]
+        },
+        {
+          "id": "fx03-lib-cut-huge",
+          "input": "inputs/fx03-lib-cut-huge.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "lib-cut",
+            "reference-error"
+          ]
+        },
+        {
+          "id": "fx03-bad-p-adj",
+          "input": "inputs/fx03-bad-p-adj.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "adjust",
+            "invalid",
+            "reference-error"
+          ]
+        },
+        {
+          "id": "fx03-bad-iter-control",
+          "input": "inputs/fx03-bad-iter-control.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "iter-control",
+            "reference-error"
+          ]
+        },
+        {
+          "id": "tiny-assay-alias",
+          "input": "inputs/tiny-assay-alias.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "aliases",
+            "assay-name",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-rank-null",
+          "input": "inputs/tiny-rank-null.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "aliases",
+            "explicit-null",
+            "rank",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-defaults-positional",
+          "input": "inputs/tiny-defaults-positional.rds",
+          "fn": "ancombc2",
+          "call_style": "positional",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "defaults",
+            "positional",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "re2g-rand-intercept",
+          "input": "inputs/re2g-rand-intercept.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "lme4",
+            "random-effects",
+            "retained-r"
+          ]
+        },
+        {
+          "id": "re2g-rand-slope",
+          "input": "inputs/re2g-rand-slope.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "lme4",
+            "random-effects",
+            "random-slope",
+            "retained-r"
+          ]
+        },
+        {
+          "id": "re2g-rand-bare",
+          "input": "inputs/re2g-rand-bare.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "random-effects",
+            "reference-error",
+            "retained-r",
+            "small"
+          ]
+        },
+        {
+          "id": "re2g-rand-with-sens",
+          "input": "inputs/re2g-rand-with-sens.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "random-effects",
+            "retained-r",
+            "sensitivity"
+          ]
+        },
+        {
+          "id": "re2g-rand-control-null",
+          "input": "inputs/re2g-rand-control-null.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "lme-control",
+            "random-effects",
+            "retained-r"
+          ]
+        },
+        {
+          "id": "onegroup-basic",
+          "input": "inputs/onegroup-basic.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "groups",
+            "null-entries",
+            "schema"
+          ]
+        },
+        {
+          "id": "tiny-p-adj-bh",
+          "input": "inputs/tiny-p-adj-bh.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "adjust",
+            "bh",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-p-adj-bonferroni",
+          "input": "inputs/tiny-p-adj-bonferroni.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "adjust",
+            "bonferroni",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-p-adj-hochberg",
+          "input": "inputs/tiny-p-adj-hochberg.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "adjust",
+            "hochberg",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-p-adj-hom",
+          "input": "inputs/tiny-p-adj-hom.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "adjust",
+            "hom",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-p-adj-none",
+          "input": "inputs/tiny-p-adj-none.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "adjust",
+            "none",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-p-adj-bad",
+          "input": "inputs/tiny-p-adj-bad.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "adjust",
+            "invalid",
+            "reference-error",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-alpha-at-005",
+          "input": "inputs/tiny-alpha-at-005.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "alpha",
+            "boundary",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-alpha-above-005",
+          "input": "inputs/tiny-alpha-above-005.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "alpha",
+            "boundary",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-alpha-below-005",
+          "input": "inputs/tiny-alpha-below-005.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "alpha",
+            "boundary",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-prv-cut-half",
+          "input": "inputs/tiny-prv-cut-half.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "prv-cut",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-prv-cut-1",
+          "input": "inputs/tiny-prv-cut-1.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "prv-cut",
+            "reference-error",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-lib-cut-1",
+          "input": "inputs/tiny-lib-cut-1.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "lib-cut",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-lib-cut-huge",
+          "input": "inputs/tiny-lib-cut-huge.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "lib-cut",
+            "reference-error",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-struc-zero-on",
+          "input": "inputs/tiny-struc-zero-on.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "group-required",
+            "small",
+            "struc-zero-on",
+            "structural-zero",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-struc-zero-off",
+          "input": "inputs/tiny-struc-zero-off.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "struc-zero-off",
+            "structural-zero",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-neg-lb-on",
+          "input": "inputs/tiny-neg-lb-on.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "neg-lb",
+            "structural-zero",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-pseudo-half",
+          "input": "inputs/tiny-pseudo-half.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "pseudo-count",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-pseudo-sens-off",
+          "input": "inputs/tiny-pseudo-sens-off.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "pseudo-sens",
+            "sensitivity",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-conservative-off",
+          "input": "inputs/tiny-conservative-off.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "conservative",
+            "sensitivity",
+            "tiny"
+          ]
+        },
+        {
+          "id": "re3g-dunnet",
+          "input": "inputs/re3g-dunnet.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "dunnet",
+            "multcomp",
+            "tiny"
+          ]
+        },
+        {
+          "id": "re3g-trend",
+          "input": "inputs/re3g-trend.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "mdfdr",
+            "tiny",
+            "trend"
+          ]
+        },
+        {
+          "id": "re3g-global-only",
+          "input": "inputs/re3g-global-only.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "global",
+            "lrt",
+            "tiny"
+          ]
+        },
+        {
+          "id": "re3g-pairwise-only",
+          "input": "inputs/re3g-pairwise-only.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "pairwise",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-iter-max-1",
+          "input": "inputs/tiny-iter-max-1.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "iter-control",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-iter-max-0",
+          "input": "inputs/tiny-iter-max-0.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "iter-control",
+            "reference-error",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-iter-tiny-tol",
+          "input": "inputs/tiny-iter-tiny-tol.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "iter-control",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-em-max-1",
+          "input": "inputs/tiny-em-max-1.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "em-control",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-em-max-0",
+          "input": "inputs/tiny-em-max-0.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "boundary",
+            "em-control",
+            "reference-error",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-mdfdr-b",
+          "input": "inputs/tiny-mdfdr-b.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "mdfdr",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-mdfdr-bad-method",
+          "input": "inputs/tiny-mdfdr-bad-method.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "invalid",
+            "mdfdr",
+            "reference-error",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-trend-control-null",
+          "input": "inputs/tiny-trend-control-null.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "tiny",
+            "trend-control"
+          ]
+        },
+        {
+          "id": "tiny-s0-0",
+          "input": "inputs/tiny-s0-0.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "s0-perc",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-s0-100",
+          "input": "inputs/tiny-s0-100.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "boundary",
+            "s0-perc",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-threads-2",
+          "input": "inputs/tiny-threads-2.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "parallel-backend",
+            "threads",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-threads-4",
+          "input": "inputs/tiny-threads-4.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "parallel-backend",
+            "threads",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-threads-8",
+          "input": "inputs/tiny-threads-8.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "parallel-backend",
+            "threads",
+            "tiny"
+          ]
+        },
+        {
+          "id": "re3g-trend-contrast",
+          "input": "inputs/re3g-trend-contrast.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "mdfdr",
+            "multcomp",
+            "runs-the-test",
+            "trend"
+          ]
+        },
+        {
+          "id": "re3g-trend-contrast-node",
+          "input": "inputs/re3g-trend-contrast-node.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "boundary",
+            "node",
+            "trend"
+          ]
+        },
+        {
+          "id": "re3g-dunnet-with-mdfdr",
+          "input": "inputs/re3g-dunnet-with-mdfdr.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "dunnet",
+            "mdfdr"
+          ]
+        },
+        {
+          "id": "re3g-dunnet-bad-mdfdr",
+          "input": "inputs/re3g-dunnet-bad-mdfdr.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "dunnet",
+            "invalid",
+            "mdfdr",
+            "reference-error"
+          ]
+        },
+        {
+          "id": "tiny-global-without-group",
+          "input": "inputs/tiny-global-without-group.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "global",
+            "group-required",
+            "reference-error",
+            "small"
+          ]
+        },
+        {
+          "id": "tiny-struc-zero-without-group",
+          "input": "inputs/tiny-struc-zero-without-group.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "group-required",
+            "reference-error",
+            "small",
+            "structural-zero"
+          ]
+        },
+        {
+          "id": "tiny-pairwise-without-group",
+          "input": "inputs/tiny-pairwise-without-group.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "group-required",
+            "pairwise",
+            "reference-error"
+          ]
+        },
+        {
+          "id": "tiny-bad-group-name",
+          "input": "inputs/tiny-bad-group-name.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "group-required",
+            "reference-error"
+          ]
+        },
+        {
+          "id": "tiny-group-ok",
+          "input": "inputs/tiny-group-ok.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "global",
+            "group"
+          ]
+        },
+        {
+          "id": "tiny-lib-cut-below-min",
+          "input": "inputs/tiny-lib-cut-below-min.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "lib-cut",
+            "tiny"
+          ]
+        },
+        {
+          "id": "fx03-lib-cut-1",
+          "input": "inputs/fx03-lib-cut-1.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "lib-cut"
+          ]
+        },
+        {
+          "id": "fx03-prv-cut-0",
+          "input": "inputs/fx03-prv-cut-0.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "prv-cut"
+          ]
+        },
+        {
+          "id": "fx03-prv-cut-half",
+          "input": "inputs/fx03-prv-cut-half.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "prv-cut"
+          ]
+        },
+        {
+          "id": "tiny-prv-cut-0",
+          "input": "inputs/tiny-prv-cut-0.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "prv-cut",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-s0-perc-1",
+          "input": "inputs/tiny-s0-perc-1.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "reference-error",
+            "s0-perc",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-em-tiny-tol",
+          "input": "inputs/tiny-em-tiny-tol.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "em-control",
+            "tiny"
+          ]
+        },
+        {
+          "id": "tiny-iter-tol-0",
+          "input": "inputs/tiny-iter-tol-0.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "iter-control",
+            "tiny"
+          ]
+        },
+        {
+          "id": "smoke-data-sanity-check",
+          "input": "inputs/smoke-data-sanity-check.rds",
+          "fn": "data_sanity_check",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "facade",
+            "other-export"
+          ]
+        },
+        {
+          "id": "smoke-ancombc",
+          "input": "inputs/smoke-ancombc.rds",
+          "fn": "ancombc",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "ancombc",
+            "facade",
+            "other-export"
+          ]
+        },
+        {
+          "id": "smoke-ancom",
+          "input": "inputs/smoke-ancom.rds",
+          "fn": "ancom",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "ancom",
+            "facade",
+            "other-export"
+          ]
+        },
+        {
+          "id": "smoke-secom-dist",
+          "input": "inputs/smoke-secom-dist.rds",
+          "fn": "secom_dist",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "facade",
+            "other-export",
+            "secom"
+          ]
+        },
+        {
+          "id": "smoke-secom-linear",
+          "input": "inputs/smoke-secom-linear.rds",
+          "fn": "secom_linear",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "facade",
+            "other-export",
+            "secom"
+          ]
+        },
+        {
+          "id": "smoke-sim-plnm",
+          "input": "inputs/smoke-sim-plnm.rds",
+          "fn": "sim_plnm",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "facade",
+            "other-export",
+            "sim-data",
+            "small"
+          ]
+        },
+        {
+          "id": "re3g-trend-runs",
+          "input": "inputs/re3g-trend-runs.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "mdfdr",
+            "quadprog",
+            "runs-the-test",
+            "trend"
+          ]
+        },
+        {
+          "id": "re3g-trend-non-square",
+          "input": "inputs/re3g-trend-non-square.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "boundary",
+            "reference-error",
+            "trend"
+          ]
+        },
+        {
+          "id": "re3g-trend-mismatched-nodes",
+          "input": "inputs/re3g-trend-mismatched-nodes.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "boundary",
+            "reference-error",
+            "trend"
+          ]
+        },
+        {
+          "id": "re3g-trend-no-control",
+          "input": "inputs/re3g-trend-no-control.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "reference-error",
+            "trend"
+          ]
+        },
+        {
+          "id": "re3g-pairwise-no-mdfdr",
+          "input": "inputs/re3g-pairwise-no-mdfdr.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "boundary",
+            "mdfdr",
+            "pairwise"
+          ]
+        },
+        {
+          "id": "re3g-pairwise-null-mdfdr",
+          "input": "inputs/re3g-pairwise-null-mdfdr.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "mdfdr",
+            "pairwise"
+          ]
+        },
+        {
+          "id": "tiny-two-group-global",
+          "input": "inputs/tiny-two-group-global.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "deactivation-warning",
+            "groups",
+            "null-entries",
+            "small"
+          ]
+        },
+        {
+          "id": "re3g-basic",
+          "input": "inputs/re3g-basic.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "dunnet",
+            "global",
+            "groups",
+            "pairwise",
+            "three-level"
+          ]
+        },
+        {
+          "id": "fx02-defaults",
+          "input": "inputs/fx02-defaults.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "defaults",
+            "omitted-arguments"
+          ]
+        },
+        {
+          "id": "tiny-defaults",
+          "input": "inputs/tiny-defaults.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "defaults",
+            "omitted-arguments",
+            "small",
+            "tiny"
+          ]
+        },
+        {
+          "id": "smoke-ancombc2-dataframe",
+          "input": "inputs/smoke-ancombc2-dataframe.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "input-class",
+            "orientation"
+          ]
+        },
+        {
+          "id": "smoke-data-sane",
+          "input": "inputs/smoke-data-sane.rds",
+          "fn": "data_sanity_check",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "facade",
+            "other-export",
+            "small"
+          ]
+        },
+        {
+          "id": "smoke-data-sane-bad-formula",
+          "input": "inputs/smoke-data-sane-bad-formula.rds",
+          "fn": "data_sanity_check",
+          "call_style": "named",
+          "expect": {
+            "outcome": "error"
+          },
+          "tags": [
+            "facade",
+            "other-export",
+            "reference-error",
+            "small"
+          ]
+        },
+        {
+          "id": "absent-in-group-a",
+          "input": "inputs/absent-in-group-a.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "derived-2col",
+            "edge",
+            "structural-zero"
+          ]
+        },
+        {
+          "id": "rare-in-group-a",
+          "input": "inputs/rare-in-group-a.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "derived-2col",
+            "edge",
+            "structural-zero"
+          ]
+        },
+        {
+          "id": "present-in-every-group",
+          "input": "inputs/present-in-every-group.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "derived-2col",
+            "edge",
+            "structural-zero"
+          ]
+        },
+        {
+          "id": "na-counts",
+          "input": "inputs/na-counts.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "derived-2col",
+            "edge",
+            "missing-values"
+          ]
+        },
+        {
+          "id": "struc-zero-off",
+          "input": "inputs/struc-zero-off.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "derived-2col",
+            "edge",
+            "structural-zero"
+          ]
+        },
+        {
+          "id": "prv-cut-boundary",
+          "input": "inputs/prv-cut-boundary.rds",
+          "fn": "ancombc2",
+          "call_style": "named",
+          "expect": {
+            "outcome": "success"
+          },
+          "tags": [
+            "derived-2col",
+            "edge",
+            "prevalence-filter"
+          ]
+        }
+      ]
+    }
+  }
+}

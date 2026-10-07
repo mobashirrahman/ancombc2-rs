@@ -1,0 +1,67 @@
+=== S07 output transport (final) ===
+2026-10-05T23:13:57Z
+
+--- rust ---
+cargo fmt: clean
+    Finished `release` profile [optimized] target(s) in 0.22s
+test result: ok. 25 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+test result: ok. 154 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+--- R gates ---
+make r-bridge-selftest (S06 regression): 0 check(s) failed
+make replacement-check (S05 signatures): 0 check(s) failed
+files in package: 53   manifest rows: 53   locally modified: 1
+  modified: NAMESPACE
+UPSTREAM MANIFEST: consistent
+
+--- S07 acceptance ---
+    r/ANCOMBC/tests/output_selftest.R
+ok    the payload fixture exists
+ok    the bridge is present
+ok    the fixture names the pinned original it came from
+ok    the fixture carries the warning that it is test-only
+ok    the plan has the eleven documented entries
+ok    the plan is in the documented order
+ok    `dof` comes back integer because the original's was
+ok    `vcov_hat` comes back as a list, not a matrix
+ok    `beta_hat` is byte-identical
+ok    `var_hat` is byte-identical
+ok    `dof` is byte-identical, integer included
+ok    `theta_hat` is byte-identical
+ok    `delta_em` is byte-identical
+ok    `delta_wls` is byte-identical
+ok    `var_delta` is byte-identical
+ok    `s02` is byte-identical
+ok    `O2` is byte-identical
+ok    `y_bias_crt` is byte-identical as a matrix
+ok    every covariance matrix is byte-identical
+ok    every covariance matrix keeps its dim
+ok    the wire block is row-major within each taxon
+ok    row-major in, column-major out, for a non-symmetric block
+ok    NA, NaN, Inf, -Inf and -0.0 all survive `beta_hat`
+ok    -0.0 keeps its sign bit through `beta_hat`
+ok    NA and NaN stay distinguishable in `var_hat`
+ok    NA survives in `vcov_hat` as NA, not NaN
+ok    the two covariance matrices stay separate
+ok    integer `dof` comes back integer
+ok    a reported set shorter than the bias set is carried, not rejected
+ok    a bias set *shorter* than the reported set is refused
+ok    the assembled result has the original's ten names
+ok    `feature_table` is byte-identical to the original's
+ok    `bias_correct_log_table` is byte-identical to the original's
+ok    `samp_frac` is byte-identical
+ok    `delta_em` is byte-identical
+ok    `delta_wls` is byte-identical
+ok    `res` is byte-identical
+ok    `res_global` is the original's NULL
+ok    `res_pair` is the original's NULL
+ok    `res_dunn` is the original's NULL
+ok    `res_trend` is the original's NULL
+ok    the whole core result is byte-identical
+ok    an untransported test is a named error, not a silent NULL
+
+43/43 checks passed
+
+=== campaigns ===
+114-case: 82 byte-identical results + 32 byte-identical errors, 0 problems; MANIFEST complete
+25-case small: 12 + 13, 0 problems; MANIFEST complete

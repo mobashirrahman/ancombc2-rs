@@ -1,0 +1,86 @@
+# S03 acceptance evidence -- 2026-10-05T18:17:30Z
+
+## comparator negative checks (every mutation must be rejected)
+--- make exact-comparator-selftest
+check_exact.R selftest
+  [PASS] identical_objects_pass -- the comparator must accept a copy of itself
+  [PASS] one_mantissa_bit_rejected
+  [PASS] signed_zero_fixture_is_sane
+  [PASS] negative_zero_to_positive_rejected
+  [PASS] positive_zero_to_negative_rejected
+  [PASS] nan_to_na_rejected
+  [PASS] na_to_nan_rejected
+  [PASS] inf_to_finite_rejected
+  [PASS] integer_vs_double_rejected
+  [PASS] changed_name_rejected
+  [PASS] df_row_order_rejected
+  [PASS] matrix_row_order_rejected
+  [PASS] null_field_rejected
+  [PASS] null_field_dropped_rejected
+  [PASS] list_element_order_rejected
+  [PASS] changed_attribute_rejected
+  [PASS] added_attribute_rejected
+  [PASS] factor_value_swap_rejected
+  [PASS] extra_factor_level_rejected
+  [PASS] changed_warning_rejected
+  [PASS] changed_rng_state_rejected
+  [PASS] condition_order_rejected
+  [PASS] diagnostic_reports_double_bits -- kinds: double-bits
+  [PASS] diagnostic_reports_added_names_attribute -- kinds: attribute-set
+  [PASS] diagnostic_reports_dimnames
+  [PASS] diagnostic_reports_changed_factor_levels
+  [PASS] diagnostic_reports_renamed_element
+  [PASS] diagnostic_reports_null_field -- kinds: null
+  [PASS] one_ulp_rejected -- adjacent doubles above 1 differ by one mantissa bit
+  [PASS] tiny_relative_difference_rejected -- isTRUE(all.equal()) accepts this; the exact contract must not
+  [PASS] tiny_relative_difference_is_invisible_to_all_equal -- this check exists to document what all.equal() would have let through
+  0 check(s) failed
+exit=0
+
+## identical captures pass
+--- make exact-compare (two original runs)
+compare                  original-r1 vs original-r2
+outcome                  success
+VERDICT: identical
+exit=0
+
+## one flipped byte in result.bytes is rejected and located
+--- make exact-compare (tampered)
+compare                  original-r1 vs tamper
+outcome                  success
+VERDICT: DIFFERENT
+  - result bytes differ: 58245 vs 58245 bytes
+  -   1 differing byte(s), first at offset 5001 (0x00 vs 0x01)
+  first differences:
+    $$feature_table [value] index 1241 (1 of 3000 differ): 447 vs 65983; first 
+make: *** [Makefile:388: exact-compare] Error 1
+exit=2
+
+## case manifest
+--- observed = complete
+case set small      3 required, 3 observed
+MANIFEST: complete
+exit=0
+--- observed = partial
+case set small      3 required, 2 observed
+MANIFEST: INVALID
+  - 1 required case(s) not observed: fx03-basic
+make: *** [Makefile:392: exact-cases] Error 1
+exit=2
+--- observed = duplicated
+case set small      3 required, 4 observed
+MANIFEST: INVALID
+  - case(s) observed more than once: fx01-basic
+make: *** [Makefile:392: exact-cases] Error 1
+exit=2
+--- observed = absent file
+case set required   3 required, 0 observed
+MANIFEST: INVALID
+  - 3 required case(s) not observed: fx01-basic, fx02-basic, fx03-basic
+make: *** [Makefile:392: exact-cases] Error 1
+exit=2
+--- unknown case set
+Error: unknown case set ‘no-such-set’; known: small, required
+Execution halted
+make: *** [Makefile:392: exact-cases] Error 1
+exit=2

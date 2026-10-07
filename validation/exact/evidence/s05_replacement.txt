@@ -1,0 +1,103 @@
+# S05 acceptance evidence -- 2026-10-05T19:01:24Z
+
+## upstream provenance
+--- python3 scripts/upstream_manifest.py --verify
+files in package: 45   manifest rows: 45   locally modified: 0
+UPSTREAM MANIFEST: consistent
+exit=0
+
+## install the replacement into its own library
+--- make replacement-build PROFILE=linux-r453-openblas
+mkdir -p /scratch/mdra00001/ancom-bc2-rust/.rlib/replacement
+    R CMD INSTALL --library=/scratch/mdra00001/ancom-bc2-rust/.rlib/replacement r/ANCOMBC
+* installing *source* package ‘ANCOMBC’ ...
+** this is package ‘ANCOMBC’ version ‘2.15.2’
+** using staged installation
+** R
+** data
+** inst
+** byte-compile and prepare package for lazy loading
+** help
+*** installing help indices
+** building package indices
+** installing vignettes
+** testing if installed package can be loaded from temporary location
+** testing if installed package can be loaded from final location
+** testing if installed package keeps a record of temporary installation path
+* DONE (ANCOMBC)
+exit=0
+
+## the replacement is a drop-in, and is not the original
+--- make replacement-check PROFILE=linux-r453-openblas
+  [PASS] original_resolves_uniquely
+package replacement acceptance
+  [PASS] candidate_is_not_the_original_installation
+  [PASS] candidate_declares_itself_a_replacement
+  [PASS] original_is_not_the_candidate_installation
+  [PASS] no_namespace_loaded_from_the_original_library
+  [PASS] original_library_absent_from_candidate_search_path
+  [PASS] ancombc2_formal_names_and_order_match
+  [PASS] ancombc2_default_expressions_match
+  [PASS] every_default_expression_is_identical
+  [PASS] pseudo_sens_defaults_to_TRUE
+  [PASS] no_dot_dot_dot_added_to_the_entrypoint
+  [PASS] every_original_export_is_present
+  [PASS] no_export_added_beyond_the_original
+  [PASS] the_export_set_is_the_original_seven
+  [PASS] every_export_keeps_its_signature
+  [PASS] candidate_description_records_what_it_replaces
+  [PASS] upstream_attribution_retained
+  [PASS] upstream_licence_retained
+The imported data is in a generic 'matrix'/'data.frame' format.
+Loading required package: foreach
+Loading required package: rngtools
+Conducting sensitivity analysis for pseudo-count addition to 0s ...
+For taxa that are significant but do not pass the sensitivity analysis,
+they are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.
+For detailed instructions on performing sensitivity analysis, please refer to the package vignette.
+Warning message:
+The number of taxa used for estimating sample-specific biases is: 6
+A large number of taxa (>50) is required for the consistent estimation of biases 
+  [PASS] named_call_succeeds
+Checking the input data type ...
+The input data is of type: matrix
+The imported data is in a generic 'matrix'/'data.frame' format.
+PASS
+Checking the sample metadata ...
+The specified variables in the formula: group, x1
+The available variables in the sample metadata: group, x1
+PASS
+Checking other arguments ...
+PASS
+Obtaining initial estimates ...
+Estimating sample-specific biases ...
+ANCOM-BC2 primary results ...
+Conducting sensitivity analysis for pseudo-count addition to 0s ...
+For taxa that are significant but do not pass the sensitivity analysis,
+they are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.
+For detailed instructions on performing sensitivity analysis, please refer to the package vignette.
+Warning message:
+The number of taxa used for estimating sample-specific biases is: 6
+A large number of taxa (>50) is required for the consistent estimation of biases 
+  [PASS] positional_call_succeeds
+  [PASS] positional_call_defaults_to_pseudo_sens_TRUE
+  [PASS] pseudo_sens_false_really_drops_the_sensitivity_columns
+Warning message:
+The number of taxa used for estimating sample-specific biases is: 6
+A large number of taxa (>50) is required for the consistent estimation of biases 
+  [PASS] unknown_argument_is_still_refused
+  0 check(s) failed
+exit=0
+
+## the two installations are distinct directories
+original   : .rlib/original/ANCOMBC
+replacement: .rlib/replacement/ANCOMBC
+  4ad5a25e9b27687f06dba6b55a215deea02ff7d39a740ac328d723eec6279892  .rlib/original/ANCOMBC/DESCRIPTION
+  4069156d4a730a188b4fd5acbacf70750d119c87b475d145455d0bb06d8e5d35  .rlib/replacement/ANCOMBC/DESCRIPTION
+
+## the replacement resolves its own namespace only
+  /scratch/mdra00001/ancom-bc2-rust/.rlib/replacement/ANCOMBC 
+  /scratch/mdra00001/ancom-bc2-rust/.rlib/replacement
+  /usr/local/lib/R/site-library
+  /usr/lib/R/site-library
+  /usr/lib/R/library

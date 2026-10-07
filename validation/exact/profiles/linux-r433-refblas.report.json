@@ -1,0 +1,104 @@
+{
+  "profile": "linux-r433-refblas",
+  "checks": [
+    {
+      "name": "oracle.file_digests",
+      "ok": true,
+      "expected": "20 files matching reference/env/oracle.sha256",
+      "actual": "20 match",
+      "detail": "reference/ANCOMBC must stay byte-identical to the pinned commit"
+    },
+    {
+      "name": "oracle.version",
+      "ok": true,
+      "expected": "2.15.2",
+      "actual": "2.15.2",
+      "detail": ""
+    },
+    {
+      "name": "oracle.license",
+      "ok": true,
+      "expected": "Artistic-2.0",
+      "actual": "Artistic-2.0",
+      "detail": "bundled upstream code must keep its licence"
+    },
+    {
+      "name": "oracle.depends",
+      "ok": true,
+      "expected": "R (>= 4.5.0)",
+      "actual": "R (>= 4.5.0)",
+      "detail": ""
+    },
+    {
+      "name": "runtime.probe_runs",
+      "ok": true,
+      "expected": "exit 0",
+      "actual": "exit 0",
+      "detail": ""
+    },
+    {
+      "name": "runtime.r_version",
+      "ok": true,
+      "expected": "4.3.3",
+      "actual": "4.3.3",
+      "detail": "exactness is per runtime; a different R is a different profile"
+    },
+    {
+      "name": "runtime.r_platform",
+      "ok": true,
+      "expected": "x86_64-pc-linux-gnu",
+      "actual": "x86_64-pc-linux-gnu",
+      "detail": ""
+    },
+    {
+      "name": "runtime.r_arch",
+      "ok": true,
+      "expected": "x86_64",
+      "actual": "x86_64",
+      "detail": ""
+    },
+    {
+      "name": "runtime.satisfies_pinned_depends",
+      "ok": false,
+      "expected": "R >= 4.5 (pinned Depends)",
+      "actual": "4.3.3",
+      "detail": "below the floor the original cannot be installed, so this profile cannot be exact-certified"
+    },
+    {
+      "name": "runtime.blas",
+      "ok": true,
+      "expected": "libblas 3.12.0 (substring of the linked .so)",
+      "actual": "/usr/lib/x86_64-linux-gnu/blas/libblas.so.3.12.0",
+      "detail": "P4 is a ratio between two programs; swapping BLAS would be choosing the ruler"
+    },
+    {
+      "name": "runtime.library_path",
+      "ok": true,
+      "expected": "/scratch/mdra00001/rlib,/usr/local/lib/R/site-library,/usr/lib/R/site-library,/usr/lib/R/library",
+      "actual": "/scratch/mdra00001/rlib,/usr/local/lib/R/site-library,/usr/lib/R/site-library,/usr/lib/R/library",
+      "detail": "an unlisted library can shadow a dependency and silently change a number"
+    },
+    {
+      "name": "runtime.rng_kind",
+      "ok": true,
+      "expected": "Mersenne-Twister|Inversion|Rejection",
+      "actual": "Mersenne-Twister|Inversion|Rejection",
+      "detail": ""
+    },
+    {
+      "name": "runtime.locale",
+      "ok": true,
+      "expected": "LC_CTYPE=C.UTF-8;LC_NUMERIC=C;LC_TIME=C.UTF-8;LC_COLLATE=C.UTF-8;LC_MONETARY=C.UTF-8;LC_MESSAGES=C.UTF-8;LC_PAPER=C.UTF-8;LC_NAME=C;LC_ADDRESS=C;LC_TELEPHONE=C;LC_MEASUREMENT=C.UTF-8;LC_IDENTIFICATION=C",
+      "actual": "LC_CTYPE=C.UTF-8;LC_NUMERIC=C;LC_TIME=C.UTF-8;LC_COLLATE=C.UTF-8;LC_MONETARY=C.UTF-8;LC_MESSAGES=C.UTF-8;LC_PAPER=C.UTF-8;LC_NAME=C;LC_ADDRESS=C;LC_TELEPHONE=C;LC_MEASUREMENT=C.UTF-8;LC_IDENTIFICATION=C",
+      "detail": "locale changes collation, and collation changes p.adjust ordering"
+    },
+    {
+      "name": "original.installed",
+      "ok": false,
+      "expected": "<none: R 4.3.3 is below the pinned floor>",
+      "actual": "<not-found>",
+      "detail": "the pinned original is not installed in this profile's library"
+    }
+  ],
+  "exit_code": 1
+}

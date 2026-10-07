@@ -1,0 +1,2521 @@
+{
+  "profile": "linux-r453-openblas",
+  "cases": [
+    {
+      "case": "validation/exact/inputs/fx01-basic.rds",
+      "input_sha256": "3aee278da6410225df7d6ff4e83cb7267eb81676b33e5d5f20b3daf011278c7e",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/fx01-basic.rds",
+            "--out",
+            "validation/exact/golden/fx01-basic/original-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/golden/fx01-basic/original-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "25b8aae4edb88c04e4e549fae5951f61d2550bc3946c2584dce1c2f27203ca9c",
+          "error_bytes": 744,
+          "n_conditions": 7,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group\nThe available variables in the sample metadata: \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/fx01-basic.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/fx01-basic/candidate-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/fx01-basic/candidate-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "25b8aae4edb88c04e4e549fae5951f61d2550bc3946c2584dce1c2f27203ca9c",
+          "error_bytes": 744,
+          "n_conditions": 7,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group\nThe available variables in the sample metadata: \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "25b8aae4edb88c04e4e549fae5951f61d2550bc3946c2584dce1c2f27203ca9c"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "25b8aae4edb88c04e4e549fae5951f61d2550bc3946c2584dce1c2f27203ca9c"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "error_bytes_match": true,
+      "outcome": "error-match"
+    },
+    {
+      "case": "validation/exact/inputs/fx02-basic.rds",
+      "input_sha256": "c16f127ccbecb1d6fc379057370659bb8e8641e8f2a3431e9eb66f7b220ca1b6",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/fx02-basic.rds",
+            "--out",
+            "validation/exact/golden/fx02-basic/original-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/golden/fx02-basic/original-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": "79c7da78139554f2e296be2c8410abeb072d7291715a3aabaabf35b46693eec3",
+          "result_bytes": 58245,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 19,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nThe number of groups of interest is: 2\nThe sample size per group is: 1 = 15, 2 = 15\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nSensitivity analysis is currently turned off.\nSince sensitivity analysis is essential for reducing false positives,\nit is highly recommended to enable it unless your primary focus is power.\nAre you sure you want to proceed without it?\nWarning message:\nThe group variable has < 3 categories \nThe multi-group comparisons (global/pairwise/dunnet/trend) will be deactivated \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/fx02-basic.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/fx02-basic/candidate-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/fx02-basic/candidate-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": "79c7da78139554f2e296be2c8410abeb072d7291715a3aabaabf35b46693eec3",
+          "result_bytes": 58245,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 19,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nThe number of groups of interest is: 2\nThe sample size per group is: 1 = 15, 2 = 15\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nSensitivity analysis is currently turned off.\nSince sensitivity analysis is essential for reducing false positives,\nit is highly recommended to enable it unless your primary focus is power.\nAre you sure you want to proceed without it?\nWarning message:\nThe group variable has < 3 categories \nThe multi-group comparisons (global/pairwise/dunnet/trend) will be deactivated \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "79c7da78139554f2e296be2c8410abeb072d7291715a3aabaabf35b46693eec3"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "79c7da78139554f2e296be2c8410abeb072d7291715a3aabaabf35b46693eec3"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "result_bytes_match": true,
+      "result_bytes": 58245,
+      "outcome": "match"
+    },
+    {
+      "case": "validation/exact/inputs/edge-absent-in-group-a.rds",
+      "input_sha256": "5dde2311f3cf98f5958b7506998385eb96725089e4792834ea57064a2b258987",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/edge-absent-in-group-a.rds",
+            "--out",
+            "validation/exact/golden/edge-absent-in-group-a/original-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/golden/edge-absent-in-group-a/original-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "25b8aae4edb88c04e4e549fae5951f61d2550bc3946c2584dce1c2f27203ca9c",
+          "error_bytes": 744,
+          "n_conditions": 8,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group\nThe available variables in the sample metadata: \nWarning message:\nIn `[<-.factor`(`*tmp*`, , value = list(1L, 1L, 1L, 1L, 1L, 1L,  :\n  invalid factor level, NA generated\n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/edge-absent-in-group-a.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/edge-absent-in-group-a/candidate-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/edge-absent-in-group-a/candidate-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "25b8aae4edb88c04e4e549fae5951f61d2550bc3946c2584dce1c2f27203ca9c",
+          "error_bytes": 744,
+          "n_conditions": 8,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group\nThe available variables in the sample metadata: \nWarning message:\nIn `[<-.factor`(`*tmp*`, , value = list(1L, 1L, 1L, 1L, 1L, 1L,  :\n  invalid factor level, NA generated\n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "25b8aae4edb88c04e4e549fae5951f61d2550bc3946c2584dce1c2f27203ca9c"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "25b8aae4edb88c04e4e549fae5951f61d2550bc3946c2584dce1c2f27203ca9c"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "error_bytes_match": true,
+      "outcome": "error-match"
+    },
+    {
+      "case": "validation/exact/inputs/edge-na-counts.rds",
+      "input_sha256": "305d5a090287e0484fe06fb737f46ca8d615e9d5e936f847f93cb886e6425987",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/edge-na-counts.rds",
+            "--out",
+            "validation/exact/golden/edge-na-counts/original-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/golden/edge-na-counts/original-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "25b8aae4edb88c04e4e549fae5951f61d2550bc3946c2584dce1c2f27203ca9c",
+          "error_bytes": 744,
+          "n_conditions": 8,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group\nThe available variables in the sample metadata: \nWarning message:\nIn `[<-.factor`(`*tmp*`, , value = list(1L, 1L, 1L, 1L, 1L, 1L,  :\n  invalid factor level, NA generated\n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/edge-na-counts.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/edge-na-counts/candidate-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/edge-na-counts/candidate-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "25b8aae4edb88c04e4e549fae5951f61d2550bc3946c2584dce1c2f27203ca9c",
+          "error_bytes": 744,
+          "n_conditions": 8,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group\nThe available variables in the sample metadata: \nWarning message:\nIn `[<-.factor`(`*tmp*`, , value = list(1L, 1L, 1L, 1L, 1L, 1L,  :\n  invalid factor level, NA generated\n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "25b8aae4edb88c04e4e549fae5951f61d2550bc3946c2584dce1c2f27203ca9c"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "25b8aae4edb88c04e4e549fae5951f61d2550bc3946c2584dce1c2f27203ca9c"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "error_bytes_match": true,
+      "outcome": "error-match"
+    },
+    {
+      "case": "validation/exact/inputs/fx02-positional.rds",
+      "input_sha256": "7cc470a91d9b208c944c7ebf8a3320b618c764a0fe182bd132b08ec9ba1ba0b9",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/fx02-positional.rds",
+            "--out",
+            "validation/exact/golden/fx02-positional/original-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/golden/fx02-positional/original-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "1eb47fa35d794bb8707f29668beccbe362f13661d89c49261aab44aed129bcdd",
+          "error_bytes": 762,
+          "n_conditions": 3,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/fx02-positional.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/fx02-positional/candidate-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/fx02-positional/candidate-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "1eb47fa35d794bb8707f29668beccbe362f13661d89c49261aab44aed129bcdd",
+          "error_bytes": 762,
+          "n_conditions": 3,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "1eb47fa35d794bb8707f29668beccbe362f13661d89c49261aab44aed129bcdd"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "1eb47fa35d794bb8707f29668beccbe362f13661d89c49261aab44aed129bcdd"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "error_bytes_match": true,
+      "outcome": "error-match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-assay-alias.rds",
+      "input_sha256": "ddead4787e234fbbc1b0226ce825433390d5476b3bac750c871bf6c5e73cd531",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-assay-alias.rds",
+            "--out",
+            "validation/exact/golden/tiny-assay-alias/original-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/golden/tiny-assay-alias/original-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa",
+          "result_bytes": 3497,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 17,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-assay-alias.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-assay-alias/candidate-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-assay-alias/candidate-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa",
+          "result_bytes": 3497,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 17,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "result_bytes_match": true,
+      "result_bytes": 3497,
+      "outcome": "match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-rank-null.rds",
+      "input_sha256": "6ad1b7bd4f7451ec816837cc27c6089f34c2e83fd089b4d1a267137646ca07eb",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-rank-null.rds",
+            "--out",
+            "validation/exact/golden/tiny-rank-null/original-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/golden/tiny-rank-null/original-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa",
+          "result_bytes": 3497,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 17,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-rank-null.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-rank-null/candidate-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-rank-null/candidate-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa",
+          "result_bytes": 3497,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 17,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "result_bytes_match": true,
+      "result_bytes": 3497,
+      "outcome": "match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-defaults-positional.rds",
+      "input_sha256": "0d4df9a7abbcfe19ad0d43a15c83c15c99f8683b1d38af9183f8a802dab4c8f7",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-defaults-positional.rds",
+            "--out",
+            "validation/exact/golden/tiny-defaults-positional/original-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/golden/tiny-defaults-positional/original-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "1eb47fa35d794bb8707f29668beccbe362f13661d89c49261aab44aed129bcdd",
+          "error_bytes": 762,
+          "n_conditions": 3,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-defaults-positional.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-defaults-positional/candidate-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-defaults-positional/candidate-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "1eb47fa35d794bb8707f29668beccbe362f13661d89c49261aab44aed129bcdd",
+          "error_bytes": 762,
+          "n_conditions": 3,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "1eb47fa35d794bb8707f29668beccbe362f13661d89c49261aab44aed129bcdd"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "1eb47fa35d794bb8707f29668beccbe362f13661d89c49261aab44aed129bcdd"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "error_bytes_match": true,
+      "outcome": "error-match"
+    },
+    {
+      "case": "validation/exact/inputs/re2g-rand-bare.rds",
+      "input_sha256": "8331f163d124905a61fe5ad1e795348b3edb440d162962d0abc6c2643de1dd0d",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/re2g-rand-bare.rds",
+            "--out",
+            "validation/exact/golden/re2g-rand-bare/original-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/golden/re2g-rand-bare/original-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "d13a2ce9ac66fc0d8f21536cd5e4bb6a608f3bfa5c5c05c966eee93584706ec4",
+          "error_bytes": 595,
+          "n_conditions": 12,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 8\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/re2g-rand-bare.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/re2g-rand-bare/candidate-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/re2g-rand-bare/candidate-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "d13a2ce9ac66fc0d8f21536cd5e4bb6a608f3bfa5c5c05c966eee93584706ec4",
+          "error_bytes": 595,
+          "n_conditions": 12,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 8\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "d13a2ce9ac66fc0d8f21536cd5e4bb6a608f3bfa5c5c05c966eee93584706ec4"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "d13a2ce9ac66fc0d8f21536cd5e4bb6a608f3bfa5c5c05c966eee93584706ec4"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "error_bytes_match": true,
+      "outcome": "error-match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-p-adj-bh.rds",
+      "input_sha256": "631f759a6582310f12a11a8cfae1497fe72d71ad7e391d8f372391c325bc227f",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-p-adj-bh.rds",
+            "--out",
+            "validation/exact/golden/tiny-p-adj-bh/original-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/golden/tiny-p-adj-bh/original-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": "b91f8202c6874e5b55a10e6e93d9d34a3b55d6817c7b6084d68700283d11e8f5",
+          "result_bytes": 3497,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 17,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-p-adj-bh.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-p-adj-bh/candidate-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-p-adj-bh/candidate-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": "b91f8202c6874e5b55a10e6e93d9d34a3b55d6817c7b6084d68700283d11e8f5",
+          "result_bytes": 3497,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 17,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "b91f8202c6874e5b55a10e6e93d9d34a3b55d6817c7b6084d68700283d11e8f5"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "b91f8202c6874e5b55a10e6e93d9d34a3b55d6817c7b6084d68700283d11e8f5"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "result_bytes_match": true,
+      "result_bytes": 3497,
+      "outcome": "match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-p-adj-bad.rds",
+      "input_sha256": "e9d2b14c7d50325c1c647f0cd105652a3ff0d0d2998871df54d32da91572727d",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-p-adj-bad.rds",
+            "--out",
+            "validation/exact/golden/tiny-p-adj-bad/original-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/golden/tiny-p-adj-bad/original-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "b3cddc8198c10ba802c9c77a7b1bfe5a66b3c938aae3f52ae99f3b81fd2fecd1",
+          "error_bytes": 334,
+          "n_conditions": 16,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-p-adj-bad.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-p-adj-bad/candidate-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-p-adj-bad/candidate-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "b3cddc8198c10ba802c9c77a7b1bfe5a66b3c938aae3f52ae99f3b81fd2fecd1",
+          "error_bytes": 334,
+          "n_conditions": 16,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "b3cddc8198c10ba802c9c77a7b1bfe5a66b3c938aae3f52ae99f3b81fd2fecd1"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "b3cddc8198c10ba802c9c77a7b1bfe5a66b3c938aae3f52ae99f3b81fd2fecd1"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "error_bytes_match": true,
+      "outcome": "error-match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-alpha-at-005.rds",
+      "input_sha256": "137dd93ce41d940868f45c92b4b44828ff21930ccf859d4e85240e513b57f545",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-alpha-at-005.rds",
+            "--out",
+            "validation/exact/golden/tiny-alpha-at-005/original-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/golden/tiny-alpha-at-005/original-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa",
+          "result_bytes": 3497,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 17,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-alpha-at-005.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-alpha-at-005/candidate-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-alpha-at-005/candidate-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa",
+          "result_bytes": 3497,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 17,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "result_bytes_match": true,
+      "result_bytes": 3497,
+      "outcome": "match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-prv-cut-1.rds",
+      "input_sha256": "ce1d72f36a213ca8421298dba177c61c745cccf7b90aaeb22309b35ea7aaa135",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-prv-cut-1.rds",
+            "--out",
+            "validation/exact/golden/tiny-prv-cut-1/original-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/golden/tiny-prv-cut-1/original-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": "efa9c3a48dde3a0669258bd4668f1361e7e08af8c8628ab4f5821c6a5386eaf4",
+          "result_bytes": 2865,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 17,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 3\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-prv-cut-1.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-prv-cut-1/candidate-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-prv-cut-1/candidate-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": "efa9c3a48dde3a0669258bd4668f1361e7e08af8c8628ab4f5821c6a5386eaf4",
+          "result_bytes": 2865,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 17,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 3\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "efa9c3a48dde3a0669258bd4668f1361e7e08af8c8628ab4f5821c6a5386eaf4"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "efa9c3a48dde3a0669258bd4668f1361e7e08af8c8628ab4f5821c6a5386eaf4"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "result_bytes_match": true,
+      "result_bytes": 2865,
+      "outcome": "match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-lib-cut-huge.rds",
+      "input_sha256": "df2d949ed678b222560f6e19af88e6043a2482f3152b7dcc6a75285a02441b99",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-lib-cut-huge.rds",
+            "--out",
+            "validation/exact/golden/tiny-lib-cut-huge/original-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/golden/tiny-lib-cut-huge/original-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "8998faf282d521338190c9f2861ab3aa72a3f036eb048910cf1ea3fe7193c46f",
+          "error_bytes": 223,
+          "n_conditions": 10,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-lib-cut-huge.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-lib-cut-huge/candidate-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-lib-cut-huge/candidate-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "8998faf282d521338190c9f2861ab3aa72a3f036eb048910cf1ea3fe7193c46f",
+          "error_bytes": 223,
+          "n_conditions": 10,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "8998faf282d521338190c9f2861ab3aa72a3f036eb048910cf1ea3fe7193c46f"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "8998faf282d521338190c9f2861ab3aa72a3f036eb048910cf1ea3fe7193c46f"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "error_bytes_match": true,
+      "outcome": "error-match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-struc-zero-on.rds",
+      "input_sha256": "717db6de84069a4474aa053a443dd3200db9358df89116e47a98b23086651aaa",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-struc-zero-on.rds",
+            "--out",
+            "validation/exact/golden/tiny-struc-zero-on/original-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/golden/tiny-struc-zero-on/original-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": "3e0fd04acda779f0b02c4100f85aa956f43cb7cd3296f8cf0ae48f1ed39d7fb7",
+          "result_bytes": 3460,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 21,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nThe number of groups of interest is: 2\nThe sample size per group is: 1 = 4, 2 = 4\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning messages:\n1: The group variable has < 3 categories \nThe multi-group comparisons (global/pairwise/dunnet/trend) will be deactivated \n2: Small sample size detected for the following group(s): \n1, 2\nVariance estimation would be unstable when the sample size is < 5 per group \n3: The number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-struc-zero-on.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-struc-zero-on/candidate-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-struc-zero-on/candidate-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": "3e0fd04acda779f0b02c4100f85aa956f43cb7cd3296f8cf0ae48f1ed39d7fb7",
+          "result_bytes": 3460,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 21,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nThe number of groups of interest is: 2\nThe sample size per group is: 1 = 4, 2 = 4\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning messages:\n1: The group variable has < 3 categories \nThe multi-group comparisons (global/pairwise/dunnet/trend) will be deactivated \n2: Small sample size detected for the following group(s): \n1, 2\nVariance estimation would be unstable when the sample size is < 5 per group \n3: The number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "3e0fd04acda779f0b02c4100f85aa956f43cb7cd3296f8cf0ae48f1ed39d7fb7"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "3e0fd04acda779f0b02c4100f85aa956f43cb7cd3296f8cf0ae48f1ed39d7fb7"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "result_bytes_match": true,
+      "result_bytes": 3460,
+      "outcome": "match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-iter-max-0.rds",
+      "input_sha256": "c667c71b44cbbaed0430658414ba64a7e0ebc7b5bb8e3ddd8e409d5140210c5f",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-iter-max-0.rds",
+            "--out",
+            "validation/exact/golden/tiny-iter-max-0/original-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/golden/tiny-iter-max-0/original-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": "6a87fa6d0e284d4a80e84f0f39161439b0256fe417801cd148e58614a7b0ebe5",
+          "result_bytes": 3497,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 17,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-iter-max-0.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-iter-max-0/candidate-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-iter-max-0/candidate-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": "6a87fa6d0e284d4a80e84f0f39161439b0256fe417801cd148e58614a7b0ebe5",
+          "result_bytes": 3497,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 17,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "6a87fa6d0e284d4a80e84f0f39161439b0256fe417801cd148e58614a7b0ebe5"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "6a87fa6d0e284d4a80e84f0f39161439b0256fe417801cd148e58614a7b0ebe5"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "result_bytes_match": true,
+      "result_bytes": 3497,
+      "outcome": "match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-em-max-0.rds",
+      "input_sha256": "1ac1bc439ced11b031219ea3c584b8611b76377130ff8bc5fd4dd3d987211494",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-em-max-0.rds",
+            "--out",
+            "validation/exact/golden/tiny-em-max-0/original-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/golden/tiny-em-max-0/original-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "f709ee170d5b8838c02c119c17946765a0fcdd530ed74e7a98ce23e25a676460",
+          "error_bytes": 505,
+          "n_conditions": 15,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-em-max-0.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-em-max-0/candidate-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-em-max-0/candidate-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "f709ee170d5b8838c02c119c17946765a0fcdd530ed74e7a98ce23e25a676460",
+          "error_bytes": 505,
+          "n_conditions": 15,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "f709ee170d5b8838c02c119c17946765a0fcdd530ed74e7a98ce23e25a676460"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "f709ee170d5b8838c02c119c17946765a0fcdd530ed74e7a98ce23e25a676460"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "error_bytes_match": true,
+      "outcome": "error-match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-s0-100.rds",
+      "input_sha256": "a258a6635a90ba0aeebaba8d37011a3e12d104b19331370b54302816ef30df58",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-s0-100.rds",
+            "--out",
+            "validation/exact/golden/tiny-s0-100/original-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/golden/tiny-s0-100/original-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "62ecc13c5a927841b5b99202f1ec6e8cef6f0263e53bca71012cdcfa77995436",
+          "error_bytes": 256,
+          "n_conditions": 15,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-s0-100.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-s0-100/candidate-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-s0-100/candidate-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "62ecc13c5a927841b5b99202f1ec6e8cef6f0263e53bca71012cdcfa77995436",
+          "error_bytes": 256,
+          "n_conditions": 15,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "62ecc13c5a927841b5b99202f1ec6e8cef6f0263e53bca71012cdcfa77995436"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "62ecc13c5a927841b5b99202f1ec6e8cef6f0263e53bca71012cdcfa77995436"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "error_bytes_match": true,
+      "outcome": "error-match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-global-without-group.rds",
+      "input_sha256": "40a72ae3b0e73c3470ad38430530ec47b395d02ddf796ff4fb51473fcd72cd86",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-global-without-group.rds",
+            "--out",
+            "validation/exact/golden/tiny-global-without-group/original-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/golden/tiny-global-without-group/original-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "9ceb25638071623926cb1b0d3d82d204f41f4f3a9b26b8723786b764ff5e3d3a",
+          "error_bytes": 338,
+          "n_conditions": 9,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-global-without-group.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-global-without-group/candidate-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-global-without-group/candidate-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "9ceb25638071623926cb1b0d3d82d204f41f4f3a9b26b8723786b764ff5e3d3a",
+          "error_bytes": 338,
+          "n_conditions": 9,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "9ceb25638071623926cb1b0d3d82d204f41f4f3a9b26b8723786b764ff5e3d3a"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "9ceb25638071623926cb1b0d3d82d204f41f4f3a9b26b8723786b764ff5e3d3a"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "error_bytes_match": true,
+      "outcome": "error-match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-struc-zero-without-group.rds",
+      "input_sha256": "71cb7c1a261db45c1bfb8b5f5a4a2be9b1312e29ea8210ea3d4903d8feec2a33",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-struc-zero-without-group.rds",
+            "--out",
+            "validation/exact/golden/tiny-struc-zero-without-group/original-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/golden/tiny-struc-zero-without-group/original-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "9318d40317d10b5d5235c1abb851f158fa73cdab43a057cb68bcc133004a47f3",
+          "error_bytes": 293,
+          "n_conditions": 9,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-struc-zero-without-group.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-struc-zero-without-group/candidate-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-struc-zero-without-group/candidate-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "9318d40317d10b5d5235c1abb851f158fa73cdab43a057cb68bcc133004a47f3",
+          "error_bytes": 293,
+          "n_conditions": 9,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "9318d40317d10b5d5235c1abb851f158fa73cdab43a057cb68bcc133004a47f3"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "9318d40317d10b5d5235c1abb851f158fa73cdab43a057cb68bcc133004a47f3"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "error_bytes_match": true,
+      "outcome": "error-match"
+    },
+    {
+      "case": "validation/exact/inputs/smoke-sim-plnm.rds",
+      "input_sha256": "c334d7ef3695941aba83d76a0e42165031c59fb994317cf21bd80d02917f99fb",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/smoke-sim-plnm.rds",
+            "--out",
+            "validation/exact/golden/smoke-sim-plnm/original-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/golden/smoke-sim-plnm/original-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": "1a1ebdd06d24555d697ac92230f0ffed996f1452a0a6995ba91f6063a40d813a",
+          "result_bytes": 130,
+          "error_sha256": "aad3617c1f6f4126ec97f034eb300d2c171dca735d5c7587ded56f789d757e16",
+          "error_bytes": 240,
+          "n_conditions": 1,
+          "stdout_tail": "",
+          "stderr_tail": "The number of taxa after filtering is: 3\n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/smoke-sim-plnm.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/smoke-sim-plnm/candidate-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/smoke-sim-plnm/candidate-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": "1a1ebdd06d24555d697ac92230f0ffed996f1452a0a6995ba91f6063a40d813a",
+          "result_bytes": 130,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 1,
+          "stdout_tail": "",
+          "stderr_tail": "The number of taxa after filtering is: 3\n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "1a1ebdd06d24555d697ac92230f0ffed996f1452a0a6995ba91f6063a40d813a"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "1a1ebdd06d24555d697ac92230f0ffed996f1452a0a6995ba91f6063a40d813a"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "result_bytes_match": true,
+      "result_bytes": 130,
+      "outcome": "match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-two-group-global.rds",
+      "input_sha256": "5749955427f6a5be170f01e68319f32564e8adb91574e43a23c9360b65f839f4",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-two-group-global.rds",
+            "--out",
+            "validation/exact/golden/tiny-two-group-global/original-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/golden/tiny-two-group-global/original-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa",
+          "result_bytes": 3497,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 21,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nThe number of groups of interest is: 2\nThe sample size per group is: 1 = 4, 2 = 4\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning messages:\n1: The group variable has < 3 categories \nThe multi-group comparisons (global/pairwise/dunnet/trend) will be deactivated \n2: Small sample size detected for the following group(s): \n1, 2\nVariance estimation would be unstable when the sample size is < 5 per group \n3: The number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-two-group-global.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-two-group-global/candidate-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-two-group-global/candidate-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa",
+          "result_bytes": 3497,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 21,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nThe number of groups of interest is: 2\nThe sample size per group is: 1 = 4, 2 = 4\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning messages:\n1: The group variable has < 3 categories \nThe multi-group comparisons (global/pairwise/dunnet/trend) will be deactivated \n2: Small sample size detected for the following group(s): \n1, 2\nVariance estimation would be unstable when the sample size is < 5 per group \n3: The number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "result_bytes_match": true,
+      "result_bytes": 3497,
+      "outcome": "match"
+    },
+    {
+      "case": "validation/exact/inputs/tiny-defaults.rds",
+      "input_sha256": "ad4acf1361e94892a5a440b77b902635498f4e19a4833f9791516ed6e53ed611",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/tiny-defaults.rds",
+            "--out",
+            "validation/exact/golden/tiny-defaults/original-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/golden/tiny-defaults/original-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa",
+          "result_bytes": 3497,
+          "error_sha256": "38b986f1230c98dec6b11230ad4a5326468e646b9babbc0d2baf280795cced9e",
+          "error_bytes": 19562,
+          "n_conditions": 17,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/tiny-defaults.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-defaults/candidate-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/tiny-defaults/candidate-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa",
+          "result_bytes": 3497,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 17,
+          "stdout_tail": "",
+          "stderr_tail": "Checking the input data type ...\nThe input data is of type: matrix\nThe imported data is in a generic 'matrix'/'data.frame' format.\nPASS\nChecking the sample metadata ...\nThe specified variables in the formula: group, x1\nThe available variables in the sample metadata: group, x1\nPASS\nChecking other arguments ...\nPASS\nObtaining initial estimates ...\nEstimating sample-specific biases ...\nLoading required package: foreach\nLoading required package: rngtools\nANCOM-BC2 primary results ...\nConducting sensitivity analysis for pseudo-count addition to 0s ...\nFor taxa that are significant but do not pass the sensitivity analysis,\nthey are marked in the 'passed_ss' column and will be treated as non-significant in the 'diff_robust' column.\nFor detailed instructions on performing sensitivity analysis, please refer to the package vignette.\nWarning message:\nThe number of taxa used for estimating sample-specific biases is: 5\nA large number of taxa (>50) is required for the consistent estimation of biases \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "7695208e82386564d8a625d9685076ca6f22d59263a150dbfdb0ee396fcd05fa"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "result_bytes_match": true,
+      "result_bytes": 3497,
+      "outcome": "match"
+    },
+    {
+      "case": "validation/exact/inputs/smoke-data-sane.rds",
+      "input_sha256": "47c31eeef0a5105835ac2d9b54f8db26053a70604a6fa10c9373c18196836539",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/smoke-data-sane.rds",
+            "--out",
+            "validation/exact/golden/smoke-data-sane/original-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/golden/smoke-data-sane/original-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": "8af82e94ab7d369007910b2ab3ce44673e1ae29e640efd5fad778d3567e6457a",
+          "result_bytes": 1064,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 3,
+          "stdout_tail": "",
+          "stderr_tail": "The imported data is in a generic 'matrix'/'data.frame' format.\nWarning messages:\n1: The group variable has < 3 categories \nThe multi-group comparisons (global/pairwise/dunnet/trend) will be deactivated \n2: Small sample size detected for the following group(s): \na, b\nVariance estimation would be unstable when the sample size is < 5 per group \n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/smoke-data-sane.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/smoke-data-sane/candidate-r1"
+          ],
+          "returncode": 0,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/smoke-data-sane/candidate-r1",
+          "outcome": "success",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": "8af82e94ab7d369007910b2ab3ce44673e1ae29e640efd5fad778d3567e6457a",
+          "result_bytes": 1064,
+          "error_sha256": null,
+          "error_bytes": 0,
+          "n_conditions": 3,
+          "stdout_tail": "",
+          "stderr_tail": "The imported data is in a generic 'matrix'/'data.frame' format.\nWarning messages:\n1: The group variable has < 3 categories \nThe multi-group comparisons (global/pairwise/dunnet/trend) will be deactivated \n2: Small sample size detected for the following group(s): \na, b\nVariance estimation would be unstable when the sample size is < 5 per group \n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "8af82e94ab7d369007910b2ab3ce44673e1ae29e640efd5fad778d3567e6457a"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "success"
+          ],
+          "distinct_payload_sha256": [
+            "8af82e94ab7d369007910b2ab3ce44673e1ae29e640efd5fad778d3567e6457a"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "result_bytes_match": true,
+      "result_bytes": 1064,
+      "outcome": "match"
+    },
+    {
+      "case": "validation/exact/inputs/smoke-data-sane-bad-formula.rds",
+      "input_sha256": "f3d3a972838d904b38c3f454e8ef0fbde66ae0ceb5df69e97c1d15afa4037abb",
+      "runs": [
+        {
+          "arm": "original",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/original",
+            "--arm",
+            "original",
+            "--input",
+            "validation/exact/inputs/smoke-data-sane-bad-formula.rds",
+            "--out",
+            "validation/exact/golden/smoke-data-sane-bad-formula/original-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/golden/smoke-data-sane-bad-formula/original-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/original/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+          "pkg_is_replacement": "FALSE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "f8b9713b7ad32a6f560bb1d9cbd15d607b8e0c24de77f630c08434c5acf1fd91",
+          "error_bytes": 12533,
+          "n_conditions": 1,
+          "stdout_tail": "",
+          "stderr_tail": "The imported data is in a generic 'matrix'/'data.frame' format.\n"
+        },
+        {
+          "arm": "candidate",
+          "repeat": 1,
+          "argv": [
+            "/scratch/mdra00001/tmp/opencode/mm/bin/micromamba",
+            "run",
+            "-p",
+            "/scratch/mdra00001/tmp/opencode/mm/benchenv",
+            "Rscript",
+            "--vanilla",
+            "scripts/exact_runner.R",
+            "--library",
+            ".rlib/replacement",
+            "--arm",
+            "candidate",
+            "--input",
+            "validation/exact/inputs/smoke-data-sane-bad-formula.rds",
+            "--out",
+            "validation/exact/evidence/s08_two_arm_small_25.txt/smoke-data-sane-bad-formula/candidate-r1"
+          ],
+          "returncode": 3,
+          "out_dir": "validation/exact/evidence/s08_two_arm_small_25.txt/smoke-data-sane-bad-formula/candidate-r1",
+          "outcome": "error",
+          "pkg_path": ".rlib/replacement/ANCOMBC",
+          "pkg_version": "2.15.2",
+          "pkg_identity": "694aca838ce667e0d99cf1f90cd2b2a40aafd395171d8b9ad7b06c30180ed725",
+          "pkg_is_replacement": "TRUE",
+          "result_sha256": null,
+          "result_bytes": 0,
+          "error_sha256": "f8b9713b7ad32a6f560bb1d9cbd15d607b8e0c24de77f630c08434c5acf1fd91",
+          "error_bytes": 12533,
+          "n_conditions": 1,
+          "stdout_tail": "",
+          "stderr_tail": "The imported data is in a generic 'matrix'/'data.frame' format.\n"
+        }
+      ],
+      "repeats": {
+        "original": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "f8b9713b7ad32a6f560bb1d9cbd15d607b8e0c24de77f630c08434c5acf1fd91"
+          ],
+          "self_deterministic": true
+        },
+        "candidate": {
+          "n": 1,
+          "outcomes": [
+            "error"
+          ],
+          "distinct_payload_sha256": [
+            "f8b9713b7ad32a6f560bb1d9cbd15d607b8e0c24de77f630c08434c5acf1fd91"
+          ],
+          "self_deterministic": true
+        }
+      },
+      "error_bytes_match": true,
+      "outcome": "error-match"
+    }
+  ],
+  "problems": [],
+  "nondeterminism": [],
+  "out_root": "validation/exact/evidence/s08_two_arm_small_25.txt",
+  "golden_root": "validation/exact/golden"
+}

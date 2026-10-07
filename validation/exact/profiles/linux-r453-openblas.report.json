@@ -1,0 +1,160 @@
+{
+  "profile": "linux-r453-openblas",
+  "checks": [
+    {
+      "name": "oracle.file_digests",
+      "ok": true,
+      "expected": "20 files matching reference/env/oracle.sha256",
+      "actual": "20 match",
+      "detail": "reference/ANCOMBC must stay byte-identical to the pinned commit"
+    },
+    {
+      "name": "oracle.version",
+      "ok": true,
+      "expected": "2.15.2",
+      "actual": "2.15.2",
+      "detail": ""
+    },
+    {
+      "name": "oracle.license",
+      "ok": true,
+      "expected": "Artistic-2.0",
+      "actual": "Artistic-2.0",
+      "detail": "bundled upstream code must keep its licence"
+    },
+    {
+      "name": "oracle.depends",
+      "ok": true,
+      "expected": "R (>= 4.5.0)",
+      "actual": "R (>= 4.5.0)",
+      "detail": ""
+    },
+    {
+      "name": "runtime.probe_runs",
+      "ok": true,
+      "expected": "exit 0",
+      "actual": "exit 0",
+      "detail": ""
+    },
+    {
+      "name": "runtime.r_version",
+      "ok": true,
+      "expected": "4.5.3",
+      "actual": "4.5.3",
+      "detail": "exactness is per runtime; a different R is a different profile"
+    },
+    {
+      "name": "runtime.r_platform",
+      "ok": true,
+      "expected": "x86_64-conda-linux-gnu",
+      "actual": "x86_64-conda-linux-gnu",
+      "detail": ""
+    },
+    {
+      "name": "runtime.r_arch",
+      "ok": true,
+      "expected": "x86_64",
+      "actual": "x86_64",
+      "detail": ""
+    },
+    {
+      "name": "runtime.satisfies_pinned_depends",
+      "ok": true,
+      "expected": "R >= 4.5 (pinned Depends)",
+      "actual": "4.5.3",
+      "detail": "below the floor the original cannot be installed, so this profile cannot be exact-certified"
+    },
+    {
+      "name": "runtime.blas",
+      "ok": true,
+      "expected": "openblas 0.3.34 (substring of the linked .so)",
+      "actual": "/scratch/mdra00001/tmp/opencode/mm/benchenv/lib/libopenblasp-r0.3.34.so",
+      "detail": "P4 is a ratio between two programs; swapping BLAS would be choosing the ruler"
+    },
+    {
+      "name": "runtime.lapack",
+      "ok": true,
+      "expected": "libopenblasp-r0.3.34.so",
+      "actual": "/scratch/mdra00001/tmp/opencode/mm/benchenv/lib/libopenblasp-r0.3.34.so",
+      "detail": "LAPACK is the same OpenBLAS shared object"
+    },
+    {
+      "name": "runtime.library_path",
+      "ok": true,
+      "expected": "/scratch/mdra00001/ancom-bc2-rust/.rlib/original,/scratch/mdra00001/ancom-bc2-rust/.rlib/replacement,/scratch/mdra00001/tmp/opencode/mm/benchenv/lib/R/library",
+      "actual": "/scratch/mdra00001/ancom-bc2-rust/.rlib/original,/scratch/mdra00001/ancom-bc2-rust/.rlib/replacement,/scratch/mdra00001/tmp/opencode/mm/benchenv/lib/R/library",
+      "detail": "an unlisted library can shadow a dependency and silently change a number"
+    },
+    {
+      "name": "runtime.rng_kind",
+      "ok": true,
+      "expected": "Mersenne-Twister|Inversion|Rejection",
+      "actual": "Mersenne-Twister|Inversion|Rejection",
+      "detail": ""
+    },
+    {
+      "name": "runtime.locale",
+      "ok": true,
+      "expected": "LC_CTYPE=C.UTF-8;LC_NUMERIC=C;LC_TIME=C.UTF-8;LC_COLLATE=C.UTF-8;LC_MONETARY=C.UTF-8;LC_MESSAGES=C.UTF-8;LC_PAPER=C.UTF-8;LC_NAME=C;LC_ADDRESS=C;LC_TELEPHONE=C;LC_MEASUREMENT=C.UTF-8;LC_IDENTIFICATION=C",
+      "actual": "LC_CTYPE=C.UTF-8;LC_NUMERIC=C;LC_TIME=C.UTF-8;LC_COLLATE=C.UTF-8;LC_MONETARY=C.UTF-8;LC_MESSAGES=C.UTF-8;LC_PAPER=C.UTF-8;LC_NAME=C;LC_ADDRESS=C;LC_TELEPHONE=C;LC_MEASUREMENT=C.UTF-8;LC_IDENTIFICATION=C",
+      "detail": "locale changes collation, and collation changes p.adjust ordering"
+    },
+    {
+      "name": "original.resolved_from_pinned_library",
+      "ok": true,
+      "expected": ".rlib/original",
+      "actual": "/scratch/mdra00001/ancom-bc2-rust/.rlib/original/ANCOMBC",
+      "detail": "the runner must not be able to resolve the original as the candidate"
+    },
+    {
+      "name": "original.version",
+      "ok": true,
+      "expected": "2.15.2",
+      "actual": "2.15.2",
+      "detail": ""
+    },
+    {
+      "name": "original.identity_digest",
+      "ok": true,
+      "expected": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+      "actual": "fd42b62f1464f428e23a97399415beefc643cf34d9a28659f3be05ef6b2e2253",
+      "detail": "DESCRIPTION minus build metadata, NAMESPACE and R/*.R"
+    },
+    {
+      "name": "original.depends",
+      "ok": true,
+      "expected": "R (>= 4.5.0)",
+      "actual": "R (>= 4.5.0)",
+      "detail": ""
+    },
+    {
+      "name": "original.all_imports_resolve",
+      "ok": true,
+      "expected": "all 18 Imports present",
+      "actual": "absent=<none>",
+      "detail": "a missing dependency must fail before analysis, not during it"
+    },
+    {
+      "name": "original.dependency_versions",
+      "ok": true,
+      "expected": "18 declared versions",
+      "actual": "all match",
+      "detail": ""
+    },
+    {
+      "name": "host.cores_readable",
+      "ok": true,
+      "expected": "lscpu",
+      "actual": "ok",
+      "detail": ""
+    },
+    {
+      "name": "host.physical_cores_at_least",
+      "ok": true,
+      "expected": ">= 8 physical cores",
+      "actual": "8 physical / 16 logical",
+      "detail": "P1-P4 need a stable multi-core host; 8 physical cores qualifies. P5 is defined on >= 16 physical cores and CANNOT be certified here (ENV-1). Do not read the 16 logical CPUs as satisfying it."
+    }
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,349 @@
+{
+  "schema": "ancombc2-exact-observed/1",
+  "profile": "linux-r453-openblas",
+  "observed_by": "scripts/run_exact.py",
+  "cases": [
+    {
+      "id": "fx01-basic"
+    },
+    {
+      "id": "fx02-basic"
+    },
+    {
+      "id": "fx03-basic"
+    },
+    {
+      "id": "edge-absent-in-group-a"
+    },
+    {
+      "id": "edge-rare-in-group-a"
+    },
+    {
+      "id": "edge-present-in-every-group"
+    },
+    {
+      "id": "edge-na-counts"
+    },
+    {
+      "id": "edge-group-of-size-one"
+    },
+    {
+      "id": "edge-struc-zero-off"
+    },
+    {
+      "id": "edge-prv-cut-boundary"
+    },
+    {
+      "id": "fx02-positional"
+    },
+    {
+      "id": "fx03-pseudo-half"
+    },
+    {
+      "id": "fx03-pseudo-sens-off"
+    },
+    {
+      "id": "fx03-conservative-off"
+    },
+    {
+      "id": "fx03-pairwise-only"
+    },
+    {
+      "id": "fx03-dunnet"
+    },
+    {
+      "id": "fx03-trend"
+    },
+    {
+      "id": "fx03-p-adj-bh"
+    },
+    {
+      "id": "fx03-p-adj-bonferroni"
+    },
+    {
+      "id": "fx03-struc-zero-on"
+    },
+    {
+      "id": "fx03-neg-lb"
+    },
+    {
+      "id": "fx03-alpha-0"
+    },
+    {
+      "id": "fx03-alpha-1"
+    },
+    {
+      "id": "fx03-prv-cut-1"
+    },
+    {
+      "id": "fx03-lib-cut-huge"
+    },
+    {
+      "id": "fx03-bad-p-adj"
+    },
+    {
+      "id": "fx03-bad-iter-control"
+    },
+    {
+      "id": "tiny-assay-alias"
+    },
+    {
+      "id": "tiny-rank-null"
+    },
+    {
+      "id": "tiny-defaults-positional"
+    },
+    {
+      "id": "re2g-rand-intercept"
+    },
+    {
+      "id": "re2g-rand-slope"
+    },
+    {
+      "id": "re2g-rand-bare"
+    },
+    {
+      "id": "re2g-rand-with-sens"
+    },
+    {
+      "id": "re2g-rand-control-null"
+    },
+    {
+      "id": "onegroup-basic"
+    },
+    {
+      "id": "tiny-p-adj-bh"
+    },
+    {
+      "id": "tiny-p-adj-bonferroni"
+    },
+    {
+      "id": "tiny-p-adj-hochberg"
+    },
+    {
+      "id": "tiny-p-adj-hom"
+    },
+    {
+      "id": "tiny-p-adj-none"
+    },
+    {
+      "id": "tiny-p-adj-bad"
+    },
+    {
+      "id": "tiny-alpha-at-005"
+    },
+    {
+      "id": "tiny-alpha-above-005"
+    },
+    {
+      "id": "tiny-alpha-below-005"
+    },
+    {
+      "id": "tiny-prv-cut-half"
+    },
+    {
+      "id": "tiny-prv-cut-1"
+    },
+    {
+      "id": "tiny-lib-cut-1"
+    },
+    {
+      "id": "tiny-lib-cut-huge"
+    },
+    {
+      "id": "tiny-struc-zero-on"
+    },
+    {
+      "id": "tiny-struc-zero-off"
+    },
+    {
+      "id": "tiny-neg-lb-on"
+    },
+    {
+      "id": "tiny-pseudo-half"
+    },
+    {
+      "id": "tiny-pseudo-sens-off"
+    },
+    {
+      "id": "tiny-conservative-off"
+    },
+    {
+      "id": "re3g-dunnet"
+    },
+    {
+      "id": "re3g-trend"
+    },
+    {
+      "id": "re3g-global-only"
+    },
+    {
+      "id": "re3g-pairwise-only"
+    },
+    {
+      "id": "tiny-iter-max-1"
+    },
+    {
+      "id": "tiny-iter-max-0"
+    },
+    {
+      "id": "tiny-iter-tiny-tol"
+    },
+    {
+      "id": "tiny-em-max-1"
+    },
+    {
+      "id": "tiny-em-max-0"
+    },
+    {
+      "id": "tiny-mdfdr-b"
+    },
+    {
+      "id": "tiny-mdfdr-bad-method"
+    },
+    {
+      "id": "tiny-trend-control-null"
+    },
+    {
+      "id": "tiny-s0-0"
+    },
+    {
+      "id": "tiny-s0-100"
+    },
+    {
+      "id": "tiny-threads-2"
+    },
+    {
+      "id": "tiny-threads-4"
+    },
+    {
+      "id": "tiny-threads-8"
+    },
+    {
+      "id": "re3g-trend-contrast"
+    },
+    {
+      "id": "re3g-trend-contrast-node"
+    },
+    {
+      "id": "re3g-dunnet-with-mdfdr"
+    },
+    {
+      "id": "re3g-dunnet-bad-mdfdr"
+    },
+    {
+      "id": "tiny-global-without-group"
+    },
+    {
+      "id": "tiny-struc-zero-without-group"
+    },
+    {
+      "id": "tiny-pairwise-without-group"
+    },
+    {
+      "id": "tiny-bad-group-name"
+    },
+    {
+      "id": "tiny-group-ok"
+    },
+    {
+      "id": "tiny-lib-cut-below-min"
+    },
+    {
+      "id": "fx03-lib-cut-1"
+    },
+    {
+      "id": "fx03-prv-cut-0"
+    },
+    {
+      "id": "fx03-prv-cut-half"
+    },
+    {
+      "id": "tiny-prv-cut-0"
+    },
+    {
+      "id": "tiny-s0-perc-1"
+    },
+    {
+      "id": "tiny-em-tiny-tol"
+    },
+    {
+      "id": "tiny-iter-tol-0"
+    },
+    {
+      "id": "smoke-data-sanity-check"
+    },
+    {
+      "id": "smoke-ancombc"
+    },
+    {
+      "id": "smoke-ancom"
+    },
+    {
+      "id": "smoke-secom-dist"
+    },
+    {
+      "id": "smoke-secom-linear"
+    },
+    {
+      "id": "smoke-sim-plnm"
+    },
+    {
+      "id": "re3g-trend-runs"
+    },
+    {
+      "id": "re3g-trend-non-square"
+    },
+    {
+      "id": "re3g-trend-mismatched-nodes"
+    },
+    {
+      "id": "re3g-trend-no-control"
+    },
+    {
+      "id": "re3g-pairwise-no-mdfdr"
+    },
+    {
+      "id": "re3g-pairwise-null-mdfdr"
+    },
+    {
+      "id": "tiny-two-group-global"
+    },
+    {
+      "id": "re3g-basic"
+    },
+    {
+      "id": "fx02-defaults"
+    },
+    {
+      "id": "tiny-defaults"
+    },
+    {
+      "id": "smoke-ancombc2-dataframe"
+    },
+    {
+      "id": "smoke-data-sane"
+    },
+    {
+      "id": "smoke-data-sane-bad-formula"
+    },
+    {
+      "id": "absent-in-group-a"
+    },
+    {
+      "id": "rare-in-group-a"
+    },
+    {
+      "id": "present-in-every-group"
+    },
+    {
+      "id": "na-counts"
+    },
+    {
+      "id": "struc-zero-off"
+    },
+    {
+      "id": "prv-cut-boundary"
+    }
+  ]
+}

@@ -1,0 +1,2885 @@
+{
+  "schema": "ancombc2-exact-fixtures/1",
+  "note": "Every exact case, declared once. `expect.outcome` is mandatory for every case: a case nobody checks is a case that has silently stopped being a test. Legacy goldens under validation/golden are untouched; these inputs live under validation/exact/inputs. An `overrides` entry is `formal=value`; `__NULL__` spells an explicitly absent argument, which is a different case from omitting it because the original's assay.type = assay_name and rank = tax_level aliases make them diverge. `threads` is n_cl.",
+  "formal_order": [
+    "data",
+    "taxa_are_rows",
+    "assay.type",
+    "assay_name",
+    "rank",
+    "tax_level",
+    "aggregate_data",
+    "meta_data",
+    "fix_formula",
+    "rand_formula",
+    "p_adj_method",
+    "pseudo",
+    "pseudo_sens",
+    "conservative",
+    "prv_cut",
+    "lib_cut",
+    "s0_perc",
+    "group",
+    "struc_zero",
+    "neg_lb",
+    "alpha",
+    "n_cl",
+    "verbose",
+    "global",
+    "pairwise",
+    "dunnet",
+    "trend",
+    "iter_control",
+    "em_control",
+    "lme_control",
+    "mdfdr_control",
+    "trend_control"
+  ],
+  "cases": [
+    {
+      "id": "fx01-basic",
+      "source": {
+        "dir": "validation/fixtures/fx01"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "fx01's meta.tsv has one column. data_sanity_check's matrix branch ends with meta_data = meta_data[colnames(feature_table), ] and [.data.frame drops to a vector when there is exactly one column, so the original raises 'The following variables specified are not in the meta data: group'. Pinned behaviour; kept as an error case, not deleted."
+      },
+      "tags": [
+        "fixtures",
+        "matrix-input",
+        "reference-error",
+        "single-column-meta",
+        "small"
+      ]
+    },
+    {
+      "id": "fx02-basic",
+      "source": {
+        "dir": "validation/fixtures/fx02"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "fixed-effects",
+        "fixtures",
+        "matrix-input",
+        "sensitivity-off",
+        "small",
+        "two-groups"
+      ]
+    },
+    {
+      "id": "fx03-basic",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "fixtures",
+        "global-and-pairwise",
+        "matrix-input",
+        "sensitivity-on",
+        "three-groups"
+      ]
+    },
+    {
+      "id": "edge-absent-in-group-a",
+      "source": {
+        "dir": "validation/edge/absent_in_group_a",
+        "config": "analysis.tsv"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "validation/edge/absent-in-group-a/meta.tsv has exactly one column. data_sanity_check's matrix branch ends with meta_data = meta_data[colnames(feature_table), ] and [.data.frame's drop defaults to TRUE when there is exactly one column, so the metadata collapses to a vector and the next check reports the formula variable as absent. This is the same refusal as fx01-basic. The legacy edge harness called .ref_core directly and never went through data_sanity_check, which is why these cases were believed runnable through the package API; the absent-in-group-a-2col case is the two-column derived fixture where the same scenario is actually analysed."
+      },
+      "tags": [
+        "edge",
+        "neg-lb-on",
+        "small",
+        "struc-zero-on",
+        "structural-zero"
+      ]
+    },
+    {
+      "id": "edge-rare-in-group-a",
+      "source": {
+        "dir": "validation/edge/rare_in_group_a",
+        "config": "analysis.tsv"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "validation/edge/rare-in-group-a/meta.tsv has exactly one column. data_sanity_check's matrix branch ends with meta_data = meta_data[colnames(feature_table), ] and [.data.frame's drop defaults to TRUE when there is exactly one column, so the metadata collapses to a vector and the next check reports the formula variable as absent. This is the same refusal as fx01-basic. The legacy edge harness called .ref_core directly and never went through data_sanity_check, which is why these cases were believed runnable through the package API; the rare-in-group-a-2col case is the two-column derived fixture where the same scenario is actually analysed."
+      },
+      "tags": [
+        "edge",
+        "neg-lb-on",
+        "structural-zero"
+      ]
+    },
+    {
+      "id": "edge-present-in-every-group",
+      "source": {
+        "dir": "validation/edge/present_in_every_group",
+        "config": "analysis.tsv"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "validation/edge/present-in-every-group/meta.tsv has exactly one column. data_sanity_check's matrix branch ends with meta_data = meta_data[colnames(feature_table), ] and [.data.frame's drop defaults to TRUE when there is exactly one column, so the metadata collapses to a vector and the next check reports the formula variable as absent. This is the same refusal as fx01-basic. The legacy edge harness called .ref_core directly and never went through data_sanity_check, which is why these cases were believed runnable through the package API; the present-in-every-group-2col case is the two-column derived fixture where the same scenario is actually analysed."
+      },
+      "tags": [
+        "edge",
+        "negative-control",
+        "structural-zero"
+      ]
+    },
+    {
+      "id": "edge-na-counts",
+      "source": {
+        "dir": "validation/edge/na_counts",
+        "config": "analysis.tsv"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "validation/edge/na-counts/meta.tsv has exactly one column. data_sanity_check's matrix branch ends with meta_data = meta_data[colnames(feature_table), ] and [.data.frame's drop defaults to TRUE when there is exactly one column, so the metadata collapses to a vector and the next check reports the formula variable as absent. This is the same refusal as fx01-basic. The legacy edge harness called .ref_core directly and never went through data_sanity_check, which is why these cases were believed runnable through the package API; the na-counts-2col case is the two-column derived fixture where the same scenario is actually analysed."
+      },
+      "tags": [
+        "edge",
+        "missing-values",
+        "na-vs-zero",
+        "small"
+      ]
+    },
+    {
+      "id": "edge-group-of-size-one",
+      "source": {
+        "dir": "validation/edge/group_of_size_one",
+        "config": "analysis.tsv"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "a group of size one. The original validates group sizes before anything else, so this is a refusal. Kept as an error case: the refusal's message and class are part of the contract."
+      },
+      "tags": [
+        "edge",
+        "group-size",
+        "reference-error"
+      ]
+    },
+    {
+      "id": "edge-struc-zero-off",
+      "source": {
+        "dir": "validation/edge/struc_zero_off",
+        "config": "analysis.tsv"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "validation/edge/struc-zero-off/meta.tsv has exactly one column. data_sanity_check's matrix branch ends with meta_data = meta_data[colnames(feature_table), ] and [.data.frame's drop defaults to TRUE when there is exactly one column, so the metadata collapses to a vector and the next check reports the formula variable as absent. This is the same refusal as fx01-basic. The legacy edge harness called .ref_core directly and never went through data_sanity_check, which is why these cases were believed runnable through the package API; the struc-zero-off-2col case is the two-column derived fixture where the same scenario is actually analysed."
+      },
+      "tags": [
+        "edge",
+        "struc-zero-off",
+        "structural-zero"
+      ]
+    },
+    {
+      "id": "edge-prv-cut-boundary",
+      "source": {
+        "dir": "validation/edge/prv_cut_boundary",
+        "config": "analysis.tsv"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "validation/edge/prv-cut-boundary/meta.tsv has exactly one column. data_sanity_check's matrix branch ends with meta_data = meta_data[colnames(feature_table), ] and [.data.frame's drop defaults to TRUE when there is exactly one column, so the metadata collapses to a vector and the next check reports the formula variable as absent. This is the same refusal as fx01-basic. The legacy edge harness called .ref_core directly and never went through data_sanity_check, which is why these cases were believed runnable through the package API; the prv-cut-boundary-2col case is the two-column derived fixture where the same scenario is actually analysed."
+      },
+      "tags": [
+        "boundary",
+        "edge",
+        "prevalence-filter"
+      ]
+    },
+    {
+      "id": "fx02-positional",
+      "source": {
+        "dir": "validation/fixtures/fx02"
+      },
+      "call_style": "positional",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "null_args": [
+        "assay.type",
+        "assay_name",
+        "rank",
+        "tax_level",
+        "aggregate_data",
+        "p_adj_method",
+        "pseudo",
+        "pseudo_sens",
+        "conservative",
+        "prv_cut",
+        "lib_cut",
+        "s0_perc",
+        "group",
+        "struc_zero",
+        "neg_lb",
+        "alpha",
+        "verbose",
+        "global",
+        "pairwise",
+        "dunnet",
+        "trend",
+        "iter_control",
+        "em_control",
+        "lme_control",
+        "mdfdr_control",
+        "trend_control"
+      ],
+      "expect": {
+        "outcome": "error",
+        "why": "positional: data, taxa_are_rows, meta_data, fix_formula only. The remaining error is real and pinned deliberately -- see fx02-defaults and tiny-defaults for the *successful* omitted-defaults cases, which pass the arguments by name and omit the same set. A positional call cannot omit a middle argument, so this case exists to record what the reference does when it is asked to."
+      },
+      "tags": [
+        "defaults",
+        "fixed-effects",
+        "positional",
+        "small"
+      ]
+    },
+    {
+      "id": "fx03-pseudo-half",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "pseudo=0.5"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "pseudo-count"
+      ]
+    },
+    {
+      "id": "fx03-pseudo-sens-off",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "pseudo_sens=FALSE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "pseudo-sens",
+        "sensitivity"
+      ]
+    },
+    {
+      "id": "fx03-conservative-off",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "conservative=FALSE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "conservative",
+        "sensitivity"
+      ]
+    },
+    {
+      "id": "fx03-pairwise-only",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "global=FALSE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "pairwise"
+      ]
+    },
+    {
+      "id": "fx03-dunnet",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "dunnet=TRUE",
+        "global=FALSE",
+        "pairwise=FALSE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "dunnet",
+        "multcomp"
+      ]
+    },
+    {
+      "id": "fx03-trend",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "trend=TRUE",
+        "global=FALSE",
+        "pairwise=FALSE"
+      ],
+      "args": {
+        "trend_control": {
+          "__rlit__": "list(contrast = NULL, node = NULL, B = 100)"
+        }
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "trend = TRUE with trend_control$contrast = NULL. The reference answers 'Please specify the contrast matrices for the trend test.' A trend case that actually runs the test is a separate case with a real contrast."
+      },
+      "tags": [
+        "mdfdr",
+        "trend"
+      ]
+    },
+    {
+      "id": "fx03-p-adj-bh",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "p_adj_method=BH"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "adjust",
+        "bh"
+      ]
+    },
+    {
+      "id": "fx03-p-adj-bonferroni",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "p_adj_method=bonferroni"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "adjust",
+        "bonferroni"
+      ]
+    },
+    {
+      "id": "fx03-struc-zero-on",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "struc_zero=TRUE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "struc-zero-on",
+        "structural-zero"
+      ]
+    },
+    {
+      "id": "fx03-neg-lb",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "neg_lb=TRUE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "neg-lb",
+        "structural-zero"
+      ]
+    },
+    {
+      "id": "fx03-alpha-0",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "alpha=0"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "alpha",
+        "boundary"
+      ]
+    },
+    {
+      "id": "fx03-alpha-1",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "alpha=1"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "alpha",
+        "boundary"
+      ]
+    },
+    {
+      "id": "fx03-prv-cut-1",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "prv_cut=1"
+      ],
+      "expect": {
+        "outcome": "error",
+        "why": "prv_cut = 1 keeps only taxa observed in every sample. fx03 has 10% zeros, so no taxon qualifies and .data_core stops with 'No taxa remain under the current cutoff' (ancombc_prep.R:28)."
+      },
+      "tags": [
+        "boundary",
+        "prv-cut",
+        "reference-error"
+      ]
+    },
+    {
+      "id": "fx03-lib-cut-huge",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "lib_cut=1000000"
+      ],
+      "expect": {
+        "outcome": "success",
+        "why": "lib_cut = 1e6 against fx03's library sizes. .data_core computes lib_size = colSums(feature_table, na.rm = TRUE) and keeps lib_size >= lib_cut, and fx03's per-sample totals exceed 1e6, so nothing is dropped and all 1000 taxa are analysed. Read from ancombc_prep.R:31-41; the outcome is a property of the library sizes, not of the argument."
+      },
+      "tags": [
+        "boundary",
+        "lib-cut",
+        "reference-error"
+      ]
+    },
+    {
+      "id": "fx03-bad-p-adj",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "p_adj_method=not_a_method"
+      ],
+      "expect": {
+        "outcome": "error"
+      },
+      "tags": [
+        "adjust",
+        "invalid",
+        "reference-error"
+      ]
+    },
+    {
+      "id": "fx03-bad-iter-control",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "args": {
+        "iter_control": {
+          "__rlit__": "list(tol = 0.01, max_iter = 0L, verbose = FALSE)"
+        }
+      },
+      "expect": {
+        "outcome": "success",
+        "why": "the same max_iter = 0 on fx03. Recorded because the first draft of this manifest expected an error here; the reference does not raise one."
+      },
+      "tags": [
+        "boundary",
+        "iter-control",
+        "reference-error"
+      ]
+    },
+    {
+      "id": "tiny-assay-alias",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "assay_name=counts"
+      ],
+      "args": {
+        "assay.type": "__OMITTED__"
+      },
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "aliases",
+        "assay-name",
+        "small",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-rank-null",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "rank=__NULL__"
+      ],
+      "expect": {
+        "outcome": "success",
+        "why": "rank explicitly NULL while tax_level keeps its default. data_sanity_check aliases `if (!is.null(rank)) tax_level = rank`, so an explicit NULL and an omitted rank reach the same place; this pins that."
+      },
+      "tags": [
+        "aliases",
+        "explicit-null",
+        "rank",
+        "small",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-defaults-positional",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "positional",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "null_args": [
+        "assay.type",
+        "assay_name",
+        "rank",
+        "tax_level",
+        "aggregate_data",
+        "p_adj_method",
+        "pseudo",
+        "pseudo_sens",
+        "conservative",
+        "prv_cut",
+        "lib_cut",
+        "s0_perc",
+        "group",
+        "struc_zero",
+        "neg_lb",
+        "alpha",
+        "verbose",
+        "global",
+        "pairwise",
+        "dunnet",
+        "trend",
+        "iter_control",
+        "em_control",
+        "lme_control",
+        "mdfdr_control",
+        "trend_control"
+      ],
+      "expect": {
+        "outcome": "error",
+        "why": "positional: data, taxa_are_rows, meta_data, fix_formula only. The remaining error is real and pinned deliberately -- see fx02-defaults and tiny-defaults for the *successful* omitted-defaults cases, which pass the arguments by name and omit the same set. A positional call cannot omit a middle argument, so this case exists to record what the reference does when it is asked to."
+      },
+      "tags": [
+        "defaults",
+        "positional",
+        "small",
+        "tiny"
+      ]
+    },
+    {
+      "id": "re2g-rand-intercept",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re2g"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "rand_formula=(1 | group)",
+        "pseudo_sens=FALSE"
+      ],
+      "expect": {
+        "outcome": "success",
+        "why": "a random intercept, which is the rand_formula syntax the pinned docs use (\"(timepoint | subject)\"). This runs through lme4/lmerTest and is a retained-R feature; S13 must label it as such, not call it a Rust port."
+      },
+      "tags": [
+        "lme4",
+        "random-effects",
+        "retained-r"
+      ]
+    },
+    {
+      "id": "re2g-rand-slope",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re2g"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "rand_formula=(x1 | group)",
+        "pseudo_sens=FALSE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "lme4",
+        "random-effects",
+        "random-slope",
+        "retained-r"
+      ]
+    },
+    {
+      "id": "re2g-rand-bare",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re2g"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "rand_formula=group",
+        "pseudo_sens=FALSE"
+      ],
+      "expect": {
+        "outcome": "error",
+        "why": "a rand_formula with no \"|\" builds a formula lmer rejects with \"No random effects terms specified in formula\". The pinned behaviour is a refusal, and its message is part of the contract."
+      },
+      "tags": [
+        "random-effects",
+        "reference-error",
+        "retained-r",
+        "small"
+      ]
+    },
+    {
+      "id": "re2g-rand-with-sens",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re2g"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "rand_formula=(1 | group)"
+      ],
+      "expect": {
+        "outcome": "success",
+        "why": "random effects combined with the sensitivity analysis, which refits the mixed model at every pseudo-count. This is the combination that makes the random-effects path expensive, so it needs its own small fixture rather than a large shared one."
+      },
+      "tags": [
+        "random-effects",
+        "retained-r",
+        "sensitivity"
+      ]
+    },
+    {
+      "id": "re2g-rand-control-null",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re2g"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "args": {
+        "lme_control": {
+          "__rlit__": "lme4::lmerControl(calc.derivs = FALSE)"
+        }
+      },
+      "overrides": [
+        "rand_formula=(1 | group)",
+        "pseudo_sens=FALSE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "lme-control",
+        "random-effects",
+        "retained-r"
+      ]
+    },
+    {
+      "id": "onegroup-basic",
+      "source": {
+        "dir": "validation/exact/fixtures-src/onegroup"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "global=TRUE",
+        "pairwise=TRUE",
+        "dunnet=TRUE",
+        "group=group"
+      ],
+      "expect": {
+        "outcome": "error",
+        "why": "a single group. data_sanity_check checks n_level < 2 before it checks n_level < 3, so one group stops with 'The group variable should have >= 2 categories' and the '< 3 categories' deactivation warning is never reached. tiny-two-group-basic is the two-level case where the warning *is* the behaviour, and re3g-basic the three-level case where the tests run."
+      },
+      "tags": [
+        "groups",
+        "null-entries",
+        "schema"
+      ]
+    },
+    {
+      "id": "tiny-p-adj-bh",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "p_adj_method=BH"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "adjust",
+        "bh",
+        "small",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-p-adj-bonferroni",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "p_adj_method=bonferroni"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "adjust",
+        "bonferroni",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-p-adj-hochberg",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "p_adj_method=hochberg"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "adjust",
+        "hochberg",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-p-adj-hom",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "p_adj_method=hom"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "adjust",
+        "hom",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-p-adj-none",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "p_adj_method=none"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "adjust",
+        "none",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-p-adj-bad",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "p_adj_method=not_a_method"
+      ],
+      "expect": {
+        "outcome": "error"
+      },
+      "tags": [
+        "adjust",
+        "invalid",
+        "reference-error",
+        "small",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-alpha-at-005",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "alpha=0.05"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "alpha",
+        "boundary",
+        "small",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-alpha-above-005",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "alpha=0.05000000000000001"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "alpha",
+        "boundary",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-alpha-below-005",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "alpha=0.04999999999999999"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "alpha",
+        "boundary",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-prv-cut-half",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "prv_cut=0.5"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "boundary",
+        "prv-cut",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-prv-cut-1",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "prv_cut=1"
+      ],
+      "expect": {
+        "outcome": "success",
+        "why": "prv_cut = 1 against tiny5x8. Prevalence is rowSums(x != 0, na.rm = TRUE) / rowSums(!is.na(x)) and the filter is prevalence >= prv_cut, so a taxon observed in all 8 samples is kept: 3 of 5 taxa survive. Kept because it is the same argument value with the opposite outcome on a different table, which is what makes it a boundary case rather than a flag."
+      },
+      "tags": [
+        "prv-cut",
+        "reference-error",
+        "small",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-lib-cut-1",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "lib_cut=1"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "lib-cut",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-lib-cut-huge",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "lib_cut=1000000"
+      ],
+      "expect": {
+        "outcome": "error",
+        "why": "the same lib_cut = 1e6 against tiny5x8, whose per-sample totals are around 1.5e3. Nothing survives, so .data_core stops with 'No samples remain under the current cutoff' (ancombc_prep.R:40). The pair of cases is the evidence that lib_cut is a comparison against the data rather than a switch."
+      },
+      "tags": [
+        "lib-cut",
+        "reference-error",
+        "small",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-struc-zero-on",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "struc_zero=TRUE",
+        "group=group"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "group-required",
+        "small",
+        "struc-zero-on",
+        "structural-zero",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-struc-zero-off",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "struc_zero=FALSE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "struc-zero-off",
+        "structural-zero",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-neg-lb-on",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "neg_lb=TRUE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "neg-lb",
+        "structural-zero",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-pseudo-half",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "pseudo=0.5"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "pseudo-count",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-pseudo-sens-off",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "pseudo_sens=FALSE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "pseudo-sens",
+        "sensitivity",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-conservative-off",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "conservative=FALSE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "conservative",
+        "sensitivity",
+        "tiny"
+      ]
+    },
+    {
+      "id": "re3g-dunnet",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re3g-sens"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "dunnet=TRUE",
+        "global=FALSE",
+        "pairwise=FALSE",
+        "group=group"
+      ],
+      "expect": {
+        "outcome": "success",
+        "why": ""
+      },
+      "tags": [
+        "dunnet",
+        "multcomp",
+        "tiny"
+      ]
+    },
+    {
+      "id": "re3g-trend",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re3g-sens"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "trend=TRUE",
+        "global=FALSE",
+        "pairwise=FALSE",
+        "group=group"
+      ],
+      "args": {
+        "trend_control": {
+          "__rlit__": "list(contrast = NULL, node = NULL, B = 100)"
+        }
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "trend = TRUE with trend_control$contrast = NULL. data_sanity_check:328 answers 'Please specify the contrast matrices for the trend test.'"
+      },
+      "tags": [
+        "mdfdr",
+        "tiny",
+        "trend"
+      ]
+    },
+    {
+      "id": "re3g-global-only",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re3g-sens"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "dunnet=FALSE",
+        "pairwise=FALSE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "global",
+        "lrt",
+        "tiny"
+      ]
+    },
+    {
+      "id": "re3g-pairwise-only",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re3g-sens"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "global=FALSE",
+        "dunnet=FALSE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "pairwise",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-iter-max-1",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "args": {
+        "iter_control": {
+          "__rlit__": "list(tol = 0.01, max_iter = 1L, verbose = FALSE)"
+        }
+      },
+      "expect": {
+        "outcome": "success",
+        "why": "max_iter = 1: a single MLE iteration. The reference's first iterate is the thing S09 compares against, so pinning it here means a divergence in the iteration trace is visible as a result difference rather than hidden inside a converged answer."
+      },
+      "tags": [
+        "boundary",
+        "iter-control",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-iter-max-0",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "args": {
+        "iter_control": {
+          "__rlit__": "list(tol = 0.01, max_iter = 0L, verbose = FALSE)"
+        }
+      },
+      "expect": {
+        "outcome": "success",
+        "why": "iter_control$max_iter = 0. .iter_mle and .iter_remle loop on `while (epsilon > tol & iterNum < max_iter)`, so with max_iter = 0 the body never runs and the result is the initial estimate. No error, and no convergence claim: the reference returns the starting point. This is the case that pins 'the loop did not run' as an outcome rather than a tolerance."
+      },
+      "tags": [
+        "boundary",
+        "iter-control",
+        "reference-error",
+        "small",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-iter-tiny-tol",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "args": {
+        "iter_control": {
+          "__rlit__": "list(tol = 1e-12, max_iter = 20L, verbose = FALSE)"
+        }
+      },
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "iter-control",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-em-max-1",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "args": {
+        "em_control": {
+          "__rlit__": "list(tol = 1e-05, max_iter = 1L)"
+        }
+      },
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "boundary",
+        "em-control",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-em-max-0",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "args": {
+        "em_control": {
+          "__rlit__": "list(tol = 1e-05, max_iter = 0L)"
+        }
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "em_control$max_iter = 0. .bias_em computes delta_new only inside its loop, so with zero iterations the name does not exist and the foreach worker fails: 'task 1 failed - \"object \\'delta_new\\' not found\"'. This is the opposite of iter_control$max_iter = 0, which succeeds, and the asymmetry is the reason both cases exist."
+      },
+      "tags": [
+        "boundary",
+        "em-control",
+        "reference-error",
+        "small",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-mdfdr-b",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "args": {
+        "mdfdr_control": {
+          "__rlit__": "list(fwer_ctrl_method = 'BH', B = 10L)"
+        }
+      },
+      "overrides": [
+        "dunnet=FALSE",
+        "pairwise=FALSE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "boundary",
+        "mdfdr",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-mdfdr-bad-method",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "args": {
+        "mdfdr_control": {
+          "__rlit__": "list(fwer_ctrl_method = 'not_a_method', B = 100L)"
+        }
+      },
+      "expect": {
+        "outcome": "success",
+        "why": "mdfdr_control$fwer_ctrl_method = 'not_a_method' with dunnet = FALSE and trend = FALSE. mdfdr_control is only consulted by the Dunnett and trend paths, so an invalid method is simply never read. An invalid method *with* dunnet is a separate case."
+      },
+      "tags": [
+        "invalid",
+        "mdfdr",
+        "reference-error",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-trend-control-null",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "args": {
+        "trend_control": {
+          "__rlit__": "list(contrast = NULL, node = NULL, B = 100L)"
+        }
+      },
+      "overrides": [
+        "trend=FALSE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "tiny",
+        "trend-control"
+      ]
+    },
+    {
+      "id": "tiny-s0-0",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "s0_perc=0"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "boundary",
+        "s0-perc",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-s0-100",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "s0_perc=100"
+      ],
+      "expect": {
+        "outcome": "error",
+        "why": "s0_perc = 100. The reference passes it to quantile(), which requires a fraction in [0, 1] and answers \"'probs' outside [0,1]\". s0_perc = 0 is the other end and succeeds."
+      },
+      "tags": [
+        "boundary",
+        "s0-perc",
+        "small",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-threads-2",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 2,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "parallel-backend",
+        "threads",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-threads-4",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 4,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "parallel-backend",
+        "threads",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-threads-8",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 8,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "parallel-backend",
+        "threads",
+        "tiny"
+      ]
+    },
+    {
+      "id": "re3g-trend-contrast",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re3g-sens"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "trend=TRUE",
+        "global=FALSE",
+        "pairwise=FALSE",
+        "dunnet=FALSE",
+        "group=group"
+      ],
+      "args": {
+        "trend_control": {
+          "__rlit__": "list(contrast = list(c(-1, 1, 0), c(0, -1, 1)), node = NULL, B = 100L)"
+        }
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "trend = TRUE with contrast set but node = NULL. data_sanity_check:332 answers 'Please specify the nodes for the trend test'. The two checks are separate and in that order, so both are needed to reach the test itself."
+      },
+      "tags": [
+        "mdfdr",
+        "multcomp",
+        "runs-the-test",
+        "trend"
+      ]
+    },
+    {
+      "id": "re3g-trend-contrast-node",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re3g-sens"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "trend=TRUE",
+        "global=FALSE",
+        "pairwise=FALSE",
+        "dunnet=FALSE",
+        "group=group"
+      ],
+      "args": {
+        "trend_control": {
+          "__rlit__": "list(contrast = list(c(-1, 1, 0)), node = list(1L), B = 10L)"
+        }
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "contrast supplied as a list of numeric vectors. data_sanity_check:340 requires each contrast to be square (nrow == ncol), and the error surfaced downstream as 'values must be length 1, but FUN(X[[1]]) result is length 0' from .l_infty, because a numeric vector has no nrow. A contrast must be a matrix."
+      },
+      "tags": [
+        "boundary",
+        "node",
+        "trend"
+      ]
+    },
+    {
+      "id": "re3g-dunnet-with-mdfdr",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re3g-sens"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "dunnet=TRUE",
+        "global=FALSE",
+        "pairwise=FALSE",
+        "group=group"
+      ],
+      "args": {
+        "mdfdr_control": {
+          "__rlit__": "list(fwer_ctrl_method = 'BH', B = 10L)"
+        }
+      },
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "boundary",
+        "dunnet",
+        "mdfdr"
+      ]
+    },
+    {
+      "id": "re3g-dunnet-bad-mdfdr",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re3g-sens"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "dunnet=TRUE",
+        "global=FALSE",
+        "pairwise=FALSE",
+        "group=group"
+      ],
+      "args": {
+        "mdfdr_control": {
+          "__rlit__": "list(fwer_ctrl_method = 'not_a_method', B = 100L)"
+        }
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "an invalid mdfdr method *with* dunnet = TRUE, so the value is actually read. tiny-mdfdr-bad-method is the same value with no constrained test requested, where it is never consulted."
+      },
+      "tags": [
+        "dunnet",
+        "invalid",
+        "mdfdr",
+        "reference-error"
+      ]
+    },
+    {
+      "id": "tiny-global-without-group",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "global=TRUE"
+      ],
+      "expect": {
+        "outcome": "error",
+        "why": "global = TRUE with group = NULL. data_sanity_check answers 'Group variable is required for the multi-group comparison / `group` is `NULL` while some of the arguments (`global`, `pairwise`, `dunnet`, `trend`) are `TRUE`. The guard runs before any analysis."
+      },
+      "tags": [
+        "global",
+        "group-required",
+        "reference-error",
+        "small"
+      ]
+    },
+    {
+      "id": "tiny-struc-zero-without-group",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "struc_zero=TRUE"
+      ],
+      "expect": {
+        "outcome": "error",
+        "why": "struc_zero = TRUE with group = NULL: 'Please specify the group variable for detecting structural zeros / Otherwise, set `struc_zero = FALSE` to proceed'. A different guard with a different message, which is why both cases exist."
+      },
+      "tags": [
+        "group-required",
+        "reference-error",
+        "small",
+        "structural-zero"
+      ]
+    },
+    {
+      "id": "tiny-pairwise-without-group",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "pairwise=TRUE"
+      ],
+      "expect": {
+        "outcome": "error"
+      },
+      "tags": [
+        "group-required",
+        "pairwise",
+        "reference-error"
+      ]
+    },
+    {
+      "id": "tiny-bad-group-name",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "group=not_a_column"
+      ],
+      "expect": {
+        "outcome": "error"
+      },
+      "tags": [
+        "group-required",
+        "reference-error"
+      ]
+    },
+    {
+      "id": "tiny-group-ok",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "group=group",
+        "global=TRUE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "global",
+        "group"
+      ]
+    },
+    {
+      "id": "tiny-lib-cut-below-min",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "lib_cut=0"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "boundary",
+        "lib-cut",
+        "tiny"
+      ]
+    },
+    {
+      "id": "fx03-lib-cut-1",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "lib_cut=1"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "boundary",
+        "lib-cut"
+      ]
+    },
+    {
+      "id": "fx03-prv-cut-0",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "prv_cut=0"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "boundary",
+        "prv-cut"
+      ]
+    },
+    {
+      "id": "fx03-prv-cut-half",
+      "source": {
+        "dir": "validation/fixtures/fx03"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "prv_cut=0.5"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "boundary",
+        "prv-cut"
+      ]
+    },
+    {
+      "id": "tiny-prv-cut-0",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "prv_cut=0"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "boundary",
+        "prv-cut",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-s0-perc-1",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "s0_perc=1"
+      ],
+      "expect": {
+        "outcome": "success",
+        "why": "s0_perc = 1 is inside quantile's valid range and succeeds. tiny-s0-100 is the outside-the-range case. The documented range is a fraction in [0, 1] and 1 is the upper end of it, not outside it."
+      },
+      "tags": [
+        "boundary",
+        "reference-error",
+        "s0-perc",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-em-tiny-tol",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "args": {
+        "em_control": {
+          "__rlit__": "list(tol = 1e-15, max_iter = 100L)"
+        }
+      },
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "boundary",
+        "em-control",
+        "tiny"
+      ]
+    },
+    {
+      "id": "tiny-iter-tol-0",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "args": {
+        "iter_control": {
+          "__rlit__": "list(tol = 0, max_iter = 20L, verbose = FALSE)"
+        }
+      },
+      "expect": {
+        "outcome": "success",
+        "why": "tol = 0: the loop condition is `epsilon > tol`, so it runs until max_iter instead of converging. That is the one way to make the reference take a fixed number of iterations, which is what makes an iteration trace comparable at all."
+      },
+      "tags": [
+        "boundary",
+        "iter-control",
+        "tiny"
+      ]
+    },
+    {
+      "id": "smoke-data-sanity-check",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "fn": "data_sanity_check",
+      "args": {
+        "data": {
+          "__rlit__": "matrix(1:12, nrow = 3, dimnames = list(c('T1','T2','T3'), c('S1','S2','S3','S4')))"
+        },
+        "meta_data": {
+          "__rlit__": "data.frame(group = factor(c('a','a','b','b')), x1 = c(1, 2, 3, 4), row.names = c('S1','S2','S3','S4'))"
+        },
+        "fix_formula": {
+          "__rlit__": "'group + x1'"
+        },
+        "group": "group",
+        "verbose": false
+      },
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "facade",
+        "other-export"
+      ],
+      "args_from": "none"
+    },
+    {
+      "id": "smoke-ancombc",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "fn": "ancombc",
+      "args": {
+        "data": {
+          "__rlit__": "matrix(1:12, nrow = 3, dimnames = list(c('T1','T2','T3'), c('S1','S2','S3','S4')))"
+        },
+        "meta_data": {
+          "__rlit__": "data.frame(group = factor(c('a','a','b','b')), x1 = c(1, 2, 3, 4), row.names = c('S1','S2','S3','S4'))"
+        },
+        "formula": {
+          "__rlit__": "'group + x1'"
+        },
+        "p_adj_method": {
+          "__rlit__": "'BH'"
+        },
+        "pseudo": 1,
+        "prv_cut": 0,
+        "lib_cut": 0,
+        "verbose": false
+      },
+      "expect": {
+        "outcome": "success",
+        "why": "ancombc()'s `formula` is a bare right-hand side. data_sanity_check splits it on '+' and looks the parts up in meta_data, so passing '~ group + x1' makes it look for a column named '~ group'. Measured: 'The following variables specified are not in the meta data: ~ group'."
+      },
+      "tags": [
+        "ancombc",
+        "facade",
+        "other-export"
+      ],
+      "args_from": "none"
+    },
+    {
+      "id": "smoke-ancom",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "fn": "ancom",
+      "args": {
+        "data": {
+          "__rlit__": "matrix(1:12, nrow = 3, dimnames = list(c('T1','T2','T3'), c('S1','S2','S3','S4')))"
+        },
+        "meta_data": {
+          "__rlit__": "data.frame(group = factor(c('a','a','b','b')), x1 = c(1, 2, 3, 4), row.names = c('S1','S2','S3','S4'))"
+        },
+        "main_var": "group",
+        "p_adj_method": {
+          "__rlit__": "'BH'"
+        },
+        "prv_cut": 0,
+        "verbose": false
+      },
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "ancom",
+        "facade",
+        "other-export"
+      ],
+      "args_from": "none"
+    },
+    {
+      "id": "smoke-secom-dist",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re2g"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "fn": "secom_dist",
+      "expect": {
+        "outcome": "success",
+        "why": "secom_dist()/secom_linear() take a *list* of abundance matrices, one per rank, and a matching list of metadata; secom_dist.R indexes data[[i]]. A bare matrix answers 'Unsupported data type' because data[[1]] on a matrix selects a column. The matrix is the 8 x 12 re2g fixture rather than the 3 x 4 literal used first: secom_linear cross-validates with `sample(seq_len(n), size = n1)` and calls stats::cor on each split, which refuses with 'must have >4 observations' when the fixture is too small to split. Measured."
+      },
+      "tags": [
+        "facade",
+        "other-export",
+        "secom"
+      ],
+      "args_from": "fixture-list",
+      "overrides": [
+        "prv_cut=0.5",
+        "lib_cut=1",
+        "corr_cut=0.5",
+        "verbose=FALSE",
+        "R=10"
+      ]
+    },
+    {
+      "id": "smoke-secom-linear",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re2g"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "fn": "secom_linear",
+      "expect": {
+        "outcome": "success",
+        "why": "secom_dist()/secom_linear() take a *list* of abundance matrices, one per rank, and a matching list of metadata; secom_dist.R indexes data[[i]]. A bare matrix answers 'Unsupported data type' because data[[1]] on a matrix selects a column. The matrix is the 8 x 12 re2g fixture rather than the 3 x 4 literal used first: secom_linear cross-validates with `sample(seq_len(n), size = n1)` and calls stats::cor on each split, which refuses with 'must have >4 observations' when the fixture is too small to split. Measured."
+      },
+      "tags": [
+        "facade",
+        "other-export",
+        "secom"
+      ],
+      "args_from": "fixture-list",
+      "overrides": [
+        "prv_cut=0.5",
+        "lib_cut=1",
+        "corr_cut=0.5",
+        "verbose=FALSE",
+        "n_cv=5",
+        "thresh_len=5"
+      ]
+    },
+    {
+      "id": "smoke-sim-plnm",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "fn": "sim_plnm",
+      "args": {
+        "abn_table": {
+          "__rlit__": "matrix(c(10, 20, 30, 40, 50, 60), nrow = 3, ncol = 2)"
+        },
+        "n": 5,
+        "lib_mean": 100,
+        "disp": 0.5
+      },
+      "expect": {
+        "outcome": "success",
+        "why": "sim_plnm() forms cov(t(rel_table)) and eigen()s the result. With a single sample the covariance is all NA and eigen() answers \"infinite or missing values in 'x'\"; two samples are the minimum that gives a usable spectrum."
+      },
+      "tags": [
+        "facade",
+        "other-export",
+        "sim-data",
+        "small"
+      ],
+      "args_from": "none"
+    },
+    {
+      "id": "re3g-trend-runs",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re3g-sens"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "trend=TRUE",
+        "global=FALSE",
+        "pairwise=FALSE",
+        "dunnet=FALSE",
+        "group=group",
+        "pseudo_sens=FALSE"
+      ],
+      "args": {
+        "trend_control": {
+          "__rlit__": "list(contrast = list(cbind(c(-1), c(0), c(0)), cbind(c(0), c(-1), c(0)), cbind(c(0), c(0), c(-1))), node = list(1L, 2L, 3L), B = 100L)"
+        }
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "data_sanity_check:340 requires nrow(x) == ncol(x) for each contrast, and a 3x1 matrix passes only by accident of length(); with three such matrices the check fails and the trend test is refused with 'The contrast matrices for the trend test should be square matrices'. The contrast must be 3x3 for three groups."
+      },
+      "tags": [
+        "mdfdr",
+        "quadprog",
+        "runs-the-test",
+        "trend"
+      ]
+    },
+    {
+      "id": "re3g-trend-non-square",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re3g-sens"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "trend=TRUE",
+        "global=FALSE",
+        "pairwise=FALSE",
+        "dunnet=FALSE",
+        "group=group"
+      ],
+      "args": {
+        "trend_control": {
+          "__rlit__": "list(contrast = list(cbind(c(-1), c(0), c(0))), node = list(1L), B = 100L)"
+        }
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "a contrast that is not square. data_sanity_check:340 checks nrow(x) == ncol(x); a 3x1 matrix passes nrow == ncol == 1 only by accident of length(), and the failure surfaces downstream in .l_infty instead. The contract records whichever answer the reference gives."
+      },
+      "tags": [
+        "boundary",
+        "reference-error",
+        "trend"
+      ]
+    },
+    {
+      "id": "re3g-trend-mismatched-nodes",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re3g-sens"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "trend=TRUE",
+        "global=FALSE",
+        "pairwise=FALSE",
+        "dunnet=FALSE",
+        "group=group"
+      ],
+      "args": {
+        "trend_control": {
+          "__rlit__": "list(contrast = list(cbind(c(-1), c(0), c(0)), cbind(c(0), c(-1), c(1))), node = list(1L), B = 100L)"
+        }
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "two contrast matrices and one node. data_sanity_check:336 answers 'The number of nodes should match the number of contrast matrices'."
+      },
+      "tags": [
+        "boundary",
+        "reference-error",
+        "trend"
+      ]
+    },
+    {
+      "id": "re3g-trend-no-control",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re3g-sens"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "trend=TRUE",
+        "global=FALSE",
+        "pairwise=FALSE",
+        "dunnet=FALSE",
+        "group=group"
+      ],
+      "args": {
+        "trend_control": "__OMITTED__"
+      },
+      "expect": {
+        "outcome": "error",
+        "why": "trend = TRUE with trend_control omitted, so it takes its own default of NULL. data_sanity_check:325 answers 'Please specify the `trend_control` parameter for the trend test.' -- the first of four separate checks, each with its own message."
+      },
+      "tags": [
+        "reference-error",
+        "trend"
+      ]
+    },
+    {
+      "id": "re3g-pairwise-no-mdfdr",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re3g-sens"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "pairwise=TRUE",
+        "group=group"
+      ],
+      "args": {
+        "mdfdr_control": "__OMITTED__"
+      },
+      "expect": {
+        "outcome": "success",
+        "why": "pairwise = TRUE with mdfdr_control omitted. data_sanity_check:311 stops only if mdfdr_control *is* NULL, and the formal's own default is a non-NULL list, so the guard never fires from an omitted argument. A genuinely NULL mdfdr_control is a separate case."
+      },
+      "tags": [
+        "boundary",
+        "mdfdr",
+        "pairwise"
+      ]
+    },
+    {
+      "id": "re3g-pairwise-null-mdfdr",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re3g-sens"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "pairwise=TRUE",
+        "group=group"
+      ],
+      "args": {
+        "mdfdr_control": {
+          "__rlit__": "list(fwer_ctrl_method = 'holm', B = 100L)"
+        }
+      },
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "mdfdr",
+        "pairwise"
+      ]
+    },
+    {
+      "id": "tiny-two-group-global",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "group=group",
+        "global=TRUE",
+        "pairwise=TRUE"
+      ],
+      "expect": {
+        "outcome": "success",
+        "why": "two groups. data_sanity_check:302 turns global, pairwise, dunnet and trend all off and warns 'The group variable has < 3 categories / The multi-group comparisons (global/pairwise/dunnet/trend) will be deactivated'. res_global, res_pair, res_dunn and res_trend must all be NULL, and the warning text and its position in the condition order are part of the contract."
+      },
+      "tags": [
+        "deactivation-warning",
+        "groups",
+        "null-entries",
+        "small"
+      ]
+    },
+    {
+      "id": "re3g-basic",
+      "source": {
+        "dir": "validation/exact/fixtures-src/re3g-sens"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "group=group",
+        "global=TRUE",
+        "pairwise=TRUE",
+        "dunnet=TRUE"
+      ],
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "dunnet",
+        "global",
+        "groups",
+        "pairwise",
+        "three-level"
+      ]
+    },
+    {
+      "id": "fx02-defaults",
+      "source": {
+        "dir": "validation/fixtures/fx02"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "group=__OMITTED__",
+        "global=__OMITTED__",
+        "pairwise=__OMITTED__",
+        "sensitivity=__OMITTED__",
+        "p_adj_method=__OMITTED__"
+      ],
+      "expect": {
+        "outcome": "success",
+        "why": "p_adj_method, pseudo, pseudo_sens, conservative, prv_cut, lib_cut, s0_perc, struc_zero, neg_lb, alpha, iter_control, em_control, lme_control, mdfdr_control and trend_control are all omitted and take the pinned original's own defaults; group/global/pairwise are omitted because this fixture has no group column. A first draft of this case omitted `sensitivity`, which is the fixture-manifest key rather than the ancombc2 formal, so it was passed through as an unknown argument and the reference answered 'undefined columns selected' when it reached meta_data[.]. The manifest key is translated in scripts/exact_input_lib.R; the formal name must be used here."
+      },
+      "tags": [
+        "defaults",
+        "omitted-arguments"
+      ]
+    },
+    {
+      "id": "tiny-defaults",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "overrides": [
+        "group=__OMITTED__",
+        "global=__OMITTED__",
+        "pairwise=__OMITTED__",
+        "sensitivity=__OMITTED__",
+        "p_adj_method=__OMITTED__"
+      ],
+      "expect": {
+        "outcome": "success",
+        "why": "p_adj_method, pseudo, pseudo_sens, conservative, prv_cut, lib_cut, s0_perc, struc_zero, neg_lb, alpha, iter_control, em_control, lme_control, mdfdr_control and trend_control are all omitted and take the pinned original's own defaults; group/global/pairwise are omitted because this fixture has no group column. A first draft of this case omitted `sensitivity`, which is the fixture-manifest key rather than the ancombc2 formal, so it was passed through as an unknown argument and the reference answered 'undefined columns selected' when it reached meta_data[.]. The manifest key is translated in scripts/exact_input_lib.R; the formal name must be used here."
+      },
+      "tags": [
+        "defaults",
+        "omitted-arguments",
+        "small",
+        "tiny"
+      ]
+    },
+    {
+      "id": "smoke-ancombc2-dataframe",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "success",
+        "why": "taxa_are_rows = FALSE. data_sanity_check's matrix branch takes feature_table = as.matrix(t(data)) and then requires every column of the transposed table (a taxon) to be a row name of meta_data -- so with taxa in columns the metadata is keyed by taxon. The companion refusal, with the metadata still keyed by sample, is measured as 'Sample names do not match between the feature table and sample metadata'."
+      },
+      "tags": [
+        "input-class",
+        "orientation"
+      ],
+      "args_from": "none",
+      "args": {
+        "data": {
+          "__rlit__": "matrix(1:12, nrow = 4, dimnames = list(c('S1','S2','S3','S4'), c('T1','T2','T3')))"
+        },
+        "meta_data": {
+          "__rlit__": "data.frame(group = factor(c('a','a','b','b')), x1 = c(1, 2, 3, 4), row.names = c('S1','S2','S3','S4'))"
+        },
+        "fix_formula": {
+          "__rlit__": "'group + x1'"
+        },
+        "taxa_are_rows": false,
+        "verbose": false,
+        "p_adj_method": {
+          "__rlit__": "'BH'"
+        },
+        "prv_cut": 0,
+        "lib_cut": 0,
+        "pseudo_sens": false
+      }
+    },
+    {
+      "id": "smoke-data-sane",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "fn": "data_sanity_check",
+      "args_from": "none",
+      "args": {
+        "data": {
+          "__rlit__": "matrix(1:12, nrow = 3, dimnames = list(c('T1','T2','T3'), c('S1','S2','S3','S4')))"
+        },
+        "meta_data": {
+          "__rlit__": "data.frame(group = factor(c('a','a','b','b')), x1 = c(1,2,3,4), row.names = c('S1','S2','S3','S4'))"
+        },
+        "fix_formula": {
+          "__rlit__": "'group + x1'"
+        },
+        "group": "group",
+        "verbose": false
+      },
+      "expect": {
+        "outcome": "success"
+      },
+      "tags": [
+        "facade",
+        "other-export",
+        "small"
+      ]
+    },
+    {
+      "id": "smoke-data-sane-bad-formula",
+      "source": {
+        "dir": "validation/exact/fixtures-src/tiny5x8"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "fn": "data_sanity_check",
+      "args_from": "none",
+      "args": {
+        "data": {
+          "__rlit__": "matrix(1:12, nrow = 3, dimnames = list(c('T1','T2','T3'), c('S1','S2','S3','S4')))"
+        },
+        "meta_data": {
+          "__rlit__": "data.frame(group = factor(c('a','a','b','b')), x1 = c(1,2,3,4), row.names = c('S1','S2','S3','S4'))"
+        },
+        "fix_formula": {
+          "__rlit__": "'group + nope'"
+        },
+        "group": "group",
+        "verbose": false
+      },
+      "expect": {
+        "outcome": "error"
+      },
+      "tags": [
+        "facade",
+        "other-export",
+        "reference-error",
+        "small"
+      ]
+    },
+    {
+      "id": "absent-in-group-a",
+      "source": {
+        "dir": "validation/exact/fixtures-src/absent-in-group-a-2col",
+        "config": "config.tsv"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "success",
+        "why": "taxon T1 is zero in every sample of g1 and present in g2, so its group-1 prevalence is 0 and only that group is flagged. This is the two-column derived fixture: the committed edge meta.tsv has a single column, which [.data.frame collapses, so the same scenario is analysed here and refused in the `edge-absent-in-group-a` error case."
+      },
+      "tags": [
+        "derived-2col",
+        "edge",
+        "structural-zero"
+      ]
+    },
+    {
+      "id": "rare-in-group-a",
+      "source": {
+        "dir": "validation/exact/fixtures-src/rare-in-group-a-2col",
+        "config": "config.tsv"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "success",
+        "why": "taxon T2 has exactly one observation in g1; neg_lb widens the net beyond a strict zero, which is the point of the case. This is the two-column derived fixture: the committed edge meta.tsv has a single column, which [.data.frame collapses, so the same scenario is analysed here and refused in the `edge-rare-in-group-a` error case."
+      },
+      "tags": [
+        "derived-2col",
+        "edge",
+        "structural-zero"
+      ]
+    },
+    {
+      "id": "present-in-every-group",
+      "source": {
+        "dir": "validation/exact/fixtures-src/present-in-every-group-2col",
+        "config": "config.tsv"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "success",
+        "why": "every taxon is observed in every sample of every group, so nothing may be flagged: the negative control for the two cases above. This is the two-column derived fixture: the committed edge meta.tsv has a single column, which [.data.frame collapses, so the same scenario is analysed here and refused in the `edge-present-in-every-group` error case."
+      },
+      "tags": [
+        "derived-2col",
+        "edge",
+        "structural-zero"
+      ]
+    },
+    {
+      "id": "na-counts",
+      "source": {
+        "dir": "validation/exact/fixtures-src/na-counts-2col",
+        "config": "config.tsv"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "success",
+        "why": "T3 is NA across g1 and T4 is zero across g1, so the two differ only in how they are missing; the sandwich replaces an NA term with 0.1. This is the two-column derived fixture: the committed edge meta.tsv has a single column, which [.data.frame collapses, so the same scenario is analysed here and refused in the `edge-na-counts` error case."
+      },
+      "tags": [
+        "derived-2col",
+        "edge",
+        "missing-values"
+      ]
+    },
+    {
+      "id": "struc-zero-off",
+      "source": {
+        "dir": "validation/exact/fixtures-src/struc-zero-off-2col",
+        "config": "config.tsv"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "success",
+        "why": "the absent_in_group_a scenario with struc_zero = FALSE, so T1 is retained and still reported in zero_ind. This is the two-column derived fixture: the committed edge meta.tsv has a single column, which [.data.frame collapses, so the same scenario is analysed here and refused in the `edge-struc-zero-off` error case."
+      },
+      "tags": [
+        "derived-2col",
+        "edge",
+        "structural-zero"
+      ]
+    },
+    {
+      "id": "prv-cut-boundary",
+      "source": {
+        "dir": "validation/exact/fixtures-src/prv-cut-boundary-2col",
+        "config": "config.tsv"
+      },
+      "call_style": "named",
+      "threads": 1,
+      "state": {
+        "seed": 42
+      },
+      "expect": {
+        "outcome": "success",
+        "why": "T2 is observed in exactly 3 of 10 samples and prv_cut is 0.3, so its prevalence equals the cut and the >= comparison keeps it. This is the two-column derived fixture: the committed edge meta.tsv has a single column, which [.data.frame collapses, so the same scenario is analysed here and refused in the `edge-prv-cut-boundary` error case."
+      },
+      "tags": [
+        "derived-2col",
+        "edge",
+        "prevalence-filter"
+      ]
+    }
+  ]
+}

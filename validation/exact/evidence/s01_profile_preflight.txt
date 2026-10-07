@@ -1,0 +1,95 @@
+# S01 acceptance evidence -- 2026-10-05T17:49:12Z
+
+## make exact-env-check PROFILE=linux-r453-openblas
+profile: linux-r453-openblas
+
+  [PASS] oracle.file_digests
+         reference/ANCOMBC must stay byte-identical to the pinned commit
+  [PASS] oracle.version
+  [PASS] oracle.license
+         bundled upstream code must keep its licence
+  [PASS] oracle.depends
+  [PASS] runtime.probe_runs
+  [PASS] runtime.r_version
+         exactness is per runtime; a different R is a different profile
+  [PASS] runtime.r_platform
+  [PASS] runtime.r_arch
+  [PASS] runtime.satisfies_pinned_depends
+         below the floor the original cannot be installed, so this profile cannot be exact-certified
+  [PASS] runtime.blas
+         P4 is a ratio between two programs; swapping BLAS would be choosing the ruler
+  [PASS] runtime.lapack
+         LAPACK is the same OpenBLAS shared object
+  [PASS] runtime.library_path
+         an unlisted library can shadow a dependency and silently change a number
+  [PASS] runtime.rng_kind
+  [PASS] runtime.locale
+         locale changes collation, and collation changes p.adjust ordering
+  [PASS] original.resolved_from_pinned_library
+         the runner must not be able to resolve the original as the candidate
+  [PASS] original.version
+  [PASS] original.identity_digest
+         DESCRIPTION minus build metadata, NAMESPACE and R/*.R
+  [PASS] original.depends
+  [PASS] original.all_imports_resolve
+         a missing dependency must fail before analysis, not during it
+  [PASS] original.dependency_versions
+  [PASS] host.cores_readable
+  [PASS] host.physical_cores_at_least
+         P1-P4 need a stable multi-core host; 8 physical cores qualifies. P5 is defined on >= 16 physical cores and CANNOT be certified here (ENV-1). Do not read the 16 logical CPUs as satisfying it.
+
+  22/22 checks passed
+exit=0
+
+## make exact-env-selftest PROFILE=linux-r453-openblas
+negative checks for profile linux-r453-openblas
+  [PASS] mutation=wrong_oracle_digest: exit=1, expected=oracle.file_digests, failing=['oracle.file_digests']
+  [PASS] mutation=wrong_oracle_version: exit=1, expected=oracle.version, failing=['oracle.version', 'original.version']  (also ['original.version'])
+  [PASS] mutation=wrong_r_version: exit=1, expected=runtime.r_version, failing=['runtime.r_version']
+  [PASS] mutation=wrong_blas: exit=1, expected=runtime.blas, failing=['runtime.blas']
+  [PASS] mutation=wrong_package_hash: exit=1, expected=original.identity_digest, failing=['original.identity_digest']
+  [PASS] mutation=wrong_dependency_version: exit=1, expected=original.dependency_versions, failing=['original.dependency_versions']
+  [PASS] mutation=absent_dependency: exit=1, expected=original.all_imports_resolve, failing=['original.all_imports_resolve']
+  [PASS] mutation=wrong_library_path: exit=1, expected=runtime.library_path, failing=['runtime.library_path']
+  [PASS] mutation=wrong_locale: exit=1, expected=runtime.locale, failing=['runtime.locale']
+  [PASS] mutation=absent_original: exit=1, expected=original.installed, failing=['original.installed', 'runtime.library_path']  (also ['runtime.library_path'])
+  [PASS] mutation=insufficient_physical_cores: exit=1, expected=host.physical_cores_at_least, failing=['host.physical_cores_at_least']
+  [PASS] unmutated profile: exit=0, 22/22 checks passed
+exit=0
+
+## make exact-env-check PROFILE=linux-r433-refblas  (must be non-zero: unsupported)
+profile: linux-r433-refblas
+
+  [PASS] oracle.file_digests
+         reference/ANCOMBC must stay byte-identical to the pinned commit
+  [PASS] oracle.version
+  [PASS] oracle.license
+         bundled upstream code must keep its licence
+  [PASS] oracle.depends
+  [PASS] runtime.probe_runs
+  [PASS] runtime.r_version
+         exactness is per runtime; a different R is a different profile
+  [PASS] runtime.r_platform
+  [PASS] runtime.r_arch
+  [FAIL] runtime.satisfies_pinned_depends
+         expected: R >= 4.5 (pinned Depends)
+         actual:   4.3.3
+         below the floor the original cannot be installed, so this profile cannot be exact-certified
+  [PASS] runtime.blas
+         P4 is a ratio between two programs; swapping BLAS would be choosing the ruler
+  [PASS] runtime.library_path
+         an unlisted library can shadow a dependency and silently change a number
+  [PASS] runtime.rng_kind
+  [PASS] runtime.locale
+         locale changes collation, and collation changes p.adjust ordering
+  [FAIL] original.installed
+         expected: <none: R 4.3.3 is below the pinned floor>
+         actual:   <not-found>
+         the pinned original is not installed in this profile's library
+
+  12/14 checks passed
+exit=1
+
+## R CMD INSTALL of the pinned original under system R 4.3.3 (must fail)
+ERROR: this R is version 4.3.3, package 'ANCOMBC' requires R >= 4.5.0
+exit=1

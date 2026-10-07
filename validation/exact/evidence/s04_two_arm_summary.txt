@@ -1,0 +1,62 @@
+# Two-arm exact comparison -- final campaign -- 2026-10-05T21:29:10Z
+
+profile: linux-r453-openblas (R 4.5.3, OpenBLAS 0.3.34, x86_64-conda-linux-gnu)
+original : .rlib/original    (pinned ANCOMBC 2.15.2 @ dc4febdf, installed by R CMD INSTALL)
+candidate: .rlib/replacement (r/ANCOMBC, retained upstream R + provenance)
+
+## the 114-case required set
+  required cases          114
+  observed                114
+  byte-identical          114
+  outcome mismatches      0
+  reference nondeterminism 0
+  infrastructure failures 0
+  declared-vs-measured outcome disagreements 0 []
+  outcomes: 82 success, 32 error (reference errors are comparable outcomes)
+  input digests recorded   114  spec_sha256 b709b3a23a124ffb
+
+## per-case result digests (first 20)
+  fx01-basic                       error    25b8aae4edb88c04       744 B  identical=True
+  fx02-basic                       success  79c7da78139554f2     58245 B  identical=True
+  fx03-basic                       success  0175f5d238f4bae1   1848544 B  identical=True
+  edge-absent-in-group-a           error    25b8aae4edb88c04       744 B  identical=True
+  edge-rare-in-group-a             error    25b8aae4edb88c04       744 B  identical=True
+  edge-present-in-every-group      error    25b8aae4edb88c04       744 B  identical=True
+  edge-na-counts                   error    25b8aae4edb88c04       744 B  identical=True
+  edge-group-of-size-one           error    25b8aae4edb88c04       744 B  identical=True
+  edge-struc-zero-off              error    25b8aae4edb88c04       744 B  identical=True
+  edge-prv-cut-boundary            error    25b8aae4edb88c04       744 B  identical=True
+  fx02-positional                  error    1eb47fa35d794bb8       762 B  identical=True
+  fx03-pseudo-half                 success  e5e305c13c9cf953   1848544 B  identical=True
+  fx03-pseudo-sens-off             success  102058db3dfe60cd   1684544 B  identical=True
+  fx03-conservative-off            success  2f9a749da7b23044   1848544 B  identical=True
+  fx03-pairwise-only               success  128501ac809c53c8   1785277 B  identical=True
+  fx03-dunnet                      success  dbc88e64749c509c   1724956 B  identical=True
+  fx03-trend                       error    b717d7a0cd638733       237 B  identical=True
+  fx03-p-adj-bh                    success  18932ad6da73a8e7   1848544 B  identical=True
+  fx03-p-adj-bonferroni            success  35793585b79306a0   1848544 B  identical=True
+  fx03-struc-zero-on               success  35afc8cb6aeb6a47   1879776 B  identical=True
+
+## the manifest completeness check over that run
+--- make exact-cases-required
+case set required   114 required, 114 observed
+MANIFEST: complete
+exit=0
+
+## the 25-case small set, run and checked separately
+  tiny-defaults: match [original:ok, candidate:ok] input=ad4acf1361e9
+  smoke-data-sane: match [original:ok, candidate:ok] input=47c31eeef0a5
+  smoke-data-sane-bad-formula: error-match [original:ok, candidate:ok] input=f3d3a972838d
+--- small manifest
+case set small      25 required, 25 observed
+MANIFEST: complete
+exit=0
+
+## reading the digests above
+
+Seven `edge-*` cases and `fx01-basic` share the error digest `25b8aae4edb88c04`.
+That is not a shared result: all eight inputs have a single-column `meta_data`,
+so `[.data.frame` collapses it and the reference raises the *same* condition in
+each. The compared bytes are the serialized condition, and they are identical
+because the condition is identical. Per-case identity is the input digest in
+`validation/exact/inputs/manifest.json`, not the result digest.

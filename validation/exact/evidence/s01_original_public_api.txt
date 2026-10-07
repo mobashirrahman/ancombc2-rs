@@ -1,0 +1,66 @@
+### ANCOMBC::ancombc2
+function (data, taxa_are_rows = TRUE, assay.type = assay_name, 
+    assay_name = "counts", rank = tax_level, tax_level = NULL, 
+    aggregate_data = NULL, meta_data = NULL, fix_formula, rand_formula = NULL, 
+    p_adj_method = "holm", pseudo = 0, pseudo_sens = TRUE, conservative = TRUE, 
+    prv_cut = 0.1, lib_cut = 0, s0_perc = 0.05, group = NULL, 
+    struc_zero = FALSE, neg_lb = FALSE, alpha = 0.05, n_cl = 1, 
+    verbose = TRUE, global = FALSE, pairwise = FALSE, dunnet = FALSE, 
+    trend = FALSE, iter_control = list(tol = 0.01, max_iter = 20, 
+        verbose = FALSE), em_control = list(tol = 1e-05, max_iter = 100), 
+    lme_control = lme4::lmerControl(), mdfdr_control = list(fwer_ctrl_method = "holm", 
+        B = 100), trend_control = list(contrast = NULL, node = NULL, 
+        B = 100)) 
+NULL
+
+### ANCOMBC::ancombc
+function (data = NULL, taxa_are_rows = TRUE, assay.type = NULL, 
+    assay_name = "counts", rank = NULL, tax_level = NULL, aggregate_data = NULL, 
+    meta_data = NULL, pseudo = 1, formula, p_adj_method = "holm", 
+    prv_cut = 0.1, lib_cut = 0, group = NULL, struc_zero = FALSE, 
+    neg_lb = FALSE, tol = 1e-05, max_iter = 100, conserve = FALSE, 
+    alpha = 0.05, global = FALSE, n_cl = 1, verbose = TRUE) 
+NULL
+
+### ANCOMBC::ancom
+function (data = NULL, taxa_are_rows = TRUE, assay.type = NULL, 
+    assay_name = "counts", rank = NULL, tax_level = NULL, aggregate_data = NULL, 
+    meta_data = NULL, p_adj_method = "holm", prv_cut = 0.1, lib_cut = 0, 
+    main_var, adj_formula = NULL, rand_formula = NULL, lme_control = lme4::lmerControl(), 
+    struc_zero = FALSE, neg_lb = FALSE, alpha = 0.05, n_cl = 1, 
+    verbose = TRUE) 
+NULL
+
+### ANCOMBC::data_sanity_check
+function (data, taxa_are_rows = TRUE, assay.type = assay_name, 
+    assay_name = "counts", rank = tax_level, tax_level = NULL, 
+    aggregate_data = NULL, meta_data = NULL, fix_formula, group = NULL, 
+    struc_zero = FALSE, global = FALSE, pairwise = FALSE, dunnet = FALSE, 
+    mdfdr_control = list(fwer_ctrl_method = "holm", B = 100), 
+    trend = FALSE, trend_control = list(contrast = NULL, node = NULL, 
+        B = 100), verbose = TRUE) 
+NULL
+
+### ANCOMBC::secom_dist
+function (data, taxa_are_rows = TRUE, assay.type = assay_name, 
+    assay_name = "counts", rank = tax_level, tax_level = NULL, 
+    aggregate_data = NULL, meta_data = NULL, pseudo = 0, prv_cut = 0.5, 
+    lib_cut = 1000, corr_cut = 0.5, wins_quant = c(0.05, 0.95), 
+    R = 1000, thresh_hard = 0, max_p = 0.005, n_cl = 1, verbose = TRUE) 
+NULL
+
+### ANCOMBC::secom_linear
+function (data, taxa_are_rows = TRUE, assay.type = assay_name, 
+    assay_name = "counts", rank = tax_level, tax_level = NULL, 
+    aggregate_data = NULL, meta_data = NULL, pseudo = 0, prv_cut = 0.5, 
+    lib_cut = 1000, corr_cut = 0.5, wins_quant = c(0.05, 0.95), 
+    method = c("pearson", "spearman"), soft = FALSE, alpha_grid = 0, 
+    thresh_len = 100, n_cv = 10, thresh_hard = 0, max_p = 0.005, 
+    n_cl = 1, verbose = TRUE) 
+NULL
+
+### ANCOMBC::sim_plnm
+function (abn_table, taxa_are_rows = TRUE, prv_cut = 0.1, n, 
+    lib_mean, disp) 
+NULL
+

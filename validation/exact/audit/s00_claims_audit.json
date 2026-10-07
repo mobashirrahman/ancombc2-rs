@@ -1,0 +1,146 @@
+{
+  "schema": "ancombc2-exact-claims-audit/1",
+  "generated_for_task": "S00",
+  "plan": "IMPROVED_PLAN.md",
+  "status_file": "IMPLEMENTATION_STATUS.md",
+  "starting_commit": "e8ec02e16e7b7cf0cb0d62ef3efbf93bc135c59b",
+  "diff_sha256": "fc84c15d71c2597c8961fd59b549ab5f0ae6e88eb48e32de567202590801343a",
+  "purpose": [
+    "Enumerate every public claim in this repository that the current release",
+    "contract (IMPROVED_PLAN.md section 1 'Meaning of exact', section 3 gates)",
+    "cannot yet support, so that no reader mistakes tolerant parity or Rust",
+    "self-determinism for equality against the pinned original.",
+    "This file is a record of what is UNPROVEN. It is not a test result and it",
+    "must never be cited as evidence that a gate passed."
+  ],
+  "claim_classes": {
+    "byte_identity_across_rust_runs": "Same program, two runs or two thread counts, produce identical bytes. This is determinism of the candidate. It says nothing about agreement with ANCOMBC.",
+    "byte_identity_across_r_versions": "Same Rust binary under R 4.3.3 / 4.5.3 / 4.6.1, same BLAS, identical arrays. Still candidate-vs-candidate.",
+    "tolerant_parity": "Approximate agreement with the pinned original under the tolerances in docs/numerical_contract.md section 4 (rtol 1e-8..1e-7, atol 1e-10) plus an enumerated rank-deficient exemption. This is NOT exactness.",
+    "r_relative_benchmark": "A speed or memory ratio whose R arm came from reference/R/harness.R sequential stubs and/or whose two arms used different memory metrics. Invalid for P1-P5.",
+    "exactness_unproven": "Whole-result byte equality against the installed original. No claim in this repository currently carries this."
+  },
+  "unvalidated_claims": [
+    {
+      "id": "CLAIM-README-EQUIVALENT",
+      "location": "README.md:8-9 (pre-edit), README.md 'What is implemented'",
+      "text": "ancombc2-rs v0.1 is equivalent to ANCOMBC 2.15.2 at commit dc4febdf..., under R >= 4.5.0, seed 42.",
+      "class": "tolerant_parity",
+      "why_not_exact": "Backed by 29-quantity parity at rtol 1e-8/1e-7 on 4 fixtures, not by whole-result byte equality. Fresh fx03 deviations recorded in IMPROVED_PLAN.md section 2: beta 2.84e-11, p 1.58e-10, q 3.89e-10.",
+      "required_closure": "S03-S14",
+      "status": "unvalidated_for_this_contract"
+    },
+    {
+      "id": "CLAIM-README-BYTEIDENT-THREADS",
+      "location": "README.md:135 (pre-edit), README.md:309 (pre-edit), docs/algorithm.md:304, docs/compatibility.md:253, docs/compatibility.md:446",
+      "text": "res.tsv is byte-identical at 1, 4, 8 and 16 threads; bm6 goes 13.96 s -> 4.82 s on 16 threads.",
+      "class": "byte_identity_across_rust_runs",
+      "why_not_exact": "Candidate-vs-candidate only. Says nothing about equality with the original, and the timing pair was measured against the sequential R stub.",
+      "required_closure": "S14 (thread invariance), S17 (re-measure)",
+      "status": "unvalidated_for_this_contract"
+    },
+    {
+      "id": "CLAIM-DOCS-915-ARRAYS",
+      "location": "docs/compatibility.md:142, docs/reference_behavior.md:377, docs/release_status.md:248, docs/reproduction.md:36, docs/reproduction.md:43, docs/reproduction.md:456",
+      "text": "R 4.3.3, 4.5.3 and 4.6.1 on the same BLAS produce bit-identical matrix output - 915 of 915 arrays.",
+      "class": "byte_identity_across_r_versions",
+      "why_not_exact": "True as stated and worth keeping, but it compares the candidate under three interpreters. It is not a cross-R universality claim for the original, and IMPROVED_PLAN.md section 1 forbids inferring support for every R >= 4.5.0 from tested versions.",
+      "required_closure": "S01 per-profile certification",
+      "status": "unvalidated_for_this_contract"
+    },
+    {
+      "id": "CLAIM-DOCS-FOREACH-STUB",
+      "location": "docs/compatibility.md:149, docs/reference_behavior.md:569",
+      "text": "The foreach stub the harness needs on an older R was verified against the installed package: 38 of 38 cells, deviation 0.",
+      "class": "exactness_unproven",
+      "why_not_exact": "This is a per-cell numeric deviation check on extracted arrays, not whole-result byte equality, and it is reported as deviation 0 against a tolerance harness. It also predates the installed-original protocol S02 requires.",
+      "required_closure": "S02, S03, S04, S13",
+      "status": "unvalidated_for_this_contract"
+    },
+    {
+      "id": "CLAIM-README-SIM-PARITY",
+      "location": "docs/release_status.md:184, docs/simulation_results.md",
+      "text": "full grid, 252 cells x 1000 reps, both arms: 0 divergent. lfc_bias agrees on 252/252 cells.",
+      "class": "r_relative_benchmark",
+      "why_not_exact": "FDR/power agreement at 3 SE is a distributional property. IMPROVED_PLAN.md section 1 rule 8 and S14 both forbid it substituting for exact per-call results.",
+      "required_closure": "S14 (as additional evidence only)",
+      "status": "unvalidated_for_this_contract"
+    },
+    {
+      "id": "CLAIM-README-P1-P5",
+      "location": "docs/release_status.md:106-112, README.md performance tables, docs/performance_plan.md",
+      "text": "P1 1.141x, P2 1.141x, P3 3.165x, P4 1.751x, P5 0.172 (all fail).",
+      "class": "r_relative_benchmark",
+      "why_not_exact": "The R arm ran through reference/R/harness.R, which installs foreach_stub and a sequential %dorng% - so the reference was single-threaded by construction. Memory mixed R gc() usage against Rust VmHWM. P1 and P2 read the same wall-time field. One repetition. Latest-row selection per (dataset, arm) permits mixing builds.",
+      "required_closure": "S15, S16, S17",
+      "status": "invalid_for_comparison"
+    },
+    {
+      "id": "CLAIM-DOCS-QR-84PCT",
+      "location": "docs/release_status.md:30-32, docs/performance_plan.md",
+      "text": "the Householder factorisation is 84% of a large run.",
+      "class": "r_relative_benchmark",
+      "why_not_exact": "IMPROVED_PLAN.md S17 explicitly forbids carrying this forward without reproducing it under the corrected campaign.",
+      "required_closure": "S17 profile",
+      "status": "must_be_reproduced"
+    },
+    {
+      "id": "CLAIM-COMPAT-PSEUDO-SENS-DEFAULT",
+      "location": "r/ancombc2rs/R/ancombc2.R (pseudo_sens = FALSE)",
+      "text": "n/a - a code defect, recorded here because it is a contract violation",
+      "class": "tolerant_parity",
+      "why_not_exact": "The pinned original's public default is pseudo_sens = TRUE. The candidate's R wrapper declares FALSE. Any omitted-argument call therefore takes a different code path.",
+      "required_closure": "S05",
+      "status": "known_violation"
+    },
+    {
+      "id": "CLAIM-COMPAT-FEATURES-MISSING",
+      "location": "docs/compatibility.md:18-23",
+      "text": "random effects, trend, Dunnett, phyloseq/TSE input and aggregation are 'not implemented'.",
+      "class": "tolerant_parity",
+      "why_not_exact": "Accurate for ancombc2rs and required by C2. The replacement under r/ANCOMBC/ does not exist yet.",
+      "required_closure": "S05, S13",
+      "status": "known_violation"
+    },
+    {
+      "id": "CLAIM-COMPAT-JSON-BRIDGE",
+      "location": "r/ancombc2rs/R/ancombc2.R call_core(), crates/ancombc2-ffi",
+      "text": "n/a - a code defect, recorded here because it is a contract violation",
+      "class": "exactness_unproven",
+      "why_not_exact": "A JSON request/response bridge cannot carry NaN, -0.0 or +Inf, and reconstructing the R object from parsed JSON changes its structure and attributes. IMPROVED_PLAN.md section 2 lists this as a required closure.",
+      "required_closure": "S06, S07",
+      "status": "known_violation"
+    },
+    {
+      "id": "CLAIM-ORACLE-4.5.3-CERTIFIED",
+      "location": "reference/env/ORACLE.md",
+      "text": "The golden fixtures were generated on R 4.3.3, one minor series below the declared minimum R >= 4.5.0.",
+      "class": "tolerant_parity",
+      "why_not_exact": "Accurate and important: the legacy goldens are a different runtime from the one a certified profile would use. IMPROVED_PLAN.md S01 forbids reusing goldens across profiles and S04 forbids regenerating legacy fixtures in place.",
+      "required_closure": "S01, S04",
+      "status": "recorded_limitation"
+    },
+    {
+      "id": "CLAIM-ORACLE-GIT-REV",
+      "location": "reference/R/oracle.R:16-26 (verify_oracle), reference/env/ORACLE.md 'How the oracle is loaded'",
+      "text": "The source is verified against the pinned commit before loading: stopifnot(identical(system(\"git -C reference/ANCOMBC rev-parse HEAD\"), \"dc4febdf...\"))",
+      "class": "exactness_unproven",
+      "why_not_exact": "reference/ANCOMBC has no .git directory (verified: `test -d reference/ANCOMBC/.git` -> absent; the vendored copy is tracked by THIS repository, and `git -C reference/ANCOMBC rev-parse HEAD` therefore resolves to this repository's HEAD e8ec02e1..., never dc4febdf...). verify_oracle() guards the git check with `have_git <- dir.exists(file.path(dir, '.git'))`, so on this checkout the commit check is silently skipped and only the DESCRIPTION Version is asserted. The real pin is the per-file digest list in reference/env/oracle.sha256, which is what S01 must verify.",
+      "required_closure": "S01",
+      "status": "known_defect_in_existing_check"
+    }
+  ],
+  "gates_with_no_evidence": [
+    "C1", "C2", "C3", "C4", "B1", "P1", "P2", "P3", "P4", "P5"
+  ],
+  "preserved_history": [
+    "benchmarks/results/",
+    "validation/golden/",
+    "validation/matrix/golden/",
+    "validation/simulation/results/",
+    "validation/realdata/results/",
+    "PLAN.md",
+    "docs/performance_plan.md"
+  ],
+  "preservation_rule": "These files are read-only inputs to the new work. New exact fixtures, goldens and campaigns go under validation/exact/ and a new campaign directory. Nothing here may be regenerated in place."
+}

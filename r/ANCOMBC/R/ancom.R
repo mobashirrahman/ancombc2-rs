@@ -1,0 +1,545 @@
+#' @title Analysis of Composition of Microbiomes (ANCOM)
+#'
+#' @description Determine taxa whose absolute abundances, per unit volume, of
+#' the ecosystem (e.g. gut) are significantly different with changes in the
+#' covariate of interest (e.g. group). The current version of
+#' \code{ancom} function implements ANCOM in cross-sectional and repeated
+#' measurements data while allowing for covariate adjustment.
+#'
+#' @details Taxa with structural zeros in at least one group of \code{main_var}
+#' are removed from the log-ratio comparisons and are reported in \code{res}
+#' with \code{W} set to infinity and the detection indicators set to TRUE. The
+#' detection of structural zeros is controlled by \code{struc_zero} and
+#' \code{neg_lb}, which are defined in \code{\link{ANCOMBC-concepts}}.
+#'
+#' @param data the input data. The \code{data} parameter should be either a
+#' \code{matrix}, \code{data.frame}, \code{phyloseq} or a \code{TreeSummarizedExperiment}
+#' object. Both \code{phyloseq} and \code{TreeSummarizedExperiment} objects
+#' consist of a feature table (microbial count table), a sample metadata table,
+#' a taxonomy table (optional), and a phylogenetic tree (optional).
+#' If a \code{matrix} or \code{data.frame} is provided, ensure that the row
+#' names of the \code{metadata} match the sample names (column names if
+#' \code{taxa_are_rows} is TRUE, and row names otherwise) in \code{data}.
+#' if a \code{phyloseq} or a \code{TreeSummarizedExperiment} is used, this
+#' standard has already been enforced. For detailed information, refer to
+#' \code{?phyloseq::phyloseq} or
+#' \code{?TreeSummarizedExperiment::TreeSummarizedExperiment}.
+#' It is recommended to use low taxonomic levels, such as OTU or species level,
+#' as the estimation of sampling fractions requires a large number of taxa.
+#' @param taxa_are_rows logical. Whether taxa are positioned in the rows of the
+#' feature table. Default is TRUE.
+#' @param assay_name character. Name of the count table in the data object
+#' (only applicable if data object is a \code{(Tree)SummarizedExperiment}).
+#' Default is "counts".
+#' See \code{?SummarizedExperiment::assay} for more details.
+#' @param assay.type alias for \code{assay_name}.
+#' @param tax_level character. The taxonomic or non taxonomic(rowData) level of interest. The input data
+#' can be analyzed at any taxonomic or rowData level without prior agglomeration.
+#' Note that \code{tax_level} must be a value from \code{taxonomyRanks} or \code{rowData}, which
+#' includes "Kingdom", "Phylum" "Class", "Order", "Family" "Genus" "Species" etc.
+#' See \code{?mia::taxonomyRanks} for more details.
+#' Default is NULL, i.e., do not perform agglomeration, and the
+#' ANCOM analysis will be performed at the lowest taxonomic level of the
+#' input \code{data}.
+#' @param rank alias for \code{tax_level}.
+#' @param aggregate_data The abundance data that has been aggregated to the desired
+#' taxonomic level. This parameter is required only when the input data is in
+#' \code{matrix} or \code{data.frame} format. For \code{phyloseq} or \code{TreeSummarizedExperiment}
+#' data, aggregation is performed by specifying the \code{tax_level} parameter.
+#' @param meta_data a \code{data.frame} containing sample metadata.
+#' This parameter is mandatory when the input \code{data} is a generic
+#' \code{data.frame}. Ensure that the row names of the \code{metadata} match the
+#' sample names (column names if \code{taxa_are_rows} is TRUE, and row names
+#' otherwise) in \code{data}.
+#' @param p_adj_method character. method to adjust p-values. Default is "holm".
+#' Options include "holm", "hochberg", "hommel", "bonferroni", "BH", "BY",
+#' "fdr", "none". See \code{?stats::p.adjust} for more details.
+#' @param prv_cut a numerical fraction between 0 and 1. Taxa with prevalences
+#' (the proportion of samples in which the taxon is present)
+#' less than \code{prv_cut} will be excluded in the analysis. For example,
+#' if there are 100 samples, and a taxon has nonzero counts present in less than
+#' 100*prv_cut samples, it will not be considered in the analysis.
+#' Default is 0.10.
+#' @param lib_cut a numerical threshold for filtering samples based on library
+#' sizes. Samples with library sizes less than \code{lib_cut} will be
+#' excluded in the analysis. Default is 0, i.e. do not discard any sample.
+#' @param main_var character. The name of the main variable of interest.
+#' This argument is required and has no default.
+#' @param adj_formula  character string representing the formula for
+#' covariate adjustment. Please note that you should NOT include the
+#' \code{main_var} in the formula. Default is \code{NULL}.
+#' @param rand_formula the character string expresses how the microbial absolute
+#' abundances for each taxon depend on the random effects in metadata. ANCOM
+#' follows the \code{lmerTest} package in formulating the random effects. See
+#' \code{?lmerTest::lmer} for more details. Default is \code{NULL}.
+#' @param lme_control a list of control parameters for mixed model fitting.
+#' See \code{?lme4::lmerControl} for details.
+#' @param struc_zero logical. whether to detect structural zeros based on
+#' \code{main_var}. \code{main_var} should be discrete. Default is FALSE.
+#' @param neg_lb logical. whether to classify a taxon as a structural zero using
+#' its asymptotic lower bound. Default is FALSE.
+#' @param alpha numeric. level of significance. Default is 0.05.
+#' @param n_cl numeric. The number of nodes to be forked. For details, see
+#' \code{?parallel::makeCluster}. Default is 1 (no parallel computing).
+#' @param verbose logical. Whether to display detailed progress messages.
+#' Default is TRUE.
+#'
+#' @return a \code{list} with components:
+#'         \itemize{
+#'         \item{ \code{res},  a \code{data.frame} containing ANCOM
+#'         result for the variable specified in \code{main_var},
+#'         each column is:}
+#'         \itemize{
+#'         \item{ \code{W}, test statistics.}
+#'         \item{ \code{detected_0.9, detected_0.8, detected_0.7, detected_0.6},
+#'         logical vectors representing whether a taxon is differentially
+#'         abundant under a series of cutoffs. For example, TRUE in
+#'         \code{detected_0.7} means the number of ALR transformed models where
+#'         the taxon is differentially abundant with regard to the main variable
+#'         outnumbers \code{0.7 * (n_tax - 1)}. \code{detected_0.7} is commonly
+#'         used. Choose \code{detected_0.8} or \code{detected_0.9} for more
+#'         conservative results, or choose \code{detected_0.6} for more liberal
+#'         results.}
+#'         }
+#'         \item{ \code{zero_ind}, a logical \code{data.frame} with TRUE
+#'         indicating the taxon is detected to contain structural zeros in
+#'         some specific groups.}
+#'         \item{ \code{beta_data}, a numeric \code{matrix} containing pairwise
+#'         coefficients for the main variable of interest in ALR transformed
+#'         regression models.}
+#'         \item{ \code{p_data}, a numeric \code{matrix} containing pairwise
+#'         p-values for the main variable of interest in ALR transformed
+#'         regression models.}
+#'         \item{ \code{q_data}, a numeric \code{matrix} containing adjusted
+#'         p-values by applying the \code{p_adj_method} to the \code{p_data}
+#'         matrix.}
+#'         }
+#'
+#' @seealso \code{\link{ancombc}} \code{\link{ancombc2}}
+#' \code{\link{data_sanity_check}} \code{\link{ANCOMBC-concepts}}
+#'
+#' @examples
+#' library(ANCOMBC)
+#' if (requireNamespace("microbiome", quietly = TRUE)) {
+#'     data(atlas1006, package = "microbiome")
+#'     # subset to baseline
+#'     pseq = phyloseq::subset_samples(atlas1006, time == 0)
+#'
+#'     # run ancom function
+#'     set.seed(123)
+#'     out = ancom(data = pseq, tax_level = "Family",
+#'                 p_adj_method = "holm", prv_cut = 0.10, lib_cut = 1000,
+#'                 main_var = "bmi_group", adj_formula = "age + nationality",
+#'                 rand_formula = NULL, lme_control = NULL,
+#'                 struc_zero = TRUE, neg_lb = TRUE, alpha = 0.05, n_cl = 1)
+#'
+#'     res = out$res
+#' } else {
+#'     message("The 'microbiome' package is not installed. Please install it to use this example.")
+#' }
+#'
+#' @author Huang Lin
+#'
+#' @references
+#' \insertRef{mandal2015analysis}{ANCOMBC}
+#'
+#' \insertRef{kaul2017analysis}{ANCOMBC}
+#'
+#' @rawNamespace import(stats, except = filter)
+#' @importFrom lmerTest lmer
+#' @importFrom lme4 lmerControl
+#' @importFrom parallel makeCluster stopCluster
+#' @importFrom foreach foreach %dopar% registerDoSEQ
+#' @importFrom doParallel registerDoParallel
+#' @importFrom Rdpack reprompt
+#'
+#' @export
+ancom = function(data = NULL, taxa_are_rows = TRUE,
+                 assay.type = NULL, assay_name = "counts",
+                 rank = NULL, tax_level = NULL,
+                 aggregate_data = NULL, meta_data = NULL,
+                 p_adj_method = "holm", prv_cut = 0.10,
+                 lib_cut = 0, main_var, adj_formula = NULL,
+                 rand_formula = NULL, lme_control = lme4::lmerControl(),
+                 struc_zero = FALSE, neg_lb = FALSE,
+                 alpha = 0.05, n_cl = 1, verbose = TRUE){
+    message("'ancom' has been fully evolved to 'ancombc2'. \n",
+            "Explore the enhanced capabilities of our refined method!")
+
+    # 1. Data pre-processing
+    # Data sanity check
+    check_results = data_sanity_check(data = data,
+                                      taxa_are_rows = taxa_are_rows,
+                                      assay.type = assay_name,
+                                      assay_name = assay_name,
+                                      rank = tax_level,
+                                      tax_level = tax_level,
+                                      aggregate_data = aggregate_data,
+                                      meta_data = meta_data,
+                                      fix_formula = paste(main_var, adj_formula, sep = " + "),
+                                      group = main_var,
+                                      struc_zero = struc_zero,
+                                      verbose = verbose)
+
+    # Filter data by prevalence and library size
+    core = .data_core(data = check_results$feature_table_aggregate,
+                      meta_data = check_results$meta_data,
+                      prv_cut = prv_cut, lib_cut = lib_cut,
+                      tax_keep = NULL, samp_keep = NULL)
+    feature_table = core$feature_table
+    tax_keep = core$tax_keep
+    tax_name = rownames(feature_table)
+    meta_data = core$meta_data
+    meta_data[] = lapply(meta_data, function(x)
+        if(is.factor(x)) factor(x) else x)
+
+    # Check the type of main variable
+    main_val = meta_data[, main_var]
+    main_class = class(main_val)
+    if (main_class == "character") {
+        if (length(unique(main_val)) == length(main_val)) {
+            warn_txt = sprintf(paste("The class of main variable is:",
+                                     main_class,
+                                     "but it contains too many categories.",
+                                     "Perhaps it should be numeric?",
+                                     sep = "\n"))
+            warning(warn_txt, call. = FALSE)
+        } else if (length(unique(main_val)) > 2) {
+            main_cat = 1
+        } else if (length(unique(main_val)) == 2) {
+            main_cat = 0
+        } else {
+            stop_txt = sprintf(paste("The class of main variable is:",
+                                     main_class,
+                                     "but it contains < 2 categories",
+                                     sep = "\n"))
+            stop(stop_txt, call. = FALSE)
+        }
+    } else if (main_class == "factor") {
+        if (nlevels(main_val) == length(main_val)) {
+            warn_txt = sprintf(paste("The class of main variable is:",
+                                     main_class,
+                                     "but it contains too many categories.",
+                                     "Perhaps it should be numeric?",
+                                     sep = "\n"))
+            warning(warn_txt, call. = FALSE)
+        } else if (nlevels(main_val) > 2) {
+            main_cat = 1
+        } else if (nlevels(main_val) == 2) {
+            main_cat = 0
+        } else {
+            stop_txt = sprintf(paste("The class of main variable is:",
+                                     main_class,
+                                     "but it contains < 2 categories",
+                                     sep = "\n"))
+            stop(stop_txt, call. = FALSE)
+        }
+    } else {
+        main_cat = 0
+    }
+    # Check the number of taxa
+    n_tax = nrow(feature_table)
+    if (n_tax < 10) {
+        warn_txt = sprintf(paste("ANCOM results would be unreliable when the number of taxa is too small (e.g. < 10)",
+                                 "The number of taxa after filtering is: ",
+                                 n_tax, sep = "\n"))
+        warning(warn_txt, call. = FALSE)
+    }
+
+    # 2. Identify taxa with structural zeros
+    if (verbose) {
+        message("Identifing taxa with structural zeros ...")
+    }
+    if (struc_zero) {
+        if (! main_class %in% c("character", "factor")) {
+            stop_txt = sprintf(paste("The main variable should be discrete for detecting structural zeros.",
+                                     "Otherwise, set struc_zero = FALSE to proceed"))
+            stop(stop_txt, call. = FALSE)
+        }
+        zero_ind = .get_struc_zero(data = check_results$feature_table_aggregate,
+                                   meta_data = check_results$meta_data,
+                                   group = main_var, neg_lb = neg_lb)
+        zero_ind = zero_ind[tax_keep, ]
+        rownames(zero_ind) = NULL
+        num_struc_zero = apply(zero_ind[, -1], 1, sum)
+        comp_idx = which(num_struc_zero == 0)
+        comp_table = feature_table[comp_idx, ]
+    }else{
+        zero_ind = NULL
+        comp_table = feature_table
+    }
+    # Add pseudo-count (1) and take logarithm
+    comp_table = log(as.matrix(comp_table) + 1)
+    n_tax = dim(comp_table)[1]
+    taxon_id = rownames(comp_table)
+    n_samp = dim(comp_table)[2]
+
+    # 3. Determine the type of statistical test and its formula
+    if (verbose) {
+        message("Determining the type of statistical test and its formula ...")
+    }
+    if (is.null(rand_formula)) {
+        # Model: linear model
+        tfun = stats::lm
+        # Formula
+        if (is.null(adj_formula)) {
+            tformula = formula(paste("x ~", main_var), sep = " ")
+        }else {
+            tformula = formula(paste("x ~", main_var, "+", adj_formula), sep = " ")
+        }
+    }else if (!is.null(rand_formula)) {
+        # Model: linear mixed-effects model
+        tfun = lmerTest::lmer
+        # Formula
+        if (is.null(adj_formula)) {
+            # Random intercept model
+            tformula = formula(paste0("x ~ ", main_var, "+ ", rand_formula))
+        }else {
+            # Random coefficients/slope model
+            tformula = formula(paste0("x ~ ", main_var, "+ ",
+                                      adj_formula, "+ ", rand_formula))
+        }
+    }
+
+    # 4. Computing pairwise p-values and effect sizes
+    if (verbose) {
+        message("Computing pairwise p-values and effect sizes ...")
+    }
+    comb = function(...) {
+        mapply("rbind", ..., SIMPLIFY = FALSE)
+    }
+
+    idx1 = NULL
+
+    if (n_cl > 1) {
+      cl = parallel::makeCluster(n_cl)
+      doParallel::registerDoParallel(cl)
+    } else {
+      foreach::registerDoSEQ()
+    }
+
+    # The response of the pair (idx1, idx2) is the negative of the response of
+    # the pair (idx2, idx1), so the two fits share the p-value and the effect
+    # size up to sign. Only the pairs with idx2 > idx1 are fitted and the
+    # remaining entries are obtained by reflection. The number of such pairs
+    # decreases with idx1, so reference taxa are assigned to workers in turn.
+    n_wrk = max(1L, min(as.integer(n_cl), n_tax))
+    chunk_idx = split(seq_len(n_tax), rep_len(seq_len(n_wrk), n_tax))
+    chunk_ord = order(unlist(chunk_idx, use.names = FALSE))
+    beta_sign = if (main_cat == 0) -1 else 1
+
+    # Without random effects all additive log-ratio responses share one design,
+    # so the pairs with a common reference taxon are fitted as a single
+    # multi-response least-squares problem.
+    dsg = NULL
+    if (is.null(rand_formula) && all(is.finite(comp_table))) {
+        dsg = .ancom_alr_design(tformula = tformula, meta_data = meta_data,
+                                n_samp = n_samp, main_var = main_var)
+    }
+
+    if (!is.null(dsg)) {
+        # Worker processes do not attach ANCOMBC, so the helper is given an
+        # environment that serializes without the package namespace
+        alr_stats = .ancom_alr_stats
+        environment(alr_stats) = baseenv()
+        alr_base = t(comp_table)[dsg$keep, , drop = FALSE]
+
+        result = foreach(idx1 = chunk_idx, .combine = comb,
+                         .multicombine = TRUE) %dopar% {
+            p_mat = matrix(NA_real_, nrow = length(idx1), ncol = n_tax)
+            beta_mat = matrix(NA_real_, nrow = length(idx1), ncol = n_tax)
+
+            for (k in seq_along(idx1)) {
+                ref = idx1[k]
+                if (ref == n_tax) next
+                idx2 = seq.int(ref + 1L, n_tax)
+                stat = alr_stats(y = alr_base[, idx2, drop = FALSE] -
+                                     alr_base[, ref],
+                                 dsg = dsg, main_cat = main_cat)
+                p_mat[k, idx2] = stat$p
+                beta_mat[k, idx2] = stat$beta
+            }
+
+            list(p_mat, beta_mat)
+        }
+    } else {
+        result = foreach(idx1 = chunk_idx, .combine = comb,
+                         .multicombine = TRUE) %dopar% {
+            p_mat = matrix(NA_real_, nrow = length(idx1), ncol = n_tax)
+            beta_mat = matrix(NA_real_, nrow = length(idx1), ncol = n_tax)
+            comp_t = t(comp_table)
+            test_data = data.frame(x = numeric(n_samp), meta_data,
+                                   check.names = FALSE)
+
+            idx2 = NULL
+            for (k in seq_along(idx1)) {
+                ref = idx1[k]
+                if (ref == n_tax) next
+                if (is.null(rand_formula)) {
+                    for (idx2 in seq.int(ref + 1L, n_tax)) {
+                        test_data$x = comp_t[, idx2] - comp_t[, ref]
+                        lm_fit = suppressWarnings(tfun(tformula, data = test_data))
+                        if (main_cat == 0) {
+                            # The main variable is on the second row
+                            fit_coef = summary(lm_fit)$coef
+                            p_mat[k, idx2] = fit_coef[2, "Pr(>|t|)"]
+                            beta_mat[k, idx2] = fit_coef[2, "t value"]
+                        } else {
+                            fit_aov = anova(lm_fit)
+                            p_mat[k, idx2] = fit_aov[main_var, "Pr(>F)"]
+                            beta_mat[k, idx2] = fit_aov[main_var, "F value"]
+                        }
+                    }
+                } else {
+                    for (idx2 in seq.int(ref + 1L, n_tax)) {
+                        test_data$x = comp_t[, idx2] - comp_t[, ref]
+                        lme_fit = try(tfun(formula = tformula,
+                                           data = test_data,
+                                           na.action = na.omit,
+                                           control = lme_control),
+                                      silent = TRUE)
+                        if (!inherits(lme_fit, "try-error")) {
+                            if (main_cat == 0) {
+                                # The main variable is on the second row
+                                fit_coef = summary(lme_fit)$coefficients
+                                p_mat[k, idx2] = fit_coef[2, "Pr(>|t|)"]
+                                beta_mat[k, idx2] = fit_coef[2, "Estimate"]
+                            } else {
+                                fit_aov = anova(lme_fit)
+                                p_mat[k, idx2] = fit_aov[main_var, "Pr(>F)"]
+                                beta_mat[k, idx2] = fit_aov[main_var, "F value"]
+                            }
+                        }
+                    }
+                }
+            }
+
+            list(p_mat, beta_mat)
+        }
+    }
+
+    if (n_cl > 1) {
+      parallel::stopCluster(cl)
+    }
+
+    p_data = result[[1]][chunk_ord, , drop = FALSE]
+    beta_data = result[[2]][chunk_ord, , drop = FALSE]
+
+    lower_ind = lower.tri(p_data)
+    p_data[lower_ind] = t(p_data)[lower_ind]
+    beta_data[lower_ind] = beta_sign * t(beta_data)[lower_ind]
+
+    colnames(p_data) = taxon_id
+    rownames(p_data) = taxon_id
+    colnames(beta_data) = taxon_id
+    rownames(beta_data) = taxon_id
+
+    diag(p_data) = 1
+    p_data[is.na(p_data)] = 1
+    diag(beta_data) = 0
+    beta_data[is.na(beta_data)] = 0
+
+    # 5. Primary results
+    if (verbose) {
+        message("Primary results ...")
+    }
+    q_data = apply(p_data, 2, function(x) p.adjust(x, method = p_adj_method))
+    W = apply(q_data, 2, function(x) sum(x <= alpha))
+    res_comp = data.frame(taxon = taxon_id, W, row.names = NULL, check.names = FALSE)
+    res_comp$detected_0.9 = ifelse(res_comp$W > 0.9 * (n_tax - 1), TRUE, FALSE)
+    res_comp$detected_0.8 = ifelse(res_comp$W > 0.8 * (n_tax - 1), TRUE, FALSE)
+    res_comp$detected_0.7 = ifelse(res_comp$W > 0.7 * (n_tax - 1), TRUE, FALSE)
+    res_comp$detected_0.6 = ifelse(res_comp$W > 0.6 * (n_tax - 1), TRUE, FALSE)
+
+    # Combine the information of structural zeros
+    if (struc_zero){
+        res = data.frame(taxon = tax_name, W = Inf,
+                         detected_0.9 = TRUE, detected_0.8 = TRUE,
+                         detected_0.7 = TRUE, detected_0.6 = TRUE,
+                         row.names = NULL, check.names = FALSE)
+        res[comp_idx, ] = res_comp
+    }else{
+        res = res_comp
+    }
+
+    out = list(res = res, zero_ind = zero_ind,
+               beta_data = beta_data, p_data = p_data, q_data = q_data)
+    return(out)
+}
+
+
+# Design shared by every additive log-ratio response when no random effects are
+# specified. The response is finite for all taxa, so the retained samples, the
+# design matrix and the quantities derived from it are the same for every pair
+# of taxa.
+#
+# Returns NULL when the main variable is not a term of the model, the design is
+# rank deficient, the design has fewer than two columns, or there are no
+# residual degrees of freedom. Each pair is then fitted separately.
+.ancom_alr_design = function(tformula, meta_data, n_samp, main_var) {
+    frame_data = data.frame(x = numeric(n_samp), meta_data, check.names = FALSE)
+    mf = try(stats::model.frame(tformula, data = frame_data,
+                                drop.unused.levels = TRUE), silent = TRUE)
+    if (inherits(mf, "try-error")) return(NULL)
+    mt = attr(mf, "terms")
+    main_term = match(main_var, attr(mt, "term.labels"))
+    if (is.na(main_term)) return(NULL)
+    x = try(stats::model.matrix(mt, mf), silent = TRUE)
+    if (inherits(x, "try-error")) return(NULL)
+
+    n_obs = nrow(x)
+    n_coef = ncol(x)
+    if (n_coef < 2 || n_obs <= n_coef) return(NULL)
+    qr_fit = stats::lm.fit(x, numeric(n_obs))
+    if (qr_fit$rank < n_coef) return(NULL)
+    if (!identical(qr_fit$qr$pivot, seq_len(n_coef))) return(NULL)
+
+    # Rows of the effects matrix carrying the sequential sum of squares of the
+    # main variable
+    main_rows = which(attr(x, "assign") == main_term)
+    if (length(main_rows) == 0L) return(NULL)
+
+    # Inverse cross-product matrix, used for the standard error of the
+    # coefficient on the second row
+    r_inv = chol2inv(qr_fit$qr$qr[seq_len(n_coef), seq_len(n_coef),
+                                  drop = FALSE])
+
+    omit = attr(mf, "na.action")
+    keep = if (is.null(omit)) seq_len(n_samp) else
+        seq_len(n_samp)[-as.integer(omit)]
+
+    list(x = x, keep = keep, n_obs = n_obs, n_coef = n_coef,
+         rdf = n_obs - n_coef, main_rows = main_rows,
+         df_main = length(main_rows), r_inv_22 = r_inv[2, 2])
+}
+
+# Test statistics and p-values for the additive log-ratio responses in the
+# columns of y, all regressed on the design in dsg. With main_cat = 1 the
+# statistic is the F statistic of the main variable and with main_cat = 0 it is
+# the t statistic of the coefficient on the second row of the design.
+.ancom_alr_stats = function(y, dsg, main_cat) {
+    n_obs = dsg$n_obs
+    n_resp = ncol(y)
+    fit = stats::lm.fit(dsg$x, y)
+
+    resid_mat = fit$residuals
+    dim(resid_mat) = c(n_obs, n_resp)
+    rss = .colSums(resid_mat^2, n_obs, n_resp)
+
+    if (main_cat == 1) {
+        eff_mat = fit$effects
+        dim(eff_mat) = c(n_obs, n_resp)
+        ss_main = .colSums(eff_mat[dsg$main_rows, , drop = FALSE]^2,
+                           dsg$df_main, n_resp)
+        f_val = (ss_main/dsg$df_main)/(rss/dsg$rdf)
+        list(p = stats::pf(f_val, dsg$df_main, dsg$rdf, lower.tail = FALSE),
+             beta = f_val)
+    } else {
+        coef_mat = fit$coefficients
+        dim(coef_mat) = c(dsg$n_coef, n_resp)
+        t_val = coef_mat[2, ]/sqrt(dsg$r_inv_22 * (rss/dsg$rdf))
+        list(p = 2 * stats::pt(abs(t_val), dsg$rdf, lower.tail = FALSE),
+             beta = t_val)
+    }
+}
+

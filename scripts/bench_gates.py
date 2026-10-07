@@ -491,12 +491,19 @@ def main(argv: list[str]) -> int:
             for row in r.get("surface") or []:
                 if not row["rust_1_wall_s"]:
                     continue
+                # A failed re-run shadows the earlier good row in
+                # `latest_per_key`, so `r_1core_wall_s` can be None while
+                # `rust_1_wall_s` is present -- which is exactly what a
+                # container run with broken R arms produces. Print n/a rather
+                # than crashing; the gate itself already reports the missing
+                # reference through `speedup_vs_r is None`.
                 sr = "n/a" if row["speedup_vs_r"] is None else f"{row['speedup_vs_r']:.2f}x"
                 mr = "n/a" if row["peak_rss_ratio_vs_r"] is None else f"{row['peak_rss_ratio_vs_r']:.2f}x"
                 sc = "n/a" if row["best_thread_scaling"] is None else f"{row['best_thread_scaling']:.2f}x"
+                rr = "n/a" if row["r_1core_wall_s"] is None else f"{row['r_1core_wall_s']:>8.3f}s"
                 print(
                     f"         {row['dataset']:>5}: rust-1 {row['rust_1_wall_s']:>8.3f}s"
-                    f"  R {row['r_1core_wall_s']:>8.3f}s  speed {sr:>7}"
+                    f"  R {rr:>10}  speed {sr:>7}"
                     f"  rss {mr:>7}  scaling {sc:>7}"
                 )
         print("=" * 72)

@@ -1,0 +1,3496 @@
+{
+  "builder": "scripts/make_exact_inputs.R",
+  "cases": {
+    "absent-in-group-a": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "taxon T1 is zero in every sample of g1 and present in g2, so its group-1 prevalence is 0 and only that group is flagged. This is the two-column derived fixture: the committed edge meta.tsv has a single column, which [.data.frame collapses, so the same scenario is analysed here and refused in the `edge-absent-in-group-a` error case."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/absent-in-group-a.rds",
+      "input_bytes": 1041,
+      "input_sha256": "35f62afe3d0d567e0ced5d3ca7671398598669b9d85a93ef75dbaa6356d8f860",
+      "n_samp": 10,
+      "n_tax": 6,
+      "seed": 42,
+      "source": {
+        "config": "validation/exact/fixtures-src/absent-in-group-a-2col/config.tsv",
+        "counts": "validation/exact/fixtures-src/absent-in-group-a-2col/counts.tsv",
+        "dir": "validation/exact/fixtures-src/absent-in-group-a-2col",
+        "meta": "validation/exact/fixtures-src/absent-in-group-a-2col/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "51b59e910fe77df2807d412ec083321b907d1daa2832223501f9a460d1215d17",
+        "counts": "6f5665f05b72a232e9521cac738aea2885c854f39584a4cef0069f8ad2987f09",
+        "meta": "80f696d095dac300c6c83c88aadf61dcb5dcfad3bb344a0555444b8096005e15"
+      },
+      "tags": [
+        "derived-2col",
+        "edge",
+        "structural-zero"
+      ],
+      "threads": 1
+    },
+    "edge-absent-in-group-a": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "validation/edge/absent-in-group-a/meta.tsv has exactly one column. data_sanity_check's matrix branch ends with meta_data = meta_data[colnames(feature_table), ] and [.data.frame's drop defaults to TRUE when there is exactly one column, so the metadata collapses to a vector and the next check reports the formula variable as absent. This is the same refusal as fx01-basic. The legacy edge harness called .ref_core directly and never went through data_sanity_check, which is why these cases were believed runnable through the package API; the absent-in-group-a-2col case is the two-column derived fixture where the same scenario is actually analysed."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/edge-absent-in-group-a.rds",
+      "input_bytes": 900,
+      "input_sha256": "5dde2311f3cf98f5958b7506998385eb96725089e4792834ea57064a2b258987",
+      "n_samp": 10,
+      "n_tax": 6,
+      "seed": 42,
+      "source": {
+        "config": "validation/edge/absent_in_group_a/analysis.tsv",
+        "counts": "validation/edge/absent_in_group_a/counts.tsv",
+        "dir": "validation/edge/absent_in_group_a",
+        "meta": "validation/edge/absent_in_group_a/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "51b59e910fe77df2807d412ec083321b907d1daa2832223501f9a460d1215d17",
+        "counts": "6f5665f05b72a232e9521cac738aea2885c854f39584a4cef0069f8ad2987f09",
+        "meta": "4ebac350ca0fe686a34be401d4032081b77a7d7df63ed4b05f557001c2cb0d35"
+      },
+      "tags": [
+        "edge",
+        "neg-lb-on",
+        "small",
+        "struc-zero-on",
+        "structural-zero"
+      ],
+      "threads": 1
+    },
+    "edge-group-of-size-one": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "a group of size one. The original validates group sizes before anything else, so this is a refusal. Kept as an error case: the refusal's message and class are part of the contract."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/edge-group-of-size-one.rds",
+      "input_bytes": 846,
+      "input_sha256": "73413674926c58fc671a6f116e1ebd6f3a3c7d90685f1acafbc2d4535749cfa5",
+      "n_samp": 7,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": "validation/edge/group_of_size_one/analysis.tsv",
+        "counts": "validation/edge/group_of_size_one/counts.tsv",
+        "dir": "validation/edge/group_of_size_one",
+        "meta": "validation/edge/group_of_size_one/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "51b59e910fe77df2807d412ec083321b907d1daa2832223501f9a460d1215d17",
+        "counts": "a2380d7384bc23b9d6721b5d9d761cf9c4d8cb93302b74f56193f6d6bcbf4935",
+        "meta": "c8656e800f7de671a94a9a8e3af53c434f3197d865307f3aa50659cba9821459"
+      },
+      "tags": [
+        "edge",
+        "group-size",
+        "reference-error"
+      ],
+      "threads": 1
+    },
+    "edge-na-counts": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "validation/edge/na-counts/meta.tsv has exactly one column. data_sanity_check's matrix branch ends with meta_data = meta_data[colnames(feature_table), ] and [.data.frame's drop defaults to TRUE when there is exactly one column, so the metadata collapses to a vector and the next check reports the formula variable as absent. This is the same refusal as fx01-basic. The legacy edge harness called .ref_core directly and never went through data_sanity_check, which is why these cases were believed runnable through the package API; the na-counts-2col case is the two-column derived fixture where the same scenario is actually analysed."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/edge-na-counts.rds",
+      "input_bytes": 878,
+      "input_sha256": "305d5a090287e0484fe06fb737f46ca8d615e9d5e936f847f93cb886e6425987",
+      "n_samp": 10,
+      "n_tax": 6,
+      "seed": 42,
+      "source": {
+        "config": "validation/edge/na_counts/analysis.tsv",
+        "counts": "validation/edge/na_counts/counts.tsv",
+        "dir": "validation/edge/na_counts",
+        "meta": "validation/edge/na_counts/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "51b59e910fe77df2807d412ec083321b907d1daa2832223501f9a460d1215d17",
+        "counts": "4a53d4e337be4c70c45eb4ccd726df06f51c8adaeb5f02e233fc63366ead2a3e",
+        "meta": "4ebac350ca0fe686a34be401d4032081b77a7d7df63ed4b05f557001c2cb0d35"
+      },
+      "tags": [
+        "edge",
+        "missing-values",
+        "na-vs-zero",
+        "small"
+      ],
+      "threads": 1
+    },
+    "edge-present-in-every-group": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "validation/edge/present-in-every-group/meta.tsv has exactly one column. data_sanity_check's matrix branch ends with meta_data = meta_data[colnames(feature_table), ] and [.data.frame's drop defaults to TRUE when there is exactly one column, so the metadata collapses to a vector and the next check reports the formula variable as absent. This is the same refusal as fx01-basic. The legacy edge harness called .ref_core directly and never went through data_sanity_check, which is why these cases were believed runnable through the package API; the present-in-every-group-2col case is the two-column derived fixture where the same scenario is actually analysed."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/edge-present-in-every-group.rds",
+      "input_bytes": 903,
+      "input_sha256": "0bde9d6088204ebce6fd811e2ff9297bc55f8f1e2459b674fa868bcb1c36b0a6",
+      "n_samp": 10,
+      "n_tax": 6,
+      "seed": 42,
+      "source": {
+        "config": "validation/edge/present_in_every_group/analysis.tsv",
+        "counts": "validation/edge/present_in_every_group/counts.tsv",
+        "dir": "validation/edge/present_in_every_group",
+        "meta": "validation/edge/present_in_every_group/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "51b59e910fe77df2807d412ec083321b907d1daa2832223501f9a460d1215d17",
+        "counts": "0de2a70d0777c283340fc43d5d7eb3ca7710a815ff0bc3ff4866535ba11175b3",
+        "meta": "4ebac350ca0fe686a34be401d4032081b77a7d7df63ed4b05f557001c2cb0d35"
+      },
+      "tags": [
+        "edge",
+        "negative-control",
+        "structural-zero"
+      ],
+      "threads": 1
+    },
+    "edge-prv-cut-boundary": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "validation/edge/prv-cut-boundary/meta.tsv has exactly one column. data_sanity_check's matrix branch ends with meta_data = meta_data[colnames(feature_table), ] and [.data.frame's drop defaults to TRUE when there is exactly one column, so the metadata collapses to a vector and the next check reports the formula variable as absent. This is the same refusal as fx01-basic. The legacy edge harness called .ref_core directly and never went through data_sanity_check, which is why these cases were believed runnable through the package API; the prv-cut-boundary-2col case is the two-column derived fixture where the same scenario is actually analysed."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/edge-prv-cut-boundary.rds",
+      "input_bytes": 862,
+      "input_sha256": "95bb54f9978815770664ecd3a7a35714fe9fb360016a2cd5ba46ee3b69a385e2",
+      "n_samp": 10,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": "validation/edge/prv_cut_boundary/analysis.tsv",
+        "counts": "validation/edge/prv_cut_boundary/counts.tsv",
+        "dir": "validation/edge/prv_cut_boundary",
+        "meta": "validation/edge/prv_cut_boundary/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "279584025a3d27626a5fc609fcb566702093048980f373b37d78a4cbd5f012b5",
+        "counts": "118d0ef25d182a68708bef63c09cabc4f17662b8d9db2e07ddcd30f5cd0db465",
+        "meta": "4ebac350ca0fe686a34be401d4032081b77a7d7df63ed4b05f557001c2cb0d35"
+      },
+      "tags": [
+        "boundary",
+        "edge",
+        "prevalence-filter"
+      ],
+      "threads": 1
+    },
+    "edge-rare-in-group-a": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "validation/edge/rare-in-group-a/meta.tsv has exactly one column. data_sanity_check's matrix branch ends with meta_data = meta_data[colnames(feature_table), ] and [.data.frame's drop defaults to TRUE when there is exactly one column, so the metadata collapses to a vector and the next check reports the formula variable as absent. This is the same refusal as fx01-basic. The legacy edge harness called .ref_core directly and never went through data_sanity_check, which is why these cases were believed runnable through the package API; the rare-in-group-a-2col case is the two-column derived fixture where the same scenario is actually analysed."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/edge-rare-in-group-a.rds",
+      "input_bytes": 903,
+      "input_sha256": "35e83be678c51aef251f5fb337addd898f028218b08e51d5b921bde8f8b3c722",
+      "n_samp": 10,
+      "n_tax": 6,
+      "seed": 42,
+      "source": {
+        "config": "validation/edge/rare_in_group_a/analysis.tsv",
+        "counts": "validation/edge/rare_in_group_a/counts.tsv",
+        "dir": "validation/edge/rare_in_group_a",
+        "meta": "validation/edge/rare_in_group_a/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "51b59e910fe77df2807d412ec083321b907d1daa2832223501f9a460d1215d17",
+        "counts": "120482025af1e28685735ce3406af925a504db3e36ca2ee9d189d8389d357095",
+        "meta": "4ebac350ca0fe686a34be401d4032081b77a7d7df63ed4b05f557001c2cb0d35"
+      },
+      "tags": [
+        "edge",
+        "neg-lb-on",
+        "structural-zero"
+      ],
+      "threads": 1
+    },
+    "edge-struc-zero-off": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "validation/edge/struc-zero-off/meta.tsv has exactly one column. data_sanity_check's matrix branch ends with meta_data = meta_data[colnames(feature_table), ] and [.data.frame's drop defaults to TRUE when there is exactly one column, so the metadata collapses to a vector and the next check reports the formula variable as absent. This is the same refusal as fx01-basic. The legacy edge harness called .ref_core directly and never went through data_sanity_check, which is why these cases were believed runnable through the package API; the struc-zero-off-2col case is the two-column derived fixture where the same scenario is actually analysed."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/edge-struc-zero-off.rds",
+      "input_bytes": 897,
+      "input_sha256": "692eaa11d7dd5e2ec0b62a23d59fbc2663be1ccc8210916ce0b2762b747291e7",
+      "n_samp": 10,
+      "n_tax": 6,
+      "seed": 42,
+      "source": {
+        "config": "validation/edge/struc_zero_off/analysis.tsv",
+        "counts": "validation/edge/struc_zero_off/counts.tsv",
+        "dir": "validation/edge/struc_zero_off",
+        "meta": "validation/edge/struc_zero_off/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "17cce00b8232c5774f2ab6f972e6038056b63b4ab961ec56a84e02ee501cac1a",
+        "counts": "a9dd1d4bb1fa13b32ed90a6980fc36e0d0265e623da39ceb8075da6b36f981ab",
+        "meta": "4ebac350ca0fe686a34be401d4032081b77a7d7df63ed4b05f557001c2cb0d35"
+      },
+      "tags": [
+        "edge",
+        "struc-zero-off",
+        "structural-zero"
+      ],
+      "threads": 1
+    },
+    "fx01-basic": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "fx01's meta.tsv has one column. data_sanity_check's matrix branch ends with meta_data = meta_data[colnames(feature_table), ] and [.data.frame drops to a vector when there is exactly one column, so the original raises 'The following variables specified are not in the meta data: group'. Pinned behaviour; kept as an error case, not deleted."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx01-basic.rds",
+      "input_bytes": 1251,
+      "input_sha256": "3aee278da6410225df7d6ff4e83cb7267eb81676b33e5d5f20b3daf011278c7e",
+      "n_samp": 10,
+      "n_tax": 10,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx01/config.json",
+        "counts": "validation/fixtures/fx01/counts.tsv",
+        "dir": "validation/fixtures/fx01",
+        "meta": "validation/fixtures/fx01/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "fc945127aece23a3af58e3e0da76b49790aa5eaa5e16fefe9a317be927f5b345",
+        "counts": "4b5fb6fe0f72675a275b2cfd802fe76e15267926446506be93c23ef4b73bde56",
+        "meta": "4709f00bd69356e12176c140f72cf407e403145fe725a7e6518562e99a3a74e8"
+      },
+      "tags": [
+        "fixtures",
+        "matrix-input",
+        "reference-error",
+        "single-column-meta",
+        "small"
+      ],
+      "threads": 1
+    },
+    "fx02-basic": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx02-basic.rds",
+      "input_bytes": 8142,
+      "input_sha256": "c16f127ccbecb1d6fc379057370659bb8e8641e8f2a3431e9eb66f7b220ca1b6",
+      "n_samp": 30,
+      "n_tax": 100,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx02/config.json",
+        "counts": "validation/fixtures/fx02/counts.tsv",
+        "dir": "validation/fixtures/fx02",
+        "meta": "validation/fixtures/fx02/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "3ff65bb268131df236c7df8df72b3dc30e73550728d9565e743eb121b6f6dc44",
+        "counts": "0284c54d11a513182c71ebc6fd33d3934944762d254a48ea46bbfa8ac7e9ec3a",
+        "meta": "9338289d2e399b0e43df51a046068cb0a43fad0bb58a25198dc1b9daaf082597"
+      },
+      "tags": [
+        "fixed-effects",
+        "fixtures",
+        "matrix-input",
+        "sensitivity-off",
+        "small",
+        "two-groups"
+      ],
+      "threads": 1
+    },
+    "fx02-defaults": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "p_adj_method, pseudo, pseudo_sens, conservative, prv_cut, lib_cut, s0_perc, struc_zero, neg_lb, alpha, iter_control, em_control, lme_control, mdfdr_control and trend_control are all omitted and take the pinned original's own defaults; group/global/pairwise are omitted because this fixture has no group column. A first draft of this case omitted `sensitivity`, which is the fixture-manifest key rather than the ancombc2 formal, so it was passed through as an unknown argument and the reference answered 'undefined columns selected' when it reached meta_data[.]. The manifest key is translated in scripts/exact_input_lib.R; the formal name must be used here."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx02-defaults.rds",
+      "input_bytes": 8108,
+      "input_sha256": "ddcf4b459dd2a509fcf06ff70e75042acb3e72bd273a3af45b1be57dfd1d0a89",
+      "n_samp": 30,
+      "n_tax": 100,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx02/config.json",
+        "counts": "validation/fixtures/fx02/counts.tsv",
+        "dir": "validation/fixtures/fx02",
+        "meta": "validation/fixtures/fx02/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "3ff65bb268131df236c7df8df72b3dc30e73550728d9565e743eb121b6f6dc44",
+        "counts": "0284c54d11a513182c71ebc6fd33d3934944762d254a48ea46bbfa8ac7e9ec3a",
+        "meta": "9338289d2e399b0e43df51a046068cb0a43fad0bb58a25198dc1b9daaf082597"
+      },
+      "tags": [
+        "defaults",
+        "omitted-arguments"
+      ],
+      "threads": 1
+    },
+    "fx02-positional": {
+      "call_style": "positional",
+      "expect": {
+        "outcome": "error",
+        "why": "positional: data, taxa_are_rows, meta_data, fix_formula only. The remaining error is real and pinned deliberately -- see fx02-defaults and tiny-defaults for the *successful* omitted-defaults cases, which pass the arguments by name and omit the same set. A positional call cannot omit a middle argument, so this case exists to record what the reference does when it is asked to."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx02-positional.rds",
+      "input_bytes": 7836,
+      "input_sha256": "7cc470a91d9b208c944c7ebf8a3320b618c764a0fe182bd132b08ec9ba1ba0b9",
+      "n_samp": 30,
+      "n_tax": 100,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx02/config.json",
+        "counts": "validation/fixtures/fx02/counts.tsv",
+        "dir": "validation/fixtures/fx02",
+        "meta": "validation/fixtures/fx02/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "3ff65bb268131df236c7df8df72b3dc30e73550728d9565e743eb121b6f6dc44",
+        "counts": "0284c54d11a513182c71ebc6fd33d3934944762d254a48ea46bbfa8ac7e9ec3a",
+        "meta": "9338289d2e399b0e43df51a046068cb0a43fad0bb58a25198dc1b9daaf082597"
+      },
+      "tags": [
+        "defaults",
+        "fixed-effects",
+        "positional",
+        "small"
+      ],
+      "threads": 1
+    },
+    "fx03-alpha-0": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-alpha-0.rds",
+      "input_bytes": 203341,
+      "input_sha256": "942bd4cb5e273c301f8a4e6d9cac6bcec7696604d77561b1871cfa55ed21a0db",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "alpha",
+        "boundary"
+      ],
+      "threads": 1
+    },
+    "fx03-alpha-1": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-alpha-1.rds",
+      "input_bytes": 203342,
+      "input_sha256": "d7f663759686f3201d4c24b3f0fd07c505a24bf169367d82aa0daf2e71048af4",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "alpha",
+        "boundary"
+      ],
+      "threads": 1
+    },
+    "fx03-bad-iter-control": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "the same max_iter = 0 on fx03. Recorded because the first draft of this manifest expected an error here; the reference does not raise one."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-bad-iter-control.rds",
+      "input_bytes": 203352,
+      "input_sha256": "bd681d3082f1306874afae9c9605c68abf1f08a881c227d48885a273ef0bec52",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "boundary",
+        "iter-control",
+        "reference-error"
+      ],
+      "threads": 1
+    },
+    "fx03-bad-p-adj": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-bad-p-adj.rds",
+      "input_bytes": 203351,
+      "input_sha256": "ca8e03c35684b1d223edd5486d1c1e6ce306edad7fa0dc3ff18ca2e16a253d9f",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "adjust",
+        "invalid",
+        "reference-error"
+      ],
+      "threads": 1
+    },
+    "fx03-basic": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-basic.rds",
+      "input_bytes": 203340,
+      "input_sha256": "c611fef00ee0deabf2bcd70ffc32a5915694109bf9194d7391da575feb2c787d",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "fixtures",
+        "global-and-pairwise",
+        "matrix-input",
+        "sensitivity-on",
+        "three-groups"
+      ],
+      "threads": 1
+    },
+    "fx03-conservative-off": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-conservative-off.rds",
+      "input_bytes": 203358,
+      "input_sha256": "88d4286a02d0403d9f54138a1ab814928ccbd59fd58a52bfdf55e8fb0b364f3c",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "conservative",
+        "sensitivity"
+      ],
+      "threads": 1
+    },
+    "fx03-dunnet": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-dunnet.rds",
+      "input_bytes": 203350,
+      "input_sha256": "8095b62226924f4eca844d18dfc2a6731903532f760d4850899a4cd8b00eec1c",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "dunnet",
+        "multcomp"
+      ],
+      "threads": 1
+    },
+    "fx03-lib-cut-1": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-lib-cut-1.rds",
+      "input_bytes": 203344,
+      "input_sha256": "9caab1e3bca9d8a61e9375195ab13b4a73c8a46fefaa13276decd1ed3265e1e1",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "boundary",
+        "lib-cut"
+      ],
+      "threads": 1
+    },
+    "fx03-lib-cut-huge": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "lib_cut = 1e6 against fx03's library sizes. .data_core computes lib_size = colSums(feature_table, na.rm = TRUE) and keeps lib_size >= lib_cut, and fx03's per-sample totals exceed 1e6, so nothing is dropped and all 1000 taxa are analysed. Read from ancombc_prep.R:31-41; the outcome is a property of the library sizes, not of the argument."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-lib-cut-huge.rds",
+      "input_bytes": 203353,
+      "input_sha256": "b6c52862c21ed89b5df01fae071d3bcf0f3d6a589ccba4d5e02bcee3ad6a367c",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "boundary",
+        "lib-cut",
+        "reference-error"
+      ],
+      "threads": 1
+    },
+    "fx03-neg-lb": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-neg-lb.rds",
+      "input_bytes": 203341,
+      "input_sha256": "5edf932ab596595d1ced0df9d210151b1251ac5a37b09abb7f6a4e0d2027f7f1",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "neg-lb",
+        "structural-zero"
+      ],
+      "threads": 1
+    },
+    "fx03-p-adj-bh": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-p-adj-bh.rds",
+      "input_bytes": 203346,
+      "input_sha256": "3da771ca388b284b74f2447ee6a3043616ab79cfa2b7b043f7549f38287933a7",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "adjust",
+        "bh"
+      ],
+      "threads": 1
+    },
+    "fx03-p-adj-bonferroni": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-p-adj-bonferroni.rds",
+      "input_bytes": 203369,
+      "input_sha256": "864c9dd50f49b73467c971cb0706deef29b32173fcc831d5bc3d1584df594f00",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "adjust",
+        "bonferroni"
+      ],
+      "threads": 1
+    },
+    "fx03-pairwise-only": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-pairwise-only.rds",
+      "input_bytes": 203353,
+      "input_sha256": "3b5ad2f50181759c53da49bc00fc9b28fce2468195be03e7caa82f85347acee8",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": "pairwise",
+      "threads": 1
+    },
+    "fx03-prv-cut-0": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-prv-cut-0.rds",
+      "input_bytes": 203342,
+      "input_sha256": "22aa8b87896792194fc26a66bacd28744a0295bd4fde24df421405fcf4dd205f",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "boundary",
+        "prv-cut"
+      ],
+      "threads": 1
+    },
+    "fx03-prv-cut-1": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "prv_cut = 1 keeps only taxa observed in every sample. fx03 has 10% zeros, so no taxon qualifies and .data_core stops with 'No taxa remain under the current cutoff' (ancombc_prep.R:28)."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-prv-cut-1.rds",
+      "input_bytes": 203340,
+      "input_sha256": "df3b1888bc60a04acbfdbc2fc4ec2ee5d821007edd1c9e91f67ab417d9c8a8f1",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "boundary",
+        "prv-cut",
+        "reference-error"
+      ],
+      "threads": 1
+    },
+    "fx03-prv-cut-half": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-prv-cut-half.rds",
+      "input_bytes": 203349,
+      "input_sha256": "8cb5e34b9e0ecca1477629ed15aa98705c92a1a9bb25abc8faf9080be6a4657f",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "boundary",
+        "prv-cut"
+      ],
+      "threads": 1
+    },
+    "fx03-pseudo-half": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-pseudo-half.rds",
+      "input_bytes": 203352,
+      "input_sha256": "371f6c3577a7a0b33251240fcc05f52a3adf96d486684a01abe6239607d2e3d1",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": "pseudo-count",
+      "threads": 1
+    },
+    "fx03-pseudo-sens-off": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-pseudo-sens-off.rds",
+      "input_bytes": 203353,
+      "input_sha256": "ae7cb3ada87938232b51e5317b3866ce1d17f01a518265fb72221f6ad9dec10b",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "pseudo-sens",
+        "sensitivity"
+      ],
+      "threads": 1
+    },
+    "fx03-struc-zero-on": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-struc-zero-on.rds",
+      "input_bytes": 203350,
+      "input_sha256": "28f964db10daf6804750681b1925b671fcfbe289cc79bae196aed2be022672fa",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "struc-zero-on",
+        "structural-zero"
+      ],
+      "threads": 1
+    },
+    "fx03-trend": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "trend = TRUE with trend_control$contrast = NULL. The reference answers 'Please specify the contrast matrices for the trend test.' A trend case that actually runs the test is a separate case with a real contrast."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/fx03-trend.rds",
+      "input_bytes": 203384,
+      "input_sha256": "c56e8a863a6fff4acdc5fa790b8294423cea68f3736d361ef438ad54f19ecc80",
+      "n_samp": 100,
+      "n_tax": 1000,
+      "seed": 42,
+      "source": {
+        "config": "validation/fixtures/fx03/config.json",
+        "counts": "validation/fixtures/fx03/counts.tsv",
+        "dir": "validation/fixtures/fx03",
+        "meta": "validation/fixtures/fx03/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "0f25e327afde70a3252e48927ad80fc58cfcfea038549c7d9c0effd02841210d",
+        "counts": "6820fc502b5c60b93168ba74ba6bdda7ff664214b71ec8d2976610af40794f8b",
+        "meta": "1f46025ecc66e342279c50ce10303f408365899427ba0f53ea367cc87be8337a"
+      },
+      "tags": [
+        "mdfdr",
+        "trend"
+      ],
+      "threads": 1
+    },
+    "na-counts": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "T3 is NA across g1 and T4 is zero across g1, so the two differ only in how they are missing; the sandwich replaces an NA term with 0.1. This is the two-column derived fixture: the committed edge meta.tsv has a single column, which [.data.frame collapses, so the same scenario is analysed here and refused in the `edge-na-counts` error case."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/na-counts.rds",
+      "input_bytes": 1025,
+      "input_sha256": "d92afa528aefa861f4b890123947bffe2c3dda3c08b20dfe43a5b151063db789",
+      "n_samp": 10,
+      "n_tax": 6,
+      "seed": 42,
+      "source": {
+        "config": "validation/exact/fixtures-src/na-counts-2col/config.tsv",
+        "counts": "validation/exact/fixtures-src/na-counts-2col/counts.tsv",
+        "dir": "validation/exact/fixtures-src/na-counts-2col",
+        "meta": "validation/exact/fixtures-src/na-counts-2col/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "51b59e910fe77df2807d412ec083321b907d1daa2832223501f9a460d1215d17",
+        "counts": "4a53d4e337be4c70c45eb4ccd726df06f51c8adaeb5f02e233fc63366ead2a3e",
+        "meta": "e18abd8eea6785e0c2bc619d025b82caa33f65a378c6782e6aadff14b8686bf3"
+      },
+      "tags": [
+        "derived-2col",
+        "edge",
+        "missing-values"
+      ],
+      "threads": 1
+    },
+    "onegroup-basic": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "a single group. data_sanity_check checks n_level < 2 before it checks n_level < 3, so one group stops with 'The group variable should have >= 2 categories' and the '< 3 categories' deactivation warning is never reached. tiny-two-group-basic is the two-level case where the warning *is* the behaviour, and re3g-basic the three-level case where the tests run."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/onegroup-basic.rds",
+      "input_bytes": 963,
+      "input_sha256": "87ed862246c4973025ee0a15735e4bf68265f0bb9cd50617170634783c0b2f22",
+      "n_samp": 9,
+      "n_tax": 6,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/onegroup/counts.tsv",
+        "dir": "validation/exact/fixtures-src/onegroup",
+        "meta": "validation/exact/fixtures-src/onegroup/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "442b72e7ef91669132503aaf13d35542ed04dbbfbbf33ac8e63fba43cf5e43fb",
+        "meta": "ea38f0dd6b9c777e7f3a74c0529a04e2ec2917df0b0d6c590121a1cce6e24b73"
+      },
+      "tags": [
+        "groups",
+        "null-entries",
+        "schema"
+      ],
+      "threads": 1
+    },
+    "present-in-every-group": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "every taxon is observed in every sample of every group, so nothing may be flagged: the negative control for the two cases above. This is the two-column derived fixture: the committed edge meta.tsv has a single column, which [.data.frame collapses, so the same scenario is analysed here and refused in the `edge-present-in-every-group` error case."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/present-in-every-group.rds",
+      "input_bytes": 1038,
+      "input_sha256": "c362e5a41b62740fe3dd8e50c3ebe1f45c4e8c08ad18bd97ce7627b3ba57fdaf",
+      "n_samp": 10,
+      "n_tax": 6,
+      "seed": 42,
+      "source": {
+        "config": "validation/exact/fixtures-src/present-in-every-group-2col/config.tsv",
+        "counts": "validation/exact/fixtures-src/present-in-every-group-2col/counts.tsv",
+        "dir": "validation/exact/fixtures-src/present-in-every-group-2col",
+        "meta": "validation/exact/fixtures-src/present-in-every-group-2col/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "51b59e910fe77df2807d412ec083321b907d1daa2832223501f9a460d1215d17",
+        "counts": "0de2a70d0777c283340fc43d5d7eb3ca7710a815ff0bc3ff4866535ba11175b3",
+        "meta": "bc7adc315cc682c1519bf86a4545dde6368c26c368a7f5ec4be0432677d70982"
+      },
+      "tags": [
+        "derived-2col",
+        "edge",
+        "structural-zero"
+      ],
+      "threads": 1
+    },
+    "prv-cut-boundary": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "T2 is observed in exactly 3 of 10 samples and prv_cut is 0.3, so its prevalence equals the cut and the >= comparison keeps it. This is the two-column derived fixture: the committed edge meta.tsv has a single column, which [.data.frame collapses, so the same scenario is analysed here and refused in the `edge-prv-cut-boundary` error case."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/prv-cut-boundary.rds",
+      "input_bytes": 1005,
+      "input_sha256": "8c1555e7dbf5b8c9ce85507eae88c9e24dc03ad1e20dfb98c6f065de13a22402",
+      "n_samp": 10,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": "validation/exact/fixtures-src/prv-cut-boundary-2col/config.tsv",
+        "counts": "validation/exact/fixtures-src/prv-cut-boundary-2col/counts.tsv",
+        "dir": "validation/exact/fixtures-src/prv-cut-boundary-2col",
+        "meta": "validation/exact/fixtures-src/prv-cut-boundary-2col/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "279584025a3d27626a5fc609fcb566702093048980f373b37d78a4cbd5f012b5",
+        "counts": "118d0ef25d182a68708bef63c09cabc4f17662b8d9db2e07ddcd30f5cd0db465",
+        "meta": "a89bde56eb9b73196d532b2c7e9f3284779a9a49569ebe495bf0023fa5b8e4e7"
+      },
+      "tags": [
+        "derived-2col",
+        "edge",
+        "prevalence-filter"
+      ],
+      "threads": 1
+    },
+    "rare-in-group-a": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "taxon T2 has exactly one observation in g1; neg_lb widens the net beyond a strict zero, which is the point of the case. This is the two-column derived fixture: the committed edge meta.tsv has a single column, which [.data.frame collapses, so the same scenario is analysed here and refused in the `edge-rare-in-group-a` error case."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/rare-in-group-a.rds",
+      "input_bytes": 1039,
+      "input_sha256": "129f6bbbd5f2efca286f4cc35e979cf91faf0f407fac2843dd92856901e304e1",
+      "n_samp": 10,
+      "n_tax": 6,
+      "seed": 42,
+      "source": {
+        "config": "validation/exact/fixtures-src/rare-in-group-a-2col/config.tsv",
+        "counts": "validation/exact/fixtures-src/rare-in-group-a-2col/counts.tsv",
+        "dir": "validation/exact/fixtures-src/rare-in-group-a-2col",
+        "meta": "validation/exact/fixtures-src/rare-in-group-a-2col/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "51b59e910fe77df2807d412ec083321b907d1daa2832223501f9a460d1215d17",
+        "counts": "120482025af1e28685735ce3406af925a504db3e36ca2ee9d189d8389d357095",
+        "meta": "48a162647466951b4f62ea14c63c51c221ee3026ce4feac93332d8b411037f08"
+      },
+      "tags": [
+        "derived-2col",
+        "edge",
+        "structural-zero"
+      ],
+      "threads": 1
+    },
+    "re2g-rand-bare": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "a rand_formula with no \"|\" builds a formula lmer rejects with \"No random effects terms specified in formula\". The pinned behaviour is a refusal, and its message is part of the contract."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re2g-rand-bare.rds",
+      "input_bytes": 1090,
+      "input_sha256": "8331f163d124905a61fe5ad1e795348b3edb440d162962d0abc6c2643de1dd0d",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re2g/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re2g",
+        "meta": "validation/exact/fixtures-src/re2g/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "7ae16127377ac0e5f79345bd7b4f4fffd3aa9f6b8aab7c38b34b6bdbc7520e2b",
+        "meta": "252ce43db445b95b5d2b4a996b4650d20b136812718b779e993f7504e6919531"
+      },
+      "tags": [
+        "random-effects",
+        "reference-error",
+        "retained-r",
+        "small"
+      ],
+      "threads": 1
+    },
+    "re2g-rand-control-null": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re2g-rand-control-null.rds",
+      "input_bytes": 1487,
+      "input_sha256": "605c167af56a6369a7559aec9d928ff952bd8526063930c65b49e7456c7ed29f",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re2g/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re2g",
+        "meta": "validation/exact/fixtures-src/re2g/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "7ae16127377ac0e5f79345bd7b4f4fffd3aa9f6b8aab7c38b34b6bdbc7520e2b",
+        "meta": "252ce43db445b95b5d2b4a996b4650d20b136812718b779e993f7504e6919531"
+      },
+      "tags": [
+        "lme-control",
+        "random-effects",
+        "retained-r"
+      ],
+      "threads": 1
+    },
+    "re2g-rand-intercept": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "a random intercept, which is the rand_formula syntax the pinned docs use (\"(timepoint | subject)\"). This runs through lme4/lmerTest and is a retained-R feature; S13 must label it as such, not call it a Rust port."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re2g-rand-intercept.rds",
+      "input_bytes": 1099,
+      "input_sha256": "b23a561f4b8e33d83e74dbf50c079511308b639cf5b51955bb44ccb2a53f65f8",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re2g/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re2g",
+        "meta": "validation/exact/fixtures-src/re2g/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "7ae16127377ac0e5f79345bd7b4f4fffd3aa9f6b8aab7c38b34b6bdbc7520e2b",
+        "meta": "252ce43db445b95b5d2b4a996b4650d20b136812718b779e993f7504e6919531"
+      },
+      "tags": [
+        "lme4",
+        "random-effects",
+        "retained-r"
+      ],
+      "threads": 1
+    },
+    "re2g-rand-slope": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re2g-rand-slope.rds",
+      "input_bytes": 1100,
+      "input_sha256": "28c1c26ca29bac169ebaf1ed36ed427437f01b7ebc93eeec68a105750c9aa56e",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re2g/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re2g",
+        "meta": "validation/exact/fixtures-src/re2g/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "7ae16127377ac0e5f79345bd7b4f4fffd3aa9f6b8aab7c38b34b6bdbc7520e2b",
+        "meta": "252ce43db445b95b5d2b4a996b4650d20b136812718b779e993f7504e6919531"
+      },
+      "tags": [
+        "lme4",
+        "random-effects",
+        "random-slope",
+        "retained-r"
+      ],
+      "threads": 1
+    },
+    "re2g-rand-with-sens": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "random effects combined with the sensitivity analysis, which refits the mixed model at every pseudo-count. This is the combination that makes the random-effects path expensive, so it needs its own small fixture rather than a large shared one."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re2g-rand-with-sens.rds",
+      "input_bytes": 1091,
+      "input_sha256": "324c7ac36274287393d3f0203f071e2762db9547fe509d6cab5505724fc77fd3",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re2g/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re2g",
+        "meta": "validation/exact/fixtures-src/re2g/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "7ae16127377ac0e5f79345bd7b4f4fffd3aa9f6b8aab7c38b34b6bdbc7520e2b",
+        "meta": "252ce43db445b95b5d2b4a996b4650d20b136812718b779e993f7504e6919531"
+      },
+      "tags": [
+        "random-effects",
+        "retained-r",
+        "sensitivity"
+      ],
+      "threads": 1
+    },
+    "re3g-basic": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re3g-basic.rds",
+      "input_bytes": 1080,
+      "input_sha256": "8db397567d7b392a905dc61d8be827b638dbc2da169e44f1e0b689a0a6daa284",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re3g-sens/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re3g-sens",
+        "meta": "validation/exact/fixtures-src/re3g-sens/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "9b0f11d01f99d4e27405e0491663e4fb84de8b78e4ac5be7a320a8bcede7fe0d",
+        "meta": "ce2a811247c0e73bb9dfbe8f8a50cbad7d69fe455bf47788926d28c93f79f52f"
+      },
+      "tags": [
+        "dunnet",
+        "global",
+        "groups",
+        "pairwise",
+        "three-level"
+      ],
+      "threads": 1
+    },
+    "re3g-dunnet": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": ""
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re3g-dunnet.rds",
+      "input_bytes": 1079,
+      "input_sha256": "3d72c5297270f84ae62428fa74f0403efc91b1aa0cee259bc60a488084b89d58",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re3g-sens/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re3g-sens",
+        "meta": "validation/exact/fixtures-src/re3g-sens/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "9b0f11d01f99d4e27405e0491663e4fb84de8b78e4ac5be7a320a8bcede7fe0d",
+        "meta": "ce2a811247c0e73bb9dfbe8f8a50cbad7d69fe455bf47788926d28c93f79f52f"
+      },
+      "tags": [
+        "dunnet",
+        "multcomp",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "re3g-dunnet-bad-mdfdr": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "an invalid mdfdr method *with* dunnet = TRUE, so the value is actually read. tiny-mdfdr-bad-method is the same value with no constrained test requested, where it is never consulted."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re3g-dunnet-bad-mdfdr.rds",
+      "input_bytes": 1132,
+      "input_sha256": "b5d1fe2bf23d60517ed62afe90895fb67ec43b9b6cac6a489977b2729a1485c1",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re3g-sens/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re3g-sens",
+        "meta": "validation/exact/fixtures-src/re3g-sens/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "9b0f11d01f99d4e27405e0491663e4fb84de8b78e4ac5be7a320a8bcede7fe0d",
+        "meta": "ce2a811247c0e73bb9dfbe8f8a50cbad7d69fe455bf47788926d28c93f79f52f"
+      },
+      "tags": [
+        "dunnet",
+        "invalid",
+        "mdfdr",
+        "reference-error"
+      ],
+      "threads": 1
+    },
+    "re3g-dunnet-with-mdfdr": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re3g-dunnet-with-mdfdr.rds",
+      "input_bytes": 1128,
+      "input_sha256": "e16e661b72375441481e34c7820b228be3233de57b41808562c10dbc94eb7d4f",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re3g-sens/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re3g-sens",
+        "meta": "validation/exact/fixtures-src/re3g-sens/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "9b0f11d01f99d4e27405e0491663e4fb84de8b78e4ac5be7a320a8bcede7fe0d",
+        "meta": "ce2a811247c0e73bb9dfbe8f8a50cbad7d69fe455bf47788926d28c93f79f52f"
+      },
+      "tags": [
+        "boundary",
+        "dunnet",
+        "mdfdr"
+      ],
+      "threads": 1
+    },
+    "re3g-global-only": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re3g-global-only.rds",
+      "input_bytes": 1071,
+      "input_sha256": "ae1bbfa4290e5b0c74df1d6526745fabcb81fd39030bc1f4b67d1c9e16fd1849",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re3g-sens/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re3g-sens",
+        "meta": "validation/exact/fixtures-src/re3g-sens/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "9b0f11d01f99d4e27405e0491663e4fb84de8b78e4ac5be7a320a8bcede7fe0d",
+        "meta": "ce2a811247c0e73bb9dfbe8f8a50cbad7d69fe455bf47788926d28c93f79f52f"
+      },
+      "tags": [
+        "global",
+        "lrt",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "re3g-pairwise-no-mdfdr": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "pairwise = TRUE with mdfdr_control omitted. data_sanity_check:311 stops only if mdfdr_control *is* NULL, and the formal's own default is a non-NULL list, so the guard never fires from an omitted argument. A genuinely NULL mdfdr_control is a separate case."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re3g-pairwise-no-mdfdr.rds",
+      "input_bytes": 1072,
+      "input_sha256": "913c42bc47bb22aa7e5acd8daa96c9ba0b67b1eb7edd44ec6948bae580ee35a5",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re3g-sens/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re3g-sens",
+        "meta": "validation/exact/fixtures-src/re3g-sens/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "9b0f11d01f99d4e27405e0491663e4fb84de8b78e4ac5be7a320a8bcede7fe0d",
+        "meta": "ce2a811247c0e73bb9dfbe8f8a50cbad7d69fe455bf47788926d28c93f79f52f"
+      },
+      "tags": [
+        "boundary",
+        "mdfdr",
+        "pairwise"
+      ],
+      "threads": 1
+    },
+    "re3g-pairwise-null-mdfdr": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re3g-pairwise-null-mdfdr.rds",
+      "input_bytes": 1110,
+      "input_sha256": "8770635cc5363d76d940d23e9354b2c59512fda725b07bd8921e9a083c07f007",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re3g-sens/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re3g-sens",
+        "meta": "validation/exact/fixtures-src/re3g-sens/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "9b0f11d01f99d4e27405e0491663e4fb84de8b78e4ac5be7a320a8bcede7fe0d",
+        "meta": "ce2a811247c0e73bb9dfbe8f8a50cbad7d69fe455bf47788926d28c93f79f52f"
+      },
+      "tags": [
+        "mdfdr",
+        "pairwise"
+      ],
+      "threads": 1
+    },
+    "re3g-pairwise-only": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re3g-pairwise-only.rds",
+      "input_bytes": 1072,
+      "input_sha256": "9489c6fa75b1a3c737901613c7ee95936a3b47b6a25745239f868aa2b8901d1c",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re3g-sens/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re3g-sens",
+        "meta": "validation/exact/fixtures-src/re3g-sens/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "9b0f11d01f99d4e27405e0491663e4fb84de8b78e4ac5be7a320a8bcede7fe0d",
+        "meta": "ce2a811247c0e73bb9dfbe8f8a50cbad7d69fe455bf47788926d28c93f79f52f"
+      },
+      "tags": [
+        "pairwise",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "re3g-trend": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "trend = TRUE with trend_control$contrast = NULL. data_sanity_check:328 answers 'Please specify the contrast matrices for the trend test.'"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re3g-trend.rds",
+      "input_bytes": 1112,
+      "input_sha256": "5815205f17624f337c104de66aa3842508d353462d6999d4f0e50e72d553b1e5",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re3g-sens/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re3g-sens",
+        "meta": "validation/exact/fixtures-src/re3g-sens/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "9b0f11d01f99d4e27405e0491663e4fb84de8b78e4ac5be7a320a8bcede7fe0d",
+        "meta": "ce2a811247c0e73bb9dfbe8f8a50cbad7d69fe455bf47788926d28c93f79f52f"
+      },
+      "tags": [
+        "mdfdr",
+        "tiny",
+        "trend"
+      ],
+      "threads": 1
+    },
+    "re3g-trend-contrast": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "trend = TRUE with contrast set but node = NULL. data_sanity_check:332 answers 'Please specify the nodes for the trend test'. The two checks are separate and in that order, so both are needed to reach the test itself."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re3g-trend-contrast.rds",
+      "input_bytes": 1140,
+      "input_sha256": "ee0d3c96dff78ebedf922784156f69c4be874a742d72fb89c159b12eec40ee6c",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re3g-sens/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re3g-sens",
+        "meta": "validation/exact/fixtures-src/re3g-sens/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "9b0f11d01f99d4e27405e0491663e4fb84de8b78e4ac5be7a320a8bcede7fe0d",
+        "meta": "ce2a811247c0e73bb9dfbe8f8a50cbad7d69fe455bf47788926d28c93f79f52f"
+      },
+      "tags": [
+        "mdfdr",
+        "multcomp",
+        "runs-the-test",
+        "trend"
+      ],
+      "threads": 1
+    },
+    "re3g-trend-contrast-node": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "contrast supplied as a list of numeric vectors. data_sanity_check:340 requires each contrast to be square (nrow == ncol), and the error surfaced downstream as 'values must be length 1, but FUN(X[[1]]) result is length 0' from .l_infty, because a numeric vector has no nrow. A contrast must be a matrix."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re3g-trend-contrast-node.rds",
+      "input_bytes": 1139,
+      "input_sha256": "3f341f3f50be5ed47f8390dc33dcf823d3e132b431e5ff174057952592c1299c",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re3g-sens/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re3g-sens",
+        "meta": "validation/exact/fixtures-src/re3g-sens/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "9b0f11d01f99d4e27405e0491663e4fb84de8b78e4ac5be7a320a8bcede7fe0d",
+        "meta": "ce2a811247c0e73bb9dfbe8f8a50cbad7d69fe455bf47788926d28c93f79f52f"
+      },
+      "tags": [
+        "boundary",
+        "node",
+        "trend"
+      ],
+      "threads": 1
+    },
+    "re3g-trend-mismatched-nodes": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "two contrast matrices and one node. data_sanity_check:336 answers 'The number of nodes should match the number of contrast matrices'."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re3g-trend-mismatched-nodes.rds",
+      "input_bytes": 1164,
+      "input_sha256": "5474c19072b96bea713fd218bec72e1ef8b114fd90cdde49a44976fc7d9f49bf",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re3g-sens/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re3g-sens",
+        "meta": "validation/exact/fixtures-src/re3g-sens/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "9b0f11d01f99d4e27405e0491663e4fb84de8b78e4ac5be7a320a8bcede7fe0d",
+        "meta": "ce2a811247c0e73bb9dfbe8f8a50cbad7d69fe455bf47788926d28c93f79f52f"
+      },
+      "tags": [
+        "boundary",
+        "reference-error",
+        "trend"
+      ],
+      "threads": 1
+    },
+    "re3g-trend-no-control": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "trend = TRUE with trend_control omitted, so it takes its own default of NULL. data_sanity_check:325 answers 'Please specify the `trend_control` parameter for the trend test.' -- the first of four separate checks, each with its own message."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re3g-trend-no-control.rds",
+      "input_bytes": 1094,
+      "input_sha256": "9a4a0202b807e90a50357704272eb3939fe1b94b2d3d377e3b75797a1ff433af",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re3g-sens/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re3g-sens",
+        "meta": "validation/exact/fixtures-src/re3g-sens/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "9b0f11d01f99d4e27405e0491663e4fb84de8b78e4ac5be7a320a8bcede7fe0d",
+        "meta": "ce2a811247c0e73bb9dfbe8f8a50cbad7d69fe455bf47788926d28c93f79f52f"
+      },
+      "tags": [
+        "reference-error",
+        "trend"
+      ],
+      "threads": 1
+    },
+    "re3g-trend-non-square": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "a contrast that is not square. data_sanity_check:340 checks nrow(x) == ncol(x); a 3x1 matrix passes nrow == ncol == 1 only by accident of length(), and the failure surfaces downstream in .l_infty instead. The contract records whichever answer the reference gives."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re3g-trend-non-square.rds",
+      "input_bytes": 1152,
+      "input_sha256": "13eb4d0472cda5c2d4c447462749a5de4ccf820b25628148f6b3b48fa85aef42",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re3g-sens/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re3g-sens",
+        "meta": "validation/exact/fixtures-src/re3g-sens/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "9b0f11d01f99d4e27405e0491663e4fb84de8b78e4ac5be7a320a8bcede7fe0d",
+        "meta": "ce2a811247c0e73bb9dfbe8f8a50cbad7d69fe455bf47788926d28c93f79f52f"
+      },
+      "tags": [
+        "boundary",
+        "reference-error",
+        "trend"
+      ],
+      "threads": 1
+    },
+    "re3g-trend-runs": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "data_sanity_check:340 requires nrow(x) == ncol(x) for each contrast, and a 3x1 matrix passes only by accident of length(); with three such matrices the check fails and the trend test is refused with 'The contrast matrices for the trend test should be square matrices'. The contrast must be 3x3 for three groups."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/re3g-trend-runs.rds",
+      "input_bytes": 1172,
+      "input_sha256": "13be7c2b06111a5b8145e285efa610b791a99056fbbd25f978c76155c1907775",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re3g-sens/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re3g-sens",
+        "meta": "validation/exact/fixtures-src/re3g-sens/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "9b0f11d01f99d4e27405e0491663e4fb84de8b78e4ac5be7a320a8bcede7fe0d",
+        "meta": "ce2a811247c0e73bb9dfbe8f8a50cbad7d69fe455bf47788926d28c93f79f52f"
+      },
+      "tags": [
+        "mdfdr",
+        "quadprog",
+        "runs-the-test",
+        "trend"
+      ],
+      "threads": 1
+    },
+    "smoke-ancom": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancom",
+      "input": "validation/exact/inputs/smoke-ancom.rds",
+      "input_bytes": 701,
+      "input_sha256": "3b86e7148c68b0434db56bb732bacfade4818042a42fd1f6312b90381abaae75",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "ancom",
+        "facade",
+        "other-export"
+      ],
+      "threads": 1
+    },
+    "smoke-ancombc": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "ancombc()'s `formula` is a bare right-hand side. data_sanity_check splits it on '+' and looks the parts up in meta_data, so passing '~ group + x1' makes it look for a column named '~ group'. Measured: 'The following variables specified are not in the meta data: ~ group'."
+      },
+      "fn": "ancombc",
+      "input": "validation/exact/inputs/smoke-ancombc.rds",
+      "input_bytes": 715,
+      "input_sha256": "d153670d19515090ac30755be056d1b9823f23e4764eab31cba59415b29880b9",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "ancombc",
+        "facade",
+        "other-export"
+      ],
+      "threads": 1
+    },
+    "smoke-ancombc2-dataframe": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "taxa_are_rows = FALSE. data_sanity_check's matrix branch takes feature_table = as.matrix(t(data)) and then requires every column of the transposed table (a taxon) to be a row name of meta_data -- so with taxa in columns the metadata is keyed by taxon. The companion refusal, with the metadata still keyed by sample, is measured as 'Sample names do not match between the feature table and sample metadata'."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/smoke-ancombc2-dataframe.rds",
+      "input_bytes": 748,
+      "input_sha256": "c1e3e9cfebcddb76db1e03d0df633bfc9afc3b51232956960661238bcf3bf1c4",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "input-class",
+        "orientation"
+      ],
+      "threads": 1
+    },
+    "smoke-data-sane": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "data_sanity_check",
+      "input": "validation/exact/inputs/smoke-data-sane.rds",
+      "input_bytes": 705,
+      "input_sha256": "47c31eeef0a5105835ac2d9b54f8db26053a70604a6fa10c9373c18196836539",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "facade",
+        "other-export",
+        "small"
+      ],
+      "threads": 1
+    },
+    "smoke-data-sane-bad-formula": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error"
+      },
+      "fn": "data_sanity_check",
+      "input": "validation/exact/inputs/smoke-data-sane-bad-formula.rds",
+      "input_bytes": 713,
+      "input_sha256": "f3d3a972838d904b38c3f454e8ef0fbde66ae0ceb5df69e97c1d15afa4037abb",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "facade",
+        "other-export",
+        "reference-error",
+        "small"
+      ],
+      "threads": 1
+    },
+    "smoke-data-sanity-check": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "data_sanity_check",
+      "input": "validation/exact/inputs/smoke-data-sanity-check.rds",
+      "input_bytes": 705,
+      "input_sha256": "c5b5476a576519a94a51395ed525f5624bf6beda336079f620c58491d952caf0",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "facade",
+        "other-export"
+      ],
+      "threads": 1
+    },
+    "smoke-secom-dist": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "secom_dist()/secom_linear() take a *list* of abundance matrices, one per rank, and a matching list of metadata; secom_dist.R indexes data[[i]]. A bare matrix answers 'Unsupported data type' because data[[1]] on a matrix selects a column. The matrix is the 8 x 12 re2g fixture rather than the 3 x 4 literal used first: secom_linear cross-validates with `sample(seq_len(n), size = n1)` and calls stats::cor on each split, which refuses with 'must have >4 observations' when the fixture is too small to split. Measured."
+      },
+      "fn": "secom_dist",
+      "input": "validation/exact/inputs/smoke-secom-dist.rds",
+      "input_bytes": 1079,
+      "input_sha256": "39db94ca571541eabc66847bed73eb89d093a812bdde8b5fd8a6f703a94a9165",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re2g/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re2g",
+        "meta": "validation/exact/fixtures-src/re2g/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "7ae16127377ac0e5f79345bd7b4f4fffd3aa9f6b8aab7c38b34b6bdbc7520e2b",
+        "meta": "252ce43db445b95b5d2b4a996b4650d20b136812718b779e993f7504e6919531"
+      },
+      "tags": [
+        "facade",
+        "other-export",
+        "secom"
+      ],
+      "threads": 1
+    },
+    "smoke-secom-linear": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "secom_dist()/secom_linear() take a *list* of abundance matrices, one per rank, and a matching list of metadata; secom_dist.R indexes data[[i]]. A bare matrix answers 'Unsupported data type' because data[[1]] on a matrix selects a column. The matrix is the 8 x 12 re2g fixture rather than the 3 x 4 literal used first: secom_linear cross-validates with `sample(seq_len(n), size = n1)` and calls stats::cor on each split, which refuses with 'must have >4 observations' when the fixture is too small to split. Measured."
+      },
+      "fn": "secom_linear",
+      "input": "validation/exact/inputs/smoke-secom-linear.rds",
+      "input_bytes": 1091,
+      "input_sha256": "ad8a13822d103ffa47dd46232575fbdc93407869d6afbaed7deab1afe6129d1f",
+      "n_samp": 12,
+      "n_tax": 8,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/re2g/counts.tsv",
+        "dir": "validation/exact/fixtures-src/re2g",
+        "meta": "validation/exact/fixtures-src/re2g/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "7ae16127377ac0e5f79345bd7b4f4fffd3aa9f6b8aab7c38b34b6bdbc7520e2b",
+        "meta": "252ce43db445b95b5d2b4a996b4650d20b136812718b779e993f7504e6919531"
+      },
+      "tags": [
+        "facade",
+        "other-export",
+        "secom"
+      ],
+      "threads": 1
+    },
+    "smoke-sim-plnm": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "sim_plnm() forms cov(t(rel_table)) and eigen()s the result. With a single sample the covariance is all NA and eigen() answers \"infinite or missing values in 'x'\"; two samples are the minimum that gives a usable spectrum."
+      },
+      "fn": "sim_plnm",
+      "input": "validation/exact/inputs/smoke-sim-plnm.rds",
+      "input_bytes": 562,
+      "input_sha256": "c334d7ef3695941aba83d76a0e42165031c59fb994317cf21bd80d02917f99fb",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "facade",
+        "other-export",
+        "sim-data",
+        "small"
+      ],
+      "threads": 1
+    },
+    "struc-zero-off": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "the absent_in_group_a scenario with struc_zero = FALSE, so T1 is retained and still reported in zero_ind. This is the two-column derived fixture: the committed edge meta.tsv has a single column, which [.data.frame collapses, so the same scenario is analysed here and refused in the `edge-struc-zero-off` error case."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/struc-zero-off.rds",
+      "input_bytes": 1037,
+      "input_sha256": "8a42590a4fd5f53aebe7c7e642747cf78c34bd6b7bdce50a757f47b3203546f4",
+      "n_samp": 10,
+      "n_tax": 6,
+      "seed": 42,
+      "source": {
+        "config": "validation/exact/fixtures-src/struc-zero-off-2col/config.tsv",
+        "counts": "validation/exact/fixtures-src/struc-zero-off-2col/counts.tsv",
+        "dir": "validation/exact/fixtures-src/struc-zero-off-2col",
+        "meta": "validation/exact/fixtures-src/struc-zero-off-2col/meta.tsv"
+      },
+      "source_sha256": {
+        "config": "17cce00b8232c5774f2ab6f972e6038056b63b4ab961ec56a84e02ee501cac1a",
+        "counts": "a9dd1d4bb1fa13b32ed90a6980fc36e0d0265e623da39ceb8075da6b36f981ab",
+        "meta": "b22da50e88f27b01e932ffb6787ca3562e049d729ea01014c71bf9139083b9aa"
+      },
+      "tags": [
+        "derived-2col",
+        "edge",
+        "structural-zero"
+      ],
+      "threads": 1
+    },
+    "tiny-alpha-above-005": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-alpha-above-005.rds",
+      "input_bytes": 903,
+      "input_sha256": "46ac94adc3cdb57987ce5579c2a6fb50ab681ec328c6c8f7165cc05405cfb54f",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "alpha",
+        "boundary",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-alpha-at-005": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-alpha-at-005.rds",
+      "input_bytes": 900,
+      "input_sha256": "137dd93ce41d940868f45c92b4b44828ff21930ccf859d4e85240e513b57f545",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "alpha",
+        "boundary",
+        "small",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-alpha-below-005": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-alpha-below-005.rds",
+      "input_bytes": 903,
+      "input_sha256": "1d9992b9174bc2fce6c0f03b209030244782b4197bced22607df08fda48e5f70",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "alpha",
+        "boundary",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-assay-alias": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-assay-alias.rds",
+      "input_bytes": 889,
+      "input_sha256": "ddead4787e234fbbc1b0226ce825433390d5476b3bac750c871bf6c5e73cd531",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "aliases",
+        "assay-name",
+        "small",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-bad-group-name": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-bad-group-name.rds",
+      "input_bytes": 897,
+      "input_sha256": "d11ae333cc067535acf37d89bf5901db47a139f04a68001142d698c2c3fa0ef0",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "group-required",
+        "reference-error"
+      ],
+      "threads": 1
+    },
+    "tiny-conservative-off": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-conservative-off.rds",
+      "input_bytes": 891,
+      "input_sha256": "ab94f65d531fa522bd068c914fd81cbbe38294e3fe2d37f06720a98fb659df50",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "conservative",
+        "sensitivity",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-defaults": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "p_adj_method, pseudo, pseudo_sens, conservative, prv_cut, lib_cut, s0_perc, struc_zero, neg_lb, alpha, iter_control, em_control, lme_control, mdfdr_control and trend_control are all omitted and take the pinned original's own defaults; group/global/pairwise are omitted because this fixture has no group column. A first draft of this case omitted `sensitivity`, which is the fixture-manifest key rather than the ancombc2 formal, so it was passed through as an unknown argument and the reference answered 'undefined columns selected' when it reached meta_data[.]. The manifest key is translated in scripts/exact_input_lib.R; the formal name must be used here."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-defaults.rds",
+      "input_bytes": 882,
+      "input_sha256": "ad4acf1361e94892a5a440b77b902635498f4e19a4833f9791516ed6e53ed611",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "defaults",
+        "omitted-arguments",
+        "small",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-defaults-positional": {
+      "call_style": "positional",
+      "expect": {
+        "outcome": "error",
+        "why": "positional: data, taxa_are_rows, meta_data, fix_formula only. The remaining error is real and pinned deliberately -- see fx02-defaults and tiny-defaults for the *successful* omitted-defaults cases, which pass the arguments by name and omit the same set. A positional call cannot omit a middle argument, so this case exists to record what the reference does when it is asked to."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-defaults-positional.rds",
+      "input_bytes": 848,
+      "input_sha256": "0d4df9a7abbcfe19ad0d43a15c83c15c99f8683b1d38af9183f8a802dab4c8f7",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "defaults",
+        "positional",
+        "small",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-em-max-0": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "em_control$max_iter = 0. .bias_em computes delta_new only inside its loop, so with zero iterations the name does not exist and the foreach worker fails: 'task 1 failed - \"object \\'delta_new\\' not found\"'. This is the opposite of iter_control$max_iter = 0, which succeeds, and the asymmetry is the reason both cases exist."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-em-max-0.rds",
+      "input_bytes": 932,
+      "input_sha256": "1ac1bc439ced11b031219ea3c584b8611b76377130ff8bc5fd4dd3d987211494",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "boundary",
+        "em-control",
+        "reference-error",
+        "small",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-em-max-1": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-em-max-1.rds",
+      "input_bytes": 922,
+      "input_sha256": "a0efd5f1910abb9f426eaa6fe94dc284b8ef19d462c276c90d2ca4e13d86954f",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "boundary",
+        "em-control",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-em-tiny-tol": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-em-tiny-tol.rds",
+      "input_bytes": 927,
+      "input_sha256": "f8a3dc8a9f96f5a279630d9064d3febc7a8e1fa8c90737c22aba860b7e1442de",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "boundary",
+        "em-control",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-global-without-group": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "global = TRUE with group = NULL. data_sanity_check answers 'Group variable is required for the multi-group comparison / `group` is `NULL` while some of the arguments (`global`, `pairwise`, `dunnet`, `trend`) are `TRUE`. The guard runs before any analysis."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-global-without-group.rds",
+      "input_bytes": 895,
+      "input_sha256": "40a72ae3b0e73c3470ad38430530ec47b395d02ddf796ff4fb51473fcd72cd86",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "global",
+        "group-required",
+        "reference-error",
+        "small"
+      ],
+      "threads": 1
+    },
+    "tiny-group-ok": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-group-ok.rds",
+      "input_bytes": 897,
+      "input_sha256": "40b67ef5e34dddaea05a4fbaf8f0f4c511e957c10d6ecc1bb252ea202fe60eac",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "global",
+        "group"
+      ],
+      "threads": 1
+    },
+    "tiny-iter-max-0": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "iter_control$max_iter = 0. .iter_mle and .iter_remle loop on `while (epsilon > tol & iterNum < max_iter)`, so with max_iter = 0 the body never runs and the result is the initial estimate. No error, and no convergence claim: the reference returns the starting point. This is the case that pins 'the loop did not run' as an outcome rather than a tolerance."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-iter-max-0.rds",
+      "input_bytes": 937,
+      "input_sha256": "c667c71b44cbbaed0430658414ba64a7e0ebc7b5bb8e3ddd8e409d5140210c5f",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "boundary",
+        "iter-control",
+        "reference-error",
+        "small",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-iter-max-1": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "max_iter = 1: a single MLE iteration. The reference's first iterate is the thing S09 compares against, so pinning it here means a divergence in the iteration trace is visible as a result difference rather than hidden inside a converged answer."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-iter-max-1.rds",
+      "input_bytes": 934,
+      "input_sha256": "933d074e465ab8abddc6144a4775a10f06bc6dfdb97a6becafa477f432d96fa0",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "boundary",
+        "iter-control",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-iter-tiny-tol": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-iter-tiny-tol.rds",
+      "input_bytes": 936,
+      "input_sha256": "5b1bbc6a66382a4dbbd3444830396b6db2aadc64b2b131a07b6c5985cd6c9414",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "iter-control",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-iter-tol-0": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "tol = 0: the loop condition is `epsilon > tol`, so it runs until max_iter instead of converging. That is the one way to make the reference take a fixed number of iterations, which is what makes an iteration trace comparable at all."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-iter-tol-0.rds",
+      "input_bytes": 929,
+      "input_sha256": "bdce3c8b264039712c936be2a23eb9283d90751f1a933681bd877ec96e5147c2",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "boundary",
+        "iter-control",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-lib-cut-1": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-lib-cut-1.rds",
+      "input_bytes": 891,
+      "input_sha256": "d2834483da2a2527b87f845928fcf9488788b641952c56d17a6aed38f5c969a8",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "lib-cut",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-lib-cut-below-min": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-lib-cut-below-min.rds",
+      "input_bytes": 896,
+      "input_sha256": "fa97a644a6f51fc0a7b3d7f9165a08770395cb67a406671663c96832e6fddc74",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "boundary",
+        "lib-cut",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-lib-cut-huge": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "the same lib_cut = 1e6 against tiny5x8, whose per-sample totals are around 1.5e3. Nothing survives, so .data_core stops with 'No samples remain under the current cutoff' (ancombc_prep.R:40). The pair of cases is the evidence that lib_cut is a comparison against the data rather than a switch."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-lib-cut-huge.rds",
+      "input_bytes": 897,
+      "input_sha256": "df2d949ed678b222560f6e19af88e6043a2482f3152b7dcc6a75285a02441b99",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "lib-cut",
+        "reference-error",
+        "small",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-mdfdr-b": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-mdfdr-b.rds",
+      "input_bytes": 940,
+      "input_sha256": "b242e621b7545412513db1c9b69aaa941f4148eafd0e0c65944c726d35497e4c",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "boundary",
+        "mdfdr",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-mdfdr-bad-method": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "mdfdr_control$fwer_ctrl_method = 'not_a_method' with dunnet = FALSE and trend = FALSE. mdfdr_control is only consulted by the Dunnett and trend paths, so an invalid method is simply never read. An invalid method *with* dunnet is a separate case."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-mdfdr-bad-method.rds",
+      "input_bytes": 924,
+      "input_sha256": "f4725747628023a100745ba2ea8bfdddc5e08720bec5b6a51a275f2f2de06c82",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "invalid",
+        "mdfdr",
+        "reference-error",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-neg-lb-on": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-neg-lb-on.rds",
+      "input_bytes": 892,
+      "input_sha256": "92b2db12885e9c3962d45869bb7c4f6dfc6e4f94e94ebc757e1a731b10c90c12",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "neg-lb",
+        "structural-zero",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-p-adj-bad": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-p-adj-bad.rds",
+      "input_bytes": 900,
+      "input_sha256": "e9d2b14c7d50325c1c647f0cd105652a3ff0d0d2998871df54d32da91572727d",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "adjust",
+        "invalid",
+        "reference-error",
+        "small",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-p-adj-bh": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-p-adj-bh.rds",
+      "input_bytes": 897,
+      "input_sha256": "631f759a6582310f12a11a8cfae1497fe72d71ad7e391d8f372391c325bc227f",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "adjust",
+        "bh",
+        "small",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-p-adj-bonferroni": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-p-adj-bonferroni.rds",
+      "input_bytes": 908,
+      "input_sha256": "c33ab510984162c67f76b25834f0d6a79c6cd48c1139f8c55723af2c861db051",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "adjust",
+        "bonferroni",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-p-adj-hochberg": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-p-adj-hochberg.rds",
+      "input_bytes": 903,
+      "input_sha256": "6bdced3b928c5df016e407d61a5bec6143c276e048cb79d187698f11e59c90e7",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "adjust",
+        "hochberg",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-p-adj-hom": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-p-adj-hom.rds",
+      "input_bytes": 897,
+      "input_sha256": "1a6de6138a44a664e2b5466ae2e3ecd1afd6126d21dcc21cdfa750a31b7176d8",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "adjust",
+        "hom",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-p-adj-none": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-p-adj-none.rds",
+      "input_bytes": 894,
+      "input_sha256": "909312bd8607faa7e386d5206d55149c2bf84d27f116f402aa5b5e6100aaecc7",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "adjust",
+        "none",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-pairwise-without-group": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-pairwise-without-group.rds",
+      "input_bytes": 894,
+      "input_sha256": "ce2bad27dba7cc518e6227d7032654caa1ba9567b9dcc9324876469ca01cdbd7",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "group-required",
+        "pairwise",
+        "reference-error"
+      ],
+      "threads": 1
+    },
+    "tiny-prv-cut-0": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-prv-cut-0.rds",
+      "input_bytes": 893,
+      "input_sha256": "db3fcfe876a582bcc2ea54b792127455df9efc64aca570c43f5b7763e81385b4",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "boundary",
+        "prv-cut",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-prv-cut-1": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "prv_cut = 1 against tiny5x8. Prevalence is rowSums(x != 0, na.rm = TRUE) / rowSums(!is.na(x)) and the filter is prevalence >= prv_cut, so a taxon observed in all 8 samples is kept: 3 of 5 taxa survive. Kept because it is the same argument value with the opposite outcome on a different table, which is what makes it a boundary case rather than a flag."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-prv-cut-1.rds",
+      "input_bytes": 890,
+      "input_sha256": "ce1d72f36a213ca8421298dba177c61c745cccf7b90aaeb22309b35ea7aaa135",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "prv-cut",
+        "reference-error",
+        "small",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-prv-cut-half": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-prv-cut-half.rds",
+      "input_bytes": 899,
+      "input_sha256": "91bd0ec249431e0f044831c49bdf17d2a9d3292e25090ca7803695e62aa0452f",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "boundary",
+        "prv-cut",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-pseudo-half": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-pseudo-half.rds",
+      "input_bytes": 894,
+      "input_sha256": "01a31a2f2677186b7706de4273faf332d7e97c6cc60c563047b50f9ef18a5aa8",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "pseudo-count",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-pseudo-sens-off": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-pseudo-sens-off.rds",
+      "input_bytes": 892,
+      "input_sha256": "e1ae590de3067b97448bb2efb0a05da73fb814f36e8884addb13e7ff69c00036",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "pseudo-sens",
+        "sensitivity",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-rank-null": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "rank explicitly NULL while tax_level keeps its default. data_sanity_check aliases `if (!is.null(rank)) tax_level = rank`, so an explicit NULL and an omitted rank reach the same place; this pins that."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-rank-null.rds",
+      "input_bytes": 884,
+      "input_sha256": "6ad1b7bd4f7451ec816837cc27c6089f34c2e83fd089b4d1a267137646ca07eb",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "aliases",
+        "explicit-null",
+        "rank",
+        "small",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-s0-0": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-s0-0.rds",
+      "input_bytes": 889,
+      "input_sha256": "21577cace0b0e6c5285f7aa4bef118740373584b3794d176614be8a5412b97bb",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "boundary",
+        "s0-perc",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-s0-100": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "s0_perc = 100. The reference passes it to quantile(), which requires a fraction in [0, 1] and answers \"'probs' outside [0,1]\". s0_perc = 0 is the other end and succeeds."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-s0-100.rds",
+      "input_bytes": 890,
+      "input_sha256": "a258a6635a90ba0aeebaba8d37011a3e12d104b19331370b54302816ef30df58",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "boundary",
+        "s0-perc",
+        "small",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-s0-perc-1": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "s0_perc = 1 is inside quantile's valid range and succeeds. tiny-s0-100 is the outside-the-range case. The documented range is a fraction in [0, 1] and 1 is the upper end of it, not outside it."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-s0-perc-1.rds",
+      "input_bytes": 891,
+      "input_sha256": "67b8a2e2470c0d0c84dab1820b339e4523854a14cdf132ddb26eeba31845efbf",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "boundary",
+        "reference-error",
+        "s0-perc",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-struc-zero-off": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-struc-zero-off.rds",
+      "input_bytes": 892,
+      "input_sha256": "825ad7fa47bdc1260c98954435706a67c151de0f7eb2d46b1579ac231f76f051",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "struc-zero-off",
+        "structural-zero",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-struc-zero-on": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-struc-zero-on.rds",
+      "input_bytes": 902,
+      "input_sha256": "717db6de84069a4474aa053a443dd3200db9358df89116e47a98b23086651aaa",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "group-required",
+        "small",
+        "struc-zero-on",
+        "structural-zero",
+        "tiny"
+      ],
+      "threads": 1
+    },
+    "tiny-struc-zero-without-group": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "error",
+        "why": "struc_zero = TRUE with group = NULL: 'Please specify the group variable for detecting structural zeros / Otherwise, set `struc_zero = FALSE` to proceed'. A different guard with a different message, which is why both cases exist."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-struc-zero-without-group.rds",
+      "input_bytes": 908,
+      "input_sha256": "71cb7c1a261db45c1bfb8b5f5a4a2be9b1312e29ea8210ea3d4903d8feec2a33",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "group-required",
+        "reference-error",
+        "small",
+        "structural-zero"
+      ],
+      "threads": 1
+    },
+    "tiny-threads-2": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-threads-2.rds",
+      "input_bytes": 882,
+      "input_sha256": "49c880fc291d64dc9b776327fae6a9655cdd2c739730536916e679c390cf1ce7",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "parallel-backend",
+        "threads",
+        "tiny"
+      ],
+      "threads": 2
+    },
+    "tiny-threads-4": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-threads-4.rds",
+      "input_bytes": 885,
+      "input_sha256": "38e92e8d003dc2182b5f2e4c65277b9f1abf43c48b37b37687992b56bb961992",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "parallel-backend",
+        "threads",
+        "tiny"
+      ],
+      "threads": 4
+    },
+    "tiny-threads-8": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-threads-8.rds",
+      "input_bytes": 884,
+      "input_sha256": "676797043a655340d677b9464376ff5ea3c3d1a93ac87afc5eadcb7c2406efea",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "parallel-backend",
+        "threads",
+        "tiny"
+      ],
+      "threads": 8
+    },
+    "tiny-trend-control-null": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success"
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-trend-control-null.rds",
+      "input_bytes": 932,
+      "input_sha256": "a6f87f814cd476e086ef048551f3ba055af81966ee47edb7efcd0e1a67c2fd6e",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "tiny",
+        "trend-control"
+      ],
+      "threads": 1
+    },
+    "tiny-two-group-global": {
+      "call_style": "named",
+      "expect": {
+        "outcome": "success",
+        "why": "two groups. data_sanity_check:302 turns global, pairwise, dunnet and trend all off and warns 'The group variable has < 3 categories / The multi-group comparisons (global/pairwise/dunnet/trend) will be deactivated'. res_global, res_pair, res_dunn and res_trend must all be NULL, and the warning text and its position in the condition order are part of the contract."
+      },
+      "fn": "ancombc2",
+      "input": "validation/exact/inputs/tiny-two-group-global.rds",
+      "input_bytes": 904,
+      "input_sha256": "5749955427f6a5be170f01e68319f32564e8adb91574e43a23c9360b65f839f4",
+      "n_samp": 8,
+      "n_tax": 5,
+      "seed": 42,
+      "source": {
+        "config": null,
+        "counts": "validation/exact/fixtures-src/tiny5x8/counts.tsv",
+        "dir": "validation/exact/fixtures-src/tiny5x8",
+        "meta": "validation/exact/fixtures-src/tiny5x8/meta.tsv"
+      },
+      "source_sha256": {
+        "config": null,
+        "counts": "3b7ff60c1ea71ff38b3314d7321f506e48bec2227db0e7c83f259a9c8adeae18",
+        "meta": "0673d514d6c9bf9ad0f41e4c0f2f6b518f00a70745577cbe3abd99488618fbc6"
+      },
+      "tags": [
+        "deactivation-warning",
+        "groups",
+        "null-entries",
+        "small"
+      ],
+      "threads": 1
+    }
+  },
+  "digest_algorithm": "sha256",
+  "hashed_by": "scripts/check_exact_inputs.py",
+  "n_cases": 114,
+  "profile": "linux-r453-openblas",
+  "schema": "ancombc2-exact-input-manifest/1",
+  "spec": "validation/exact/fixtures.json",
+  "spec_sha256": "b709b3a23a124ffb1eabf63e62223b3c1a7708b3c95f4cdfd669a847f8f30c0c"
+}

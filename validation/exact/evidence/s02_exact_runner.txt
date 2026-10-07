@@ -1,0 +1,47 @@
+# S02 acceptance evidence -- 2026-10-05T18:08:37Z
+
+## Build the exact input RDS both arms share
+wrote validation/exact/inputs/fx01-basic.rds (case_id=fx01-basic, 21 named args, n_tax=10, n_samp=10)
+wrote validation/exact/inputs/fx02-basic.rds (case_id=fx02-basic, 21 named args, n_tax=100, n_samp=30)
+wrote validation/exact/inputs/fx03-basic.rds (case_id=fx03-basic, 21 named args, n_tax=1000, n_samp=100)
+
+## Two runs of the INSTALLED ORIGINAL per fixture
+
+### fx01-basic
+profile: linux-r453-openblas   cases: 1   repeats: 2
+  fx01-basic: no-comparison [original:ok] input=74730d01b998
+exit=0
+    arm=original run=1 rc=3 outcome=error result_sha=None error_sha=25b8aae4edb88c04 bytes=744 pkg_identity=fd42b62f1464f428 is_replacement=FALSE conditions=7
+    arm=original run=2 rc=3 outcome=error result_sha=None error_sha=25b8aae4edb88c04 bytes=744 pkg_identity=fd42b62f1464f428 is_replacement=FALSE conditions=7
+    candidate: not-installed-yet -- S05 builds r/ANCOMBC; until then there is no candidate to compare
+    repeats: {'original': {'n': 2, 'outcomes': ['error'], 'distinct_payload_sha256': ['25b8aae4edb88c04e4e549fae5951f61d2550bc3946c2584dce1c2f27203ca9c'], 'self_deterministic': True}}
+
+### fx02-basic
+profile: linux-r453-openblas   cases: 1   repeats: 2
+  fx02-basic: no-comparison [original:ok] input=c265b4eeea60
+exit=0
+    arm=original run=1 rc=0 outcome=success result_sha=79c7da78139554f2 error_sha=None bytes=58245 pkg_identity=fd42b62f1464f428 is_replacement=FALSE conditions=19
+    arm=original run=2 rc=0 outcome=success result_sha=79c7da78139554f2 error_sha=None bytes=58245 pkg_identity=fd42b62f1464f428 is_replacement=FALSE conditions=19
+    candidate: not-installed-yet -- S05 builds r/ANCOMBC; until then there is no candidate to compare
+    repeats: {'original': {'n': 2, 'outcomes': ['success'], 'distinct_payload_sha256': ['79c7da78139554f2e296be2c8410abeb072d7291715a3aabaabf35b46693eec3'], 'self_deterministic': True}}
+
+### fx03-basic
+profile: linux-r453-openblas   cases: 1   repeats: 2
+  fx03-basic: no-comparison [original:ok] input=df02e517cc96
+exit=0
+    arm=original run=1 rc=0 outcome=success result_sha=0175f5d238f4bae1 error_sha=None bytes=1848544 pkg_identity=fd42b62f1464f428 is_replacement=FALSE conditions=20
+    arm=original run=2 rc=0 outcome=success result_sha=0175f5d238f4bae1 error_sha=None bytes=1848544 pkg_identity=fd42b62f1464f428 is_replacement=FALSE conditions=20
+    candidate: not-installed-yet -- S05 builds r/ANCOMBC; until then there is no candidate to compare
+    repeats: {'original': {'n': 2, 'outcomes': ['success'], 'distinct_payload_sha256': ['0175f5d238f4bae1e68f850ce0aeec2fafd40969dfb92f5f9df89baa436eae90'], 'self_deterministic': True}}
+
+## Runner guard checks
+runner guard checks for profile linux-r453-openblas
+  [PASS] absent_library_rejected
+  [PASS] library_without_ancombc_rejected
+  [PASS] original_refused_as_candidate
+  [PASS] replacement_refused_as_original
+  [PASS] absent_input_rejected
+  [PASS] wrong_input_schema_rejected
+  [PASS] unknown_arm_rejected
+  [PASS] unknown_function_rejected
+exit=0

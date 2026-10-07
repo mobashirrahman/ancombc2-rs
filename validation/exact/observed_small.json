@@ -1,0 +1,82 @@
+{
+  "schema": "ancombc2-exact-observed/1",
+  "profile": "linux-r453-openblas",
+  "observed_by": "scripts/run_exact.py",
+  "cases": [
+    {
+      "id": "fx01-basic"
+    },
+    {
+      "id": "fx02-basic"
+    },
+    {
+      "id": "edge-absent-in-group-a"
+    },
+    {
+      "id": "edge-na-counts"
+    },
+    {
+      "id": "fx02-positional"
+    },
+    {
+      "id": "tiny-assay-alias"
+    },
+    {
+      "id": "tiny-rank-null"
+    },
+    {
+      "id": "tiny-defaults-positional"
+    },
+    {
+      "id": "re2g-rand-bare"
+    },
+    {
+      "id": "tiny-p-adj-bh"
+    },
+    {
+      "id": "tiny-p-adj-bad"
+    },
+    {
+      "id": "tiny-alpha-at-005"
+    },
+    {
+      "id": "tiny-prv-cut-1"
+    },
+    {
+      "id": "tiny-lib-cut-huge"
+    },
+    {
+      "id": "tiny-struc-zero-on"
+    },
+    {
+      "id": "tiny-iter-max-0"
+    },
+    {
+      "id": "tiny-em-max-0"
+    },
+    {
+      "id": "tiny-s0-100"
+    },
+    {
+      "id": "tiny-global-without-group"
+    },
+    {
+      "id": "tiny-struc-zero-without-group"
+    },
+    {
+      "id": "smoke-sim-plnm"
+    },
+    {
+      "id": "tiny-two-group-global"
+    },
+    {
+      "id": "tiny-defaults"
+    },
+    {
+      "id": "smoke-data-sane"
+    },
+    {
+      "id": "smoke-data-sane-bad-formula"
+    }
+  ]
+}

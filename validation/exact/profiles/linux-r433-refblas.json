@@ -1,0 +1,82 @@
+{
+  "schema": "ancombc2-exact-profile/1",
+  "id": "linux-r433-refblas",
+  "role": "secondary",
+  "supportability": "unsupported-for-exact-certification",
+  "purpose": "The runtime the legacy golden fixtures were drawn on. Recorded so that the legacy goldens have a named profile and so that nobody mistakes them for evidence about this profile or any other. It cannot host the installed original, so it certifies nothing.",
+  "why_unsupported": "The pinned DESCRIPTION declares Depends: R (>= 4.5.0). This runtime is R 4.3.3. Measured: `R CMD INSTALL --library=<tmp> reference/ANCOMBC` exits 1 with `ERROR: this R is version 4.3.3, package 'ANCOMBC' requires R >= 4.5.0`. There is no installed original on this runtime, therefore no original-vs-candidate byte comparison can be made here at all.",
+  "what_it_may_still_be_used_for": [
+    "Explaining why the committed goldens under validation/golden are not a certificate for linux-r453-openblas: they were drawn on a different BLAS.",
+    "Re-running the *candidate* deterministically. That is Rust-vs-Rust evidence and never establishes equality with the original."
+  ],
+  "provisioning": {
+    "source_of_truth": "the distribution R at /usr/bin/R",
+    "command": "<system package manager>",
+    "note": "Not provisioned by this project; it is what the host shipped."
+  },
+  "runtime": {
+    "r_version": "4.3.3",
+    "r_platform": "x86_64-pc-linux-gnu",
+    "r_arch": "x86_64",
+    "blas": {
+      "kind": "libblas",
+      "version": "3.12.0",
+      "linked_so": "libblas.so.3.12.0"
+    },
+    "library_path": [
+      "/scratch/mdra00001/rlib",
+      "/usr/local/lib/R/site-library",
+      "/usr/lib/R/site-library",
+      "/usr/lib/R/library"
+    ],
+    "rng_kind": "Mersenne-Twister|Inversion|Rejection",
+    "locale": "LC_CTYPE=C.UTF-8;LC_NUMERIC=C;LC_TIME=C.UTF-8;LC_COLLATE=C.UTF-8;LC_MONETARY=C.UTF-8;LC_MESSAGES=C.UTF-8;LC_PAPER=C.UTF-8;LC_NAME=C;LC_ADDRESS=C;LC_TELEPHONE=C;LC_MEASUREMENT=C.UTF-8;LC_IDENTIFICATION=C",
+    "env": {
+      "R_LIBS_USER": "/scratch/mdra00001/rlib",
+      "LANG": "C.UTF-8",
+      "LC_ALL": "C.UTF-8",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1"
+    },
+    "probe_argv": [
+      "/usr/bin/Rscript",
+      "--vanilla",
+      "scripts/probe_runtime.R"
+    ],
+    "interpreter_note": "The system R declares no ANCOMBC in any of its libraries, so `original.installed` fails. That is the correct preflight result for this profile and is why it is marked unsupported rather than excluded from the verifier.",
+    "interpreter_argv": [
+      "/usr/bin/Rscript",
+      "--vanilla"
+    ],
+    "r_cmd_argv": [
+      "R"
+    ]
+  },
+  "oracle": {
+    "package": "ANCOMBC",
+    "version": "2.15.2",
+    "upstream_commit": "dc4febdf59badb3a8dfe0c767ef2186323c2199a",
+    "upstream_url": "https://github.com/FrederickHuangLin/ANCOMBC",
+    "license": "Artistic-2.0",
+    "depends": "R (>= 4.5.0)",
+    "imports": "stats, DescTools, Hmisc, MASS, Matrix, Rdpack, doParallel,\ndoRNG, energy, foreach, gtools, lme4, lmerTest, multcomp,\nnloptr, parallel, utils, quadprog",
+    "source_dir": "reference/ANCOMBC",
+    "sha256_manifest": "reference/env/oracle.sha256",
+    "installed_library": "<none: R 4.3.3 is below the pinned floor>",
+    "installed_identity_sha256": "<none: not installable on this runtime>",
+    "required_dependency_versions": {}
+  },
+  "host": {
+    "min_physical_cores": 8,
+    "observed_physical_cores": 8,
+    "observed_logical_cpus": 16,
+    "cpu_model": "AMD Ryzen 7 3700X 8-Core Processor",
+    "threads_per_core": 2,
+    "core_requirement_note": "P5 needs >= 16 physical cores (ENV-1); this host has 8 on every profile.",
+    "cgroup_v2_writable": false,
+    "container_engine": "<absent>"
+  },
+  "certified": false,
+  "certification_note": "Never to be certified as an exactness profile on this runtime. To make it usable, install R >= 4.5.0 with reference BLAS, or lower the pinned Depends -- which would change the compatibility target and is not authorised."
+}

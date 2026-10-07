@@ -1,0 +1,81 @@
+# Build the typed native bridge and link it into the replacement package.
+#
+# R's `Makevars` has no notion of Cargo, so the Rust bridge is built first and the
+# resulting shared object is linked here. Two things about that arrangement are
+# worth stating plainly, because both have bitten this repository before:
+#
+#   * `R CMD INSTALL` re-runs `cargo`, which is slow. The fingerprint below makes
+#     it incremental: if no Rust source has changed, cargo is not run at all.
+#     **A campaign or a benchmark must not reinstall the package** -- `R CMD
+#     INSTALL` removes the installed tree first, and a run that resolves ANCOMBC
+#     during that window fails. That happened for real; see
+#     IMPLEMENTATION_STATUS.md.
+#
+#   * the resulting `.so` lives in `src/`, so it is cleaned with the rest of the
+#     package by `R CMD INSTALL --preclean`.
+#
+# Where the Rust sources are
+# --------------------------
+# `RUST_ROOT` is found by walking up from this directory looking for a Cargo
+# workspace. That covers both layouts this repository has:
+#
+#   * a checkout, where the workspace root is three levels up;
+#   * a source archive, where the sources were staged into `src/rust/` and the
+#     staged directory is itself the workspace root.
+#
+# A layout that is neither is a hard error with the paths it tried, rather than a
+# silent fallback to a relative guess: the earlier `RUST_ROOT = ../../..`
+# hard-coded into this file meant the package could only be installed from inside
+# the repository, which is one of the required closures.
+#
+# The release profile is selected from the R version, because a release R package
+# must not ship a debug core. `ANCOMBC_RBRIDGE_SKIP_BUILD=1` links a prebuilt
+# library, for a machine without a Rust toolchain; it is an explicit opt-in and
+# not a fallback.
+
+RUST_BRIDGE_LIB = libancombc2_rbridge.so
+FINGERPRINT = .ancombc2_rbridge_built
+
+# Walk up for a Cargo workspace. `$(dir $(abspath $(lastword $(MAKEFILE_LIST))))`
+# is this file's directory, so the search starts in src/ and goes to the parent.
+RBRIDGE_SRC_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+
+RUST_ROOT := $(firstword $(foreach d,$(RBRIDGE_SRC_DIR) .. ../.. ../../..,$(if $(wildcard $(d)/Cargo.toml),$(d),)))
+RUST_CRATE_DIR := $(if $(RUST_ROOT),$(RUST_ROOT)/crates/ancombc2-rbridge,)
+
+ifeq ($(RUST_ROOT),)
+$(error could not find a Cargo workspace above $(RBRIDGE_SRC_DIR). \
+  Expected one of $(RBRIDGE_SRC_DIR), $(RBRIDGE_SRC_DIR).., $(RBRIDGE_SRC_DIR)../.. \
+  or $(RBRIDGE_SRC_DIR)../../.. to contain a Cargo.toml. \
+  When installing from a source archive the Rust sources must be staged first; \
+  see scripts/stage_rust_sources.sh)
+endif
+
+LIB_SOURCES = $(shell find $(RUST_CRATE_DIR) -name '*.rs' 2>/dev/null) \
+             $(RUST_ROOT)/crates/ancombc2-core/src/*.rs \
+             $(RUST_ROOT)/Cargo.toml
+
+PKG_CPPFLAGS = -I.
+PKG_LIBS = -L. -lancombc2_rbridge -Wl,-rpath,'$$ORIGIN'
+
+all: $(FINGERPRINT)
+
+$(FINGERPRINT): $(LIB_SOURCES)
+	@if ! command -v cargo >/dev/null 2>&1; then \
+	  if [ "$(ANCOMBC_RBRIDGE_SKIP_BUILD)" = "1" ]; then \
+	    echo "*** cargo not found; linking a prebuilt $(RUST_BRIDGE_LIB) as asked."; \
+	  else \
+	    echo "*** cargo not found: the typed native bridge cannot be built."; \
+	    echo "*** Install Rust (https://rustup.rs) and re-install, or set"; \
+	    echo "*** ANCOMBC_RBRIDGE_SKIP_BUILD=1 to link a prebuilt library."; \
+	    exit 1; \
+	  fi; \
+	else \
+	  ( cd $(RUST_ROOT) && cargo build --release -p ancombc2-rbridge ) || exit 1; \
+	  cp $(RUST_ROOT)/target/release/$(RUST_BRIDGE_LIB) . || exit 1; \
+	fi
+	@touch $(FINGERPRINT)
+
+clean:
+	rm -f $(RUST_BRIDGE_LIB) $(FINGERPRINT) ancombc2-rs.so ancombc2_rs.so \
+	      ancombc2-rbridge.so *.o symbols.rds

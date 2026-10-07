@@ -1,0 +1,53 @@
+=== S08 preprocessing and reduction ===
+2026-10-06T01:45:11Z
+
+--- rust ---
+cargo fmt: clean
+    Finished `release` profile [optimized] target(s) in 0.38s
+workspace tests:
+  test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+  test result: ok. 170 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+  test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 7.53s
+  test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 23.28s
+  test result: ok. 10 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 7.64s
+  test result: ok. 18 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+  test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+  test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+  test result: ok. 44 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+  test result: ok. 49 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+  test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+  test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+  test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+  test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+  test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+--- S08 acceptance: stage arrays, bit for bit ---
+ok    neg-lb-off: prevalence1
+
+274/274 stage comparisons passed
+
+--- S06 / S07 / S05 regression ---
+S06 r-bridge-selftest: 0 check(s) failed (32 checks)
+S07 r-output-selftest: 43/43 checks passed
+S05 replacement-check:   [PASS] unknown_argument_is_still_refused
+
+--- provenance ---
+files in package: 53   manifest rows: 53   locally modified: 1
+  modified: NAMESPACE
+UPSTREAM MANIFEST: consistent
+
+=== campaigns (114 then 25), on this exact build ===
+=== S08 campaign pre-flight (after the reduction threading) ===
+4ad5a25e9b27687f06dba6b55a215deea02ff7d39a740ac328d723eec6279892  .rlib/original/ANCOMBC/DESCRIPTION
+e14c56ec41c283a7fcba26cc4efd0d7243ccf26bb3a3af994dace4eb37b0f626  .rlib/replacement/ANCOMBC/DESCRIPTION
+236dfc239d41e17b54edfe67a3cff0199c6433c5ab5813b37b9522f8bdcb17e8  .rlib/replacement/ANCOMBC/libs/ANCOMBC.so
+8feebf14de94070642c42a3fcfa91de7696c6b40e1c4c890cd051e6ef592d5e7  r/ANCOMBC/src/libancombc2_rbridge.so
+
+114-case: 82 byte-identical results + 32 byte-identical errors, 0 problems.
+  make exact-cases-required -> MANIFEST: complete (114 required, 114 observed)
+25-case small: 12 byte-identical results + 13 byte-identical errors, 0 problems.
+  make exact-cases CASESET=small -> MANIFEST: complete (25 required, 25 observed)
+
+Both campaigns ran without a rebuild: the four digests above are identical
+before and after. That check is not ceremony -- an install mid-campaign
+resolves ANCOMBC during the window when the tree is removed, and it failed for real once.
