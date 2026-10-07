@@ -92,8 +92,8 @@ fn sampling_fraction_one(
     p: usize,
     j: usize,
 ) -> f64 {
-    let mut s = 0.0;
-    let mut n = 0usize;
+    let mut terms = Vec::with_capacity(n_taxa);
+    let mut prods = Vec::with_capacity(p);
     for (i, _) in (0..n_taxa).enumerate() {
         let yv = y1.get(i, j);
         // `y1` is a column-major matrix, so the taxon axis is strided; the
@@ -107,21 +107,22 @@ fn sampling_fraction_one(
         // coefficient's term omitted. Propagating the NA instead would make
         // every sample's sampling fraction NA, and `colMeans(..., na.rm =
         // TRUE)` cannot rescue a fully non-finite column.
-        let mut fit = 0.0;
+        // `rowSums(...)` and the `colMeans` below both accumulate in R's
+        // `long double`; `x * beta` is formed in double first, element by element.
+        prods.clear();
         for a in 0..p {
-            let xv = x.get(j, a);
-            let bv = beta_corrected[i * p + a];
-            if xv.is_finite() && bv.is_finite() {
-                fit += xv * bv;
+            let prod = x.get(j, a) * beta_corrected[i * p + a];
+            if !prod.is_nan() {
+                prods.push(prod);
             }
         }
-        s += yv - fit;
-        n += 1;
+        let fit = crate::reduce::long_double_reduce(&prods, None);
+        terms.push(yv - fit);
     }
-    if n == 0 {
+    if terms.is_empty() {
         f64::NAN
     } else {
-        s / n as f64
+        crate::reduce::long_double_reduce(&terms, Some(terms.len()))
     }
 }
 

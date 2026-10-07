@@ -58,8 +58,10 @@
 //! functions for that reason.
 //!
 //! [`F64Reductions::row_means_na_rm`] is the exception: it reduces `log(count +
-//! pseudo)`, which is not integer-valued, so it can disagree with R. It exists for
-//! the CLI and the simulation harness, which have no R to ask. Anything whose
+//! pseudo)`, which is not integer-valued. On x86-64 it now accumulates in an x87
+//! 80-bit register exactly as R's `LONG_DOUBLE` does (see [`long_double_reduce`]), so
+//! it agrees with R there; on other targets it can disagree. It exists for the CLI
+//! and the simulation harness, which have no R to ask. Anything whose
 //! output must be byte-identical to the oracle uses [`Reductions`] and gets
 //! [`RBackedReductions`] (in the bridge) instead.
 
@@ -86,6 +88,70 @@ pub trait Reductions {
 
     /// `rowSums(x, na.rm = TRUE)`.
     fn row_sums_na_rm(&self, m: &RMatrix) -> Vec<f64>;
+}
+
+/// `sum(xs)` the way R's `rowSums`/`colSums`/`rowMeans`/`colMeans` take it, on
+/// x86-64: accumulated **in order in an x87 80-bit register** (64-bit mantissa),
+/// then rounded once to `double`. `n` is the count to divide by, or `None` for a
+/// plain sum; the division, when asked for, is also done in extended precision
+/// (`LDOUBLE sum; sum /= cnt; (double) sum`).
+///
+/// This is what R's `LONG_DOUBLE` *is* on x86-64 Linux, so on that target the
+/// result is R's by construction rather than approximately. Anywhere else R's
+/// `long double` is a different type (binary128 on aarch64, plain `double` on
+/// Windows), and this falls back to a `f64` accumulation that is **not** R's.
+/// Callers that must be right on every platform ask R, via [`Reductions`].
+#[cfg(target_arch = "x86_64")]
+pub fn long_double_reduce(xs: &[f64], n: Option<usize>) -> f64 {
+    use core::arch::asm;
+    let mut out = 0.0f64;
+    let cnt = n.map_or(0i64, |n| n as i64);
+    unsafe {
+        asm!(
+            "fldz",
+            "test {len}, {len}",
+            "jz 3f",
+            "2:",
+            "fadd qword ptr [{ptr}]",
+            "add {ptr}, 8",
+            "dec {len}",
+            "jnz 2b",
+            "3:",
+            "test {has_n}, {has_n}",
+            "jz 4f",
+            "fild qword ptr [{cnt}]",
+            "fxch st(1)",
+            "fdiv st(0), st(1)",
+            "fstp st(1)",
+            "4:",
+            "fstp qword ptr [{out}]",
+            ptr = inout(reg) xs.as_ptr() => _,
+            len = inout(reg) xs.len() => _,
+            has_n = in(reg) usize::from(n.is_some()),
+            cnt = in(reg) &cnt,
+            out = in(reg) &mut out,
+            out("st(0)") _, out("st(1)") _,
+            options(nostack)
+        );
+    }
+    out
+}
+
+#[cfg(not(target_arch = "x86_64"))]
+pub fn long_double_reduce(xs: &[f64], n: Option<usize>) -> f64 {
+    let s: f64 = xs.iter().sum();
+    n.map_or(s, |n| s / n as f64)
+}
+
+/// `mean(xs[!is.na(xs)])` as R's `colMeans`/`rowMeans(na.rm = TRUE)` takes it, or
+/// `NA_real_` when nothing is left.
+pub fn mean_na_rm(xs: impl IntoIterator<Item = f64>) -> f64 {
+    let kept: Vec<f64> = xs.into_iter().filter(|v| !v.is_nan()).collect();
+    if kept.is_empty() {
+        na_real()
+    } else {
+        long_double_reduce(&kept, Some(kept.len()))
+    }
 }
 
 /// R's `NA_real_`, as bits.
@@ -135,28 +201,15 @@ pub struct F64Reductions;
 
 impl Reductions for F64Reductions {
     fn row_means_na_rm(&self, m: &RMatrix) -> Vec<f64> {
-        let mut out = Vec::with_capacity(m.rows);
-        for i in 0..m.rows {
-            let mut s = 0.0f64;
-            let mut n = 0usize;
-            for &v in m.row(i) {
-                if !v.is_nan() {
-                    s += v;
-                    n += 1;
-                }
-            }
-            out.push(if n == 0 { na_real() } else { s / n as f64 });
-        }
-        out
+        (0..m.rows)
+            .map(|i| mean_na_rm(m.row(i).iter().copied()))
+            .collect()
     }
 
     fn col_means_na_rm(&self, m: &RMatrix) -> Vec<f64> {
-        let mut sums = self.col_sums_na_rm(m);
-        let counts = self.col_counts(m);
-        for (s, &n) in sums.iter_mut().zip(counts.iter()) {
-            *s = if n == 0 { na_real() } else { *s / n as f64 };
-        }
-        sums
+        (0..m.cols)
+            .map(|j| mean_na_rm((0..m.rows).map(|i| m.get(i, j))))
+            .collect()
     }
 
     fn col_sums_na_rm(&self, m: &RMatrix) -> Vec<f64> {
@@ -638,28 +691,29 @@ mod tests {
         assert_ne!(0.0, nonzero as f64 / observed as f64);
     }
 
-    /// The case that motivates the whole module, with R's own answers.
+    /// The case that motivates the whole module, with R's own answer.
     ///
     /// `rowMeans(c(1e16, 1, -1e16, 1e-17, 1))` is `0x1.999999999999ap-2` on the
-    /// primary profile: R's `long double` kept the `+1` that an `f64` sum loses,
-    /// so it sums to 2 where `f64` sums to 1. This test cannot assert R's value —
-    /// it has no R — so it asserts the *direction* and magnitude of the gap, and
-    /// the R-side comparator in `scripts/check_preprocess_stages.R` asserts R's
-    /// exact bits.
+    /// primary profile: R's `long double` kept the `+1` that an `f64` sum loses, so
+    /// it sums to 2 where `f64` sums to 1. On x86-64 `F64Reductions` now reproduces
+    /// that with an x87 accumulator and the test asserts R's exact bits; elsewhere R's
+    /// `long double` is a different type, so it keeps the old `f64` answer and the
+    /// test records that it is *not* R's.
     #[test]
     fn a_cancelling_sum_is_where_f64_and_r_disagree() {
         let y = [1e16, 1.0, -1e16, 1e-17, 1.0];
         let f64_sum: f64 = y.iter().sum();
         assert_eq!(f64_sum, 1.0, "the f64 sum loses the +1 as expected");
-        // The exact sum is 2 + 1e-17, so an accumulator with more than 53 bits of
-        // mantissa reports something near 0.4 rather than 0.2. `F64Reductions`
-        // reports 0.2, and that is the bug this records.
         let got = F64Reductions.row_means_na_rm(&m(1, 5, &y))[0];
-        assert_eq!(got, 0.2);
-        assert!(
-            got < 0.3,
-            "this test is worthless unless f64 really loses it"
-        );
+        if cfg!(target_arch = "x86_64") {
+            assert_eq!(
+                got.to_bits(),
+                0x3FD9_9999_9999_999A,
+                "R's 0x1.999999999999ap-2"
+            );
+        } else {
+            assert_eq!(got, 0.2, "no x87 here: the f64 answer, which is not R's");
+        }
     }
 }
 
@@ -778,5 +832,31 @@ mod split_tests {
             split.sub_rows_in_place(&means);
             assert!(same_bits(&whole.data, &split.data), "pseudo {pseudo}");
         }
+    }
+}
+
+#[cfg(all(test, target_arch = "x86_64"))]
+mod long_double_tests {
+    use super::*;
+
+    /// The case this module's header documents: `rowMeans(c(1e16, 1, -1e16, 1e-17, 1))`
+    /// is `0.4` (`0x1.999999999999ap-2`) in R, because the sum keeps the small terms,
+    /// and `0.2` from an `f64` loop.
+    #[test]
+    fn cancelling_sum_keeps_its_small_terms() {
+        let v = [1e16, 1.0, -1e16, 1e-17, 1.0];
+        assert_eq!(mean_na_rm(v).to_bits(), 0x3FD9_9999_9999_999A);
+        assert_eq!(v.iter().sum::<f64>() / 5.0, 0.2);
+    }
+
+    #[test]
+    fn plain_sum_and_empty_and_nan() {
+        assert_eq!(long_double_reduce(&[1.0, 2.0, 3.5], None), 6.5);
+        assert_eq!(long_double_reduce(&[], None), 0.0);
+        assert_eq!(mean_na_rm([f64::NAN, 4.0, 2.0]), 3.0);
+        assert_eq!(mean_na_rm([f64::NAN]).to_bits(), NA_REAL_BITS);
+        assert_eq!(mean_na_rm([1.0, 2.0]), 1.5);
+        assert_eq!(mean_na_rm([1.0, 1.0, 1.0]), 1.0);
+        assert_eq!(mean_na_rm([f64::INFINITY, 1.0]), f64::INFINITY);
     }
 }

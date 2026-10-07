@@ -413,18 +413,68 @@ fn dqrsl_1110<B: Blas>(
     }
 }
 
-/// R's `dqrls` for a single response. `x` (`n x p`, column-major) is consumed as
-/// the QR workspace, as R's own copy is.
-pub fn dqrls<B: Blas>(mut x: Vec<f64>, n: usize, p: usize, y: &[f64], tol: f64) -> DqrlsFit {
+/// `dqrls` for several responses sharing one design, as `lm.fit(x, Y)` runs it:
+/// one `dqrdc2`, then one `dqrsl` per response column.
+#[derive(Debug, Clone)]
+pub struct DqrlsMulti {
+    pub rank: usize,
+    /// 0-based; `pivot[j]` is the original column now in position `j`.
+    pub pivot: Vec<usize>,
+    /// Per response: coefficients in *pivoted* order (`rank..p` are `0`).
+    pub coef: Vec<Vec<f64>>,
+    /// Per response: `dqrls`' residuals. `lm.fit`'s fitted values are `y - resid`.
+    pub resid: Vec<Vec<f64>>,
+}
+
+/// R's `dqrls`. `x` (`n x p`, column-major) is consumed as the QR workspace, as
+/// R's own copy is.
+pub fn dqrls_multi<B: Blas>(
+    mut x: Vec<f64>,
+    n: usize,
+    p: usize,
+    ys: &[&[f64]],
+    tol: f64,
+) -> DqrlsMulti {
     let mut qraux = vec![0.0; p];
     let mut jpvt: Vec<usize> = (0..p).collect();
     let mut work = vec![0.0; 2 * p];
     let k = dqrdc2::<B>(&mut x, n, p, tol, &mut qraux, &mut jpvt, &mut work);
+    let (mut coefs, mut resids) = (Vec::with_capacity(ys.len()), Vec::with_capacity(ys.len()));
+    let mut qty = vec![0.0; n];
+    for y in ys {
+        let mut coef = vec![0.0; p];
+        let mut resid = vec![0.0; n];
+        if k > 0 {
+            dqrsl_1110::<B>(&mut x, n, k, &qraux, y, &mut qty, &mut coef, &mut resid);
+        } else {
+            resid.copy_from_slice(&y[..n]);
+        }
+        for c in coef.iter_mut().skip(k) {
+            *c = 0.0;
+        }
+        coefs.push(coef);
+        resids.push(resid);
+    }
+    DqrlsMulti {
+        rank: k,
+        pivot: jpvt,
+        coef: coefs,
+        resid: resids,
+    }
+}
+
+/// R's `dqrls` for a single response, keeping `qty` and `qraux` for inspection.
+pub fn dqrls<B: Blas>(x: Vec<f64>, n: usize, p: usize, y: &[f64], tol: f64) -> DqrlsFit {
+    let mut xx = x;
+    let mut qraux = vec![0.0; p];
+    let mut jpvt: Vec<usize> = (0..p).collect();
+    let mut work = vec![0.0; 2 * p];
+    let k = dqrdc2::<B>(&mut xx, n, p, tol, &mut qraux, &mut jpvt, &mut work);
     let mut coef = vec![0.0; p];
     let mut qty = vec![0.0; n];
     let mut resid = vec![0.0; n];
     if k > 0 {
-        dqrsl_1110::<B>(&mut x, n, k, &qraux, y, &mut qty, &mut coef, &mut resid);
+        dqrsl_1110::<B>(&mut xx, n, k, &qraux, y, &mut qty, &mut coef, &mut resid);
     } else {
         resid.copy_from_slice(&y[..n]);
     }
@@ -438,5 +488,47 @@ pub fn dqrls<B: Blas>(mut x: Vec<f64>, n: usize, p: usize, y: &[f64], tol: f64) 
         qraux,
         pivot: jpvt,
         rank: k,
+    }
+}
+
+/// Which BLAS the process's R is linked to, and therefore which rounding the fit
+/// must reproduce. The R bridge sets this once at load from a calibration against
+/// R's own `Cdqrls`; anything without R keeps [`BlasKind::Reference`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BlasKind {
+    Reference,
+    /// OpenBLAS Haswell/Zen kernels (x86-64 only).
+    OpenBlasHaswell,
+}
+
+static BLAS_KIND: std::sync::atomic::AtomicU8 = std::sync::atomic::AtomicU8::new(0);
+
+pub fn set_blas_kind(k: BlasKind) {
+    let v = match k {
+        BlasKind::Reference => 0,
+        BlasKind::OpenBlasHaswell => 1,
+    };
+    BLAS_KIND.store(v, std::sync::atomic::Ordering::Relaxed);
+}
+
+pub fn blas_kind() -> BlasKind {
+    match BLAS_KIND.load(std::sync::atomic::Ordering::Relaxed) {
+        1 => BlasKind::OpenBlasHaswell,
+        _ => BlasKind::Reference,
+    }
+}
+
+/// [`dqrls_multi`] with the process's selected BLAS.
+pub fn dqrls_multi_selected(
+    x: Vec<f64>,
+    n: usize,
+    p: usize,
+    ys: &[&[f64]],
+    tol: f64,
+) -> DqrlsMulti {
+    match blas_kind() {
+        #[cfg(target_arch = "x86_64")]
+        BlasKind::OpenBlasHaswell => dqrls_multi::<OpenBlasHaswell<false>>(x, n, p, ys, tol),
+        _ => dqrls_multi::<RefBlas>(x, n, p, ys, tol),
     }
 }

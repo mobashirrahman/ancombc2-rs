@@ -40,7 +40,7 @@
 
 use crate::config::IterControl;
 use crate::error::{AncombcError, Result};
-use crate::matrix::{qr, Matrix, Qr};
+use crate::matrix::{dqrls_multi_selected, Matrix, LM_FIT_TOL};
 use crate::vcov::{sandwich_all, OuterProducts};
 
 /// Cached per-pattern factorisations, built once and reused across iterations.
@@ -115,15 +115,15 @@ impl DesignCache {
         }
     }
 
-    /// The sub-design for pattern `g`, and its QR factorisation.
+    /// The sub-design for pattern `g`.
     ///
-    /// Name-free: the factorisation indexes the sub-design by row number, and one
-    /// `String` per row per pattern was the run's largest allocation source long
-    /// before the retention was questioned. See [`Matrix::select_rows_anon`].
-    pub fn build_pattern(&self, g: usize) -> (Matrix, Qr) {
-        let xr = self.x.select_rows_anon(&self.rows[g]);
-        let q = qr(&xr);
-        (xr, q)
+    /// Name-free: the fit indexes the sub-design by row number, and one `String`
+    /// per row per pattern was the run's largest allocation source long before the
+    /// retention was questioned. See [`Matrix::select_rows_anon`]. The
+    /// factorisation is R's `dqrdc2`, run by [`dqrls_multi_selected`] where the
+    /// responses are known.
+    pub fn build_pattern(&self, g: usize) -> Matrix {
+        self.x.select_rows_anon(&self.rows[g])
     }
 }
 
@@ -173,51 +173,6 @@ struct GroupWrites {
 /// `g` indexes `cache`'s per-pattern arrays. An empty `rows` yields nothing, which
 /// leaves the caller-initialised `NA`/`999` in place -- `.lm_fit_all`'s
 /// "no usable sample" branch, where `fit_one` fails and the taxon stays at NA.
-/// `X b` for one taxon's coefficient vector, `X` being a column-major
-/// `n_rows x p` sub-design.
-///
-/// # Why not the obvious order
-///
-/// The natural loop -- for each sample `ri`, take all `p` taps -- reads
-/// `x.data[a * n_rows + ri]` with a stride of `n_rows` elements between taps. Each
-/// tap lands on a different cache line, and none is reused by the next sample: the
-/// whole sub-design is `n_rows * p * 8` bytes, which on the `bm5` benchmark
-/// (`p = 10`, `n_rows = 20000`, so 1.6 MB per column) does not stay in cache. That
-/// is ten cache misses per fitted value, and `lm_fit_all` evaluates one fitted
-/// value per taxon per sample per MLE iteration.
-///
-/// Transposing `X` first was tried and is *slower*: the transpose itself writes
-/// `rm[ri * p + a]` for a fixed `a` over all `ri`, so it is a strided write over
-/// the whole block and pays the same penalty it was meant to remove.
-///
-/// So the coefficient loop goes outermost and the sample loop innermost. Each
-/// column of `X` is then read sequentially, `coef[a]` stays in a register, and the
-/// accumulators are a single sequential read-modify-write pass.
-///
-/// # Bit-exactness
-///
-/// The accumulation order per output is unchanged: still ascending `a`, and still
-/// one multiply-accumulate per coefficient. The only difference is that each
-/// accumulator starts at `0.0` and takes its first product as `0.0 + x[b]`, which
-/// is exact -- `0.0 + v == v` for every `f64` including signed zero. The golden
-/// parity and `thread_invariance` both confirm the output is bit-identical.
-fn fit_values(x: &Matrix, coef: &[f64], out: &mut [f64]) {
-    let p = coef.len();
-    let n_rows = x.rows;
-    debug_assert_eq!(out.len(), n_rows);
-    debug_assert_eq!(x.cols, p);
-    for v in out.iter_mut() {
-        *v = 0.0;
-    }
-    for a in 0..p {
-        let col = &x.data[a * n_rows..(a + 1) * n_rows];
-        let b = coef[a];
-        for ri in 0..n_rows {
-            out[ri] += col[ri] * b;
-        }
-    }
-}
-
 fn fit_one_group(cache: &DesignCache, y: &[f64], n_samp: usize, g: usize) -> GroupWrites {
     let p = cache.p;
     let taxa = &cache.taxa[g];
@@ -231,9 +186,18 @@ fn fit_one_group(cache: &DesignCache, y: &[f64], n_samp: usize, g: usize) -> Gro
     // Built here, not cached: see `DesignCache::x`. The factorisation is
     // `O(n_rows p^2)` against `O(n_rows p)` to apply it, so for the one-taxon
     // patterns that dominate real tables this is a win on time as well as memory.
-    let (xsub, q) = cache.build_pattern(g);
-    let (xsub, q) = (&xsub, &q);
-    if q.rank < p {
+    let xsub = cache.build_pattern(g);
+    let xsub = &xsub;
+    // `stats::lm.fit(xr, Yr)`: R's `dqrls`, one factorisation of the design and one
+    // solve per response column. Run before the rank test because the reference's
+    // rank test *is* this fit's rank.
+    let yr: Vec<Vec<f64>> = taxa
+        .iter()
+        .map(|&t| rows.iter().map(|&s| y[t * n_samp + s]).collect())
+        .collect();
+    let ycols: Vec<&[f64]> = yr.iter().map(Vec::as_slice).collect();
+    let fit = dqrls_multi_selected(xsub.data.clone(), rows.len(), p, &ycols, LM_FIT_TOL);
+    if fit.rank < p {
         // Rank-deficient sub-design. The reference does not pseudo-solve; it
         // refits every taxon of the group on its own with `lm`, and `lm`
         // *drops* an aliased column from `coef()`. `.lm_fit_all` then writes
@@ -342,15 +306,27 @@ fn fit_one_group(cache: &DesignCache, y: &[f64], n_samp: usize, g: usize) -> Gro
                 })
                 .collect();
             let red = xsub.select_cols(&cols);
-            let red_qr = qr(&red);
-            let Some(solved) = red_qr.solve_padded(&resp) else {
+            // `stats::lm` -> `lm.fit`: the same `dqrls`, on the reduced design.
+            let red_fit = dqrls_multi_selected(
+                red.data.clone(),
+                rows.len(),
+                cols.len(),
+                &[resp.as_slice()],
+                LM_FIT_TOL,
+            );
+            if red_fit.rank == 0 {
                 continue;
-            };
+            }
             // `fit_one`'s `bi = rep(0, p)`: a column with no name in `coef()` keeps
-            // the initialiser, so it is a literal 0 rather than `NA`.
+            // the initialiser, so it is a literal 0 rather than `NA`. A named but
+            // aliased column is `NA` (`lm.fit` fills those slots after unpivoting).
             let mut coef = vec![0.0f64; p];
-            for (c, &j) in cols.iter().enumerate() {
-                coef[j] = solved[c];
+            for (pos, &pc) in red_fit.pivot.iter().enumerate() {
+                coef[cols[pc]] = if pos < red_fit.rank {
+                    red_fit.coef[0][pos]
+                } else {
+                    f64::NAN
+                };
             }
             // `stats::fitted` is `lm.fit`'s *projection*, not `X %*% coef(fit)`.
             // That distinction is invisible for a full-rank fit and decisive for a
@@ -373,46 +349,36 @@ fn fit_one_group(cache: &DesignCache, y: &[f64], n_samp: usize, g: usize) -> Gro
             // least-squares fit in that space. What `coef()` reports as `NA` is
             // only the fact that the coordinate is not identified; the fitted
             // values are.
-            let mut fitted_row = vec![0.0; rows.len()];
-            let fit_coef: Vec<f64> = coef
+            // And it is computed the way `lm.fit` computes it: `y - residuals`,
+            // not `X %*% coef`, which differ in the low bits.
+            let fitted_row: Vec<f64> = resp
                 .iter()
-                .map(|&c| if c.is_nan() { 0.0 } else { c })
+                .zip(&red_fit.resid[0])
+                .map(|(yv, r)| yv - r)
                 .collect();
-            fit_values(xsub, &fit_coef, &mut fitted_row);
             out.fitted.push((t, fitted_row));
             out.beta.push((t, coef));
             // `fit$df.residual` is measured on the *reduced* model, so the rank
             // that goes with it is the reduced rank.
-            out.dof.push((t, (rows.len() - red_qr.rank) as f64));
+            out.dof.push((t, (rows.len() - red_fit.rank) as f64));
         }
         return out;
     }
-    // Yr is n_used x n_taxa_in_group, column-major, so each taxon is a column
-    let mut yr = vec![0.0; rows.len() * taxa.len()];
+    // Full rank, so `dqrdc2` moved nothing and `pivot` is the identity: the
+    // coefficients are already in design-column order.
+    debug_assert!(fit.pivot.iter().enumerate().all(|(i, &j)| i == j));
     for (k, &t) in taxa.iter().enumerate() {
-        for (ri, &s) in rows.iter().enumerate() {
-            yr[k * rows.len() + ri] = y[t * n_samp + s];
-        }
-    }
-    // The block is solved *in place*: `solve_multi` used to take it by
-    // reference and clone it, which on the 1000 x 10000 benchmark surface was
-    // 5.4 GB of allocation churn -- one extra copy of a
-    // `n_used x taxa_in_group` block, per group, per MLE iteration. The
-    // solution lands in `yr`'s first `p` rows, un-permuted, and the rows
-    // below hold garbage that is never read.
-    let mut bmat = Matrix::from_vec(rows.len(), taxa.len(), yr).expect("n_used x n_group");
-    if q.solve_multi_into(&mut bmat).is_none() {
-        return out;
-    }
-    let sol = &bmat;
-    for (k, &t) in taxa.iter().enumerate() {
-        let sol_col: Vec<f64> = (0..p).map(|a| sol.get(a, k)).collect();
-        let mut fitted_row = vec![0.0; rows.len()];
-        fit_values(xsub, &sol_col, &mut fitted_row);
+        // `fitted.values <- y - z$residuals`
+        let fitted_row: Vec<f64> = yr[k]
+            .iter()
+            .zip(&fit.resid[k])
+            .map(|(yv, r)| yv - r)
+            .collect();
         out.fitted.push((t, fitted_row));
-        out.beta.push((t, (0..p).map(|a| sol.get(a, k)).collect()));
+        out.beta.push((t, fit.coef[k].clone()));
     }
-    let df = (rows.len() - p) as f64;
+    // `df.residual = n - rank`
+    let df = (rows.len() - fit.rank) as f64;
     out.dof.extend(taxa.iter().map(|&t| (t, df)));
     out
 }
@@ -838,19 +804,16 @@ fn theta_new(y: &[f64], fitted: &[f64], n_taxa: usize, n_samp: usize) -> Vec<f64
     let mut lvl = crate::parallel::NestingBudget::level("taxa (per-sample means)");
     let samples: Vec<usize> = (0..n_samp).collect();
     crate::parallel::map_par(&mut lvl, &samples, |_k, &j| {
-        let mut s = 0.0;
-        let mut n = 0usize;
-        for i in 0..n_taxa {
-            let d = y[i * n_samp + j] - fitted[i * n_samp + j];
-            if d.is_finite() {
-                s += d;
-                n += 1;
-            }
-        }
-        if n == 0 {
+        // `colMeans(y - fitted, na.rm = TRUE)`: the difference is formed in double,
+        // then summed and divided in R's `long double`. `na.rm` skips NaN only.
+        let d = (0..n_taxa).map(|i| y[i * n_samp + j] - fitted[i * n_samp + j]);
+        let mean = crate::reduce::mean_na_rm(d);
+        // An all-NaN column is `NaN` here, as before, not `NA_real_`: the iteration
+        // tests it with `is_nan`, and the payload is not part of any stage output.
+        if mean.is_nan() {
             f64::NAN
         } else {
-            s / n as f64
+            mean
         }
     })
 }
