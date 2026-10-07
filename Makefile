@@ -353,6 +353,22 @@ exact-env-check:
 	$(PYTHON) scripts/verify_profile.py --profile $(PROFILE_JSON) \
 	    --json-out $(EXACT_DIR)/profiles/$(PROFILE).report.json
 
+# The Rust transcription of R's `Cdqrls` (dqrdc2 + dqrsl) against R itself, bit
+# for bit, under one certified profile. DQRLS_BLAS names the BLAS that profile's R
+# is linked to: `ref` (netlib) or `haswell` (OpenBLAS Haswell/Zen kernels).
+# OpenBLAS threads `ddot`/`daxpy` above n = 10000, which makes R's own answer
+# depend on its thread count, so the profile pins one BLAS thread.
+DQRLS_BLAS ?= haswell
+DQRLS_CASES ?= $(CURDIR)/validation/exact/evidence/dqrls_cases_$(PROFILE).bin
+.PHONY: dqrls-vs-r
+dqrls-vs-r:
+	OPENBLAS_NUM_THREADS=1 $(PYTHON) scripts/with_profile_r.py --profile $(PROFILE_JSON) \
+	    scripts/make_dqrls_cases.R $(DQRLS_CASES)
+	DQRLS_BLAS=$(DQRLS_BLAS) DQRLS_CASES=$(DQRLS_CASES) \
+	    cargo test --release -p ancombc2-core --test dqrls_vs_r -- --nocapture
+	@rm -f $(DQRLS_CASES)
+
+
 # The negative checks: every mutation of the profile must produce a non-zero
 # preflight, and must trip the check it was designed to exercise. Run this when
 # verify_profile.py changes; a preflight that cannot fail is not a preflight.
